@@ -1,0 +1,224 @@
+const categoryShapes = {
+  general: [
+    {
+      label: 'State',
+      userObject: [
+        {
+          name: "type",
+          type: "string",
+          defaultValue: "state"
+        },
+        {
+          name: "custom",
+          type: "string",
+          defaultValue: "example"
+        }
+      ],
+      width: 75,
+      height: 75,
+      style: {
+        shape: 'ellipse',
+        fillColor: '#FFFFFF',
+        strokeColor: '#424242',
+        aspect: 'fixed',
+        fontSize: 16
+      }
+    },
+
+
+    // {
+    //   label: 'Traffic Light',
+    //   userObject: [
+    //     {
+    //       name: "Green Duration (seconds)",
+    //       type: "int",
+    //       defaultValue: 10
+    //     },
+    //     {
+    //       name: "Yellow Duration (seconds)",
+    //       type: "int",
+    //       defaultValue: 3
+    //     },
+    //     {
+    //       name: "Red Duration (seconds)",
+    //       type: "int",
+    //       defaultValue: 13
+    //     }
+    //   ],
+    //   width: 120,
+    //   height: 60,
+    //   style: {
+    //     shape: 'rectangle',
+    //     rounded: 1,
+    //     arcSize: 20,
+    //     fillColor: '#FFEB3B',
+    //     strokeColor: '#FBC02D',
+    //     fontSize: 16
+    //   }
+    // },
+
+
+    {
+      label: 'Counter',
+      userObject: [
+        {
+          name: "Counting Frequency (seconds)",
+          type: "int",
+          defaultValue: 3
+        },
+        {
+          name: "Initial Count",
+          type: "int",
+          defaultValue: 0
+        },
+        {
+          name: "Counting Direction",
+          type: "dropdown:Up/Down",
+          defaultValue: "Up"
+        },
+        {
+          name: "Count Increment",
+          type: "int",
+          defaultValue:1
+        },
+        {
+          name: "Minimum Count",
+          type: "int",
+          defaultValue: 0
+        },
+        {
+          name: "Maximum Count",
+          type: "int",
+          defaultValue: 100
+        }
+      ],
+      width: 120,
+      height: 60,
+      style: {
+        shape: 'rectangle',
+        rounded: 1,
+        arcSize: 20,
+        fillColor: '#FFEB3B',
+        strokeColor: '#FBC02D',
+        fontSize: 16
+      }
+    },
+
+
+    {
+      label: 'Integer \nGenerator',
+      userObject: [
+        {
+          name: "Output Frequency",
+          type: "double",
+          defaultValue: 5.0
+        },
+        {
+          name: "Minimum Value",
+          type: "int",
+          defaultValue: 0
+        },
+        {
+          name: "Maximum Value",
+          type: "int",
+          defaultValue: 10
+        }
+      ],
+      width: 120,
+      height: 60,
+      style: {
+        shape: 'rectangle',
+        rounded: 1,
+        arcSize: 20,
+        fillColor: '#90CAF9',
+        strokeColor: '#1E88E5',
+        fontSize: 16
+      }
+    },
+
+
+    {
+      label: 'Boolean \nGenerator',
+      userObject: [
+        {
+          name: "Output Frequency",
+          type: "double",
+          defaultValue: 5.0
+        },
+        {
+          name: "Initial Value",
+          type: "bool",
+          defaultValue: "true"
+        },
+        {
+          name: "Output Generation",
+          type: "dropdown:Random/Alternating",
+          defaultValue: "Random"
+        }
+      ],
+      width: 120,
+      height: 60,
+      style: {
+        shape: 'rectangle',
+        rounded: 1,
+        arcSize: 20,
+        fillColor: '#90CAF9',
+        strokeColor: '#1E88E5',
+        fontSize: 16
+      }
+    },
+
+
+    {
+      label: '',
+      userObject: [
+        {
+          name: "Green Duration (seconds)",
+          type: "int",
+          defaultValue: 10
+        },
+        {
+          name: "Yellow Duration (seconds)",
+          type: "int",
+          defaultValue: 3
+        },
+        {
+          name: "Red Duration (seconds)",
+          type: "int",
+          defaultValue: 13
+        }
+      ],
+      width: 80,
+      height: 80,
+      style: {
+        shape: 'image',
+        src: './images/traffic_light.png',  // image path stays in style
+        fontSize: 16,
+      }
+    },
+
+
+    // {
+    //   label: 'Custom \nImage',
+    //   userObject: [
+    //     {
+    //       name: "type",
+    //       type: "string",
+    //       defaultValue: "custom"
+    //     }
+    //   ],
+    //   width: 80,
+    //   height: 80,
+    //   style: {
+    //     shape: 'image',
+    //     src: './images/temp_int.png',  // image path stays in style
+    //     fontSize: 16,
+    //   }
+    // },
+
+
+  ],
+  aviation: []
+};
+
+

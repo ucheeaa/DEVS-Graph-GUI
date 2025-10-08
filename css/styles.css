@@ -1,0 +1,321 @@
+/* ===== Define layout variables ===== */
+:root {
+    --title-height: 40px;
+    --menubar-height: 35px;
+    --toolbar-height: 25px;
+    --footer-height: 30px;
+    --left-palette-width: 180px;
+    --right-palette-width: 200px;
+    --bottom-palette-height: 100px;
+    --graph-bg: url('../mxgraph-4.2.2/javascript/examples/editors/images/grid.gif');
+    
+}
+
+/* ===== Page setup ===== */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* toolbar on top, content below */
+}
+
+/* ===== Title bar ===== */
+#titleBar {
+    height: var(--title-height);
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    border-bottom: 1px solid #999;
+}
+
+/* ===== Menubar ===== */
+#menubar {
+    display: flex;
+    justify-content: space-between; /* left & right at edges */
+    align-items: center;
+    height: var(--menubar-height);
+    padding: 0 10px;
+    background: #eee;
+    border-bottom: 1px solid #ccc;
+}
+
+#menubar .left,
+#menubar .right {
+    display: flex;
+    gap: 8px; /* optional, remove if not needed */
+}
+
+
+/* ===== Toolbar ===== */
+#toolbar {
+    height: var(--toolbar-height);             /* fixed height */
+    background-color: #ddd;   /* distinguish from menu bar */
+    display: flex;
+    align-items: center;      /* vertical center */
+    padding: 0 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+#toolbar button {
+    margin-right: 8px;
+}
+
+/* Dropdown container */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Dropdown button styling */
+.dropbtn {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+/* Dropdown content & submenu content (hidden by default) */
+.dropdown-content,
+.submenu-content {
+    display: none;
+    position: absolute;
+    background: #fff;
+    border: 1px solid #ccc;
+    min-width: 160px;
+    z-index: 1;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Dropdown and submenu buttons */
+.dropdown-content button,
+.submenu-content button,
+.submenu-btn {
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+}
+
+.dropdown-content button {
+    padding: 10px;
+}
+
+.submenu-btn {
+    padding: 8px;
+}
+
+/* Hover effect */
+.dropdown-content button:hover,
+.submenu-content button:hover {
+    background-color: #eee;
+}
+
+/* Show dropdown when .show class is applied or hovered */
+.dropdown.show .dropdown-content,
+.dropdown:hover .dropdown-content,
+.dropdown-submenu:hover .submenu-content {
+    display: block;
+}
+
+/* Submenu styling */
+.dropdown-submenu {
+    position: relative;
+}
+
+.submenu-content {
+    left: 100%;   /* moves submenu to the right */
+    top: 0;
+    z-index: 2;
+}
+
+
+/* ===== Content area (palettes + graph) ===== */
+#content {
+    flex: 1;
+    /* fill remaining height */
+    display: flex;
+    /* horizontal layout: left palette, graph, right palette */
+}
+
+/* ===== Left palette ===== */
+/* Left Palette Container */
+
+#leftPalette {
+    width: var(--left-palette-width);
+    background-color: #f7f7f7;
+    border-right: 1px solid #ccc;
+    padding: 10px;
+
+    /* Flex layout to put items above and dropdown at bottom */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%; /* fill full palette height */
+    box-sizing: border-box;
+}
+
+  #content { display:flex; height:100vh; }
+
+  #palette-shapes {
+    flex:1;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:10px;
+    align-items:center;
+  }
+
+  #palette-category {
+    display:flex;
+    flex-direction:column;
+    padding-top:5px;
+  }
+
+  .palette-item {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    user-select:none;
+    padding:0;
+    background:none;
+    border:none;
+  }
+
+  .palette-canvas {
+    flex-shrink:0;
+    background:none;
+    border:none;
+    cursor: grab;
+  }
+
+  #graphContainer {
+    flex:1;
+    position:relative;
+    overflow:hidden;
+    user-select:none;
+  }
+
+  .drag-ghost {
+    position:absolute;
+    pointer-events:none;
+    z-index:1000;
+  }
+
+
+/* ===== Right palette ===== */
+#rightPalette {
+    width: var(--right-palette-width);
+    background-color: #f7f7f7;
+    border-left: 1px solid #ccc;
+    overflow-y: auto;           /* scroll when content is too tall */
+}
+
+#rightPalette {
+    background-color: #f5f5f5;
+    border-left: 1px solid #ccc;
+    padding: 10px;
+    box-sizing: border-box;
+
+    position: relative;
+}
+
+#rightPalette h3 {
+    margin-top: 0;
+    font-size: 16px;
+    text-align: center;
+}
+
+#propertiesContent em {
+    display: block;
+    text-align: center;
+    font-style: italic;
+    color: #777;
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+}
+
+#rightPalette .property-item input[type="number"] {
+    width: 60px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.property-item {
+    display: flex;
+    flex-direction: column; /* stack label and input vertically */
+    margin-bottom: 12px;    /* space between properties */
+}
+
+.property-item label {
+    font-weight: bold;
+    margin-bottom: 4px;     /* space between label and input */
+}
+
+.property-item input {
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+
+/* ===== Central area: vertical flex for graph + bottom palette ===== */
+#centralArea {
+    flex: 1;
+    /* fill horizontal space between side palettes */
+    display: flex;
+    flex-direction: column;
+    /* graph on top, bottom palette below */
+    overflow: hidden;
+}
+
+/* ===== Graph container ===== */
+#graphContainer {
+    flex: 1;
+    /* fill horizontal + vertical space left by palettes */
+    background: var(--graph-bg);
+    overflow: hidden;
+
+      /* position: relative; */
+      /* background: #f0f0f0; */
+}
+
+/* ===== Bottom Palette ===== */
+#bottomPalette {
+    height: var(--bottom-palette-height);
+    background-color: #ddd;
+    border-top: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+/* ===== Footer ===== */
+#footer {
+    height: var(--footer-height);
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-top: 1px solid #ccc;
+}
+
+#footer .right {
+    margin-left: auto; /* pushes this div to the right */
+    display: flex;
+    gap: 8px; /* optional spacing between buttons */
+    align-items: center;
+}
+
+

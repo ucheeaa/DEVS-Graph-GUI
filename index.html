@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DEVS Graph</title>
+
+    <!-- Ignores favicon.ico error (temp) -->
+    <link rel="icon" href="data:,">
+
+    <!-- Set the base path for mxGraph -->
+    <script>
+        mxBasePath = './mxgraph-4.2.2/javascript/src';
+    </script>
+
+    <!-- Load mxGraph library -->
+    <script src="./mxgraph-4.2.2/javascript/mxClient.js"></script>
+
+    <script src="./models/test_models.js"></script>
+    <!-- External Stylesheets -->
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+    <div id="titleBar">DEVS Graph</div>
+
+
+    <div id="menubar">
+        <div class="left">
+            <div class="dropdown" id="fileDropdown">
+                <button class="dropbtn">File</button>
+                <div class="dropdown-content">
+                    <button id="newBtn">New</button>
+                    <button id="loadBtn">Load</button>
+                    <button id="saveBtn">Save</button>
+                    <button id="printBtn">Print</button>
+                    <!-- Convert SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Convert ▸</button>
+                        <div class="submenu-content">
+                            <button id="convertMapToTraceBtn">DEVSMap (.zip) to Trace Viewer</button>
+                            <!-- <button id="convertCadmiumToMapBtn">Cadmium Project (.zip) to DEVSMap</button> -->
+                        </div>
+                    </div>
+                    <!-- Export SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Export ▸</button>
+                        <div class="submenu-content">
+                            <button id="screenshotPngBtn">Screenshot (.png)</button>
+                            <button id="screenshotJpgBtn">Screenshot (.jpg)</button>
+                            <button id="DEVSMapBtn">DEVSMap (.zip)</button>
+                            <button id="TraceBtn">Simulation Trace (.csv)</button>
+                        </div>
+                    </div>
+                    <button id="exitBtn">Exit</button>
+                </div>
+            </div>
+
+
+
+            <!-- Edit DROPDOWN
+    <div class="dropdown" id="editDropdown">
+      <button class="dropbtn">Edit</button>
+      <div class="dropdown-content">
+        <button id="undoBtn">Undo</button>
+        <button id="redoBtn">Redo</button>
+        <button id="copyBtn">Copy</button>
+        <button id="cutBtn">Cut</button>
+        <button id="pasteBtn">Paste</button>
+        <button id="selectAllBtn">Select All</button>
+      </div>
+    </div> -->
+
+            <!-- View DROPDOWN -->
+            <!-- <div class="dropdown" id="viewDropdown">
+      <button class="dropbtn"></button>
+      <div class="dropdown-content">
+        <button id="zoomInBtn">Zoom In</button>
+        <button id="zoomOutBtn">Zoom Out</button>
+        <button id="zoomResetBtn">Reset Zoom</button>
+      </div>
+    </div> -->
+
+            <!-- Examples DROPDOWN -->
+            <div class="dropdown" id="gitDropdown">
+                <button class="dropbtn">Git</button>
+                <div class="dropdown-content">
+                    <!-- Sampple Repositories SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Sample Repositories ▸</button>
+                        <div class="submenu-content">
+                            <button id="trafficLightExampleBtn">Traffic Light</button>
+                            <button id="counterExampleBtn">Counter</button>
+                        </div>
+                    </div>
+                    <!-- Repositories SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Repository Options ▸</button>
+                        <div class="submenu-content">
+                            <button id="createRepositoryBtn">Create New Repository</button>
+                            <button id="gitCloneBtn">Clone Repository</button>
+                            <button id="exitRepositoryBtn">Exit Repository</button>
+                        </div>
+                    </div>
+                    <!-- Branch SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Branch Options ▸</button>
+                        <div class="submenu-content">
+                            <button id="newBranchBtn">New Branch</button>
+                            <button id="gitCheckoutBtn">Checkout Branch</button>
+                            <button id="gitMergeBtn">Merge</button>
+                        </div>
+                    </div>
+                    <button id="gitCommitBtn">Commit</button>
+                    <button id="gitPushBtn">Push</button>
+                    <button id="gitFetchBtn">Fetch</button>
+                    <button id="gitPullBtn">Pull</button>
+                </div>
+            </div>
+
+            <!-- OPTIONS DROPDOWN -->
+            <div class="dropdown" id="settingsDropdown">
+                <button class="dropbtn">Options</button>
+                <div class="dropdown-content">
+                    <!-- LANGUAGE SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Language ▸</button>
+                        <div class="submenu-content">
+                            <button id="langEnglishBtn">English</button>
+                            <button id="langFrenchBtn">French</button>
+                            <button id="langSpanishBtn">Spanish</button>
+                        </div>
+                    </div>
+                    <!-- LANGUAGE SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Appearance Themes ▸</button>
+                        <div class="submenu-content">
+                            <button id="themeLightBtn">Light</button>
+                            <button id="themeDarkBtn">Dark</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help DROPDOWN -->
+            <div class="dropdown" id="helpDropdown">
+                <button class="dropbtn">Help</button>
+                <div class="dropdown-content">
+                    <button id="aboutBtn">About</button>
+                    <button id="userManualBtn">User Manual</button>
+                    <button id="shortcutsBtn">Keyboard Shortcuts</button>
+                    <!-- TOOLS SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">Additional Tools ▸</button>
+                        <div class="submenu-content">
+                            <button id="linkTraceViewerBtn">Trace Viewer</button>
+                        </div>
+                    </div>
+                    <!-- RESOURCES SUBMENU -->
+                    <div class="dropdown-submenu">
+                        <button class="submenu-btn">External Resources ▸</button>
+                        <div class="submenu-content">
+                            <button id="linkDEVSSimBtn">DEVSSim Website</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="right">
+            <button id="viewTraceBtn">View Trace</button>
+            <!-- Language selector -->
+            <select id="languageSelect" class="debug-btn">
+                <option value="en">English</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+            </select>
+        </div>
+    </div>
+
+
+
+    <div id="toolbar"></div>
+
+
+    <div id="content">
+        <div id="leftPalette">
+            <div id="palette-shapes"></div>
+            <div id="categoryContainer">
+                <label for="category-select">Category:</label>
+                <select id="category-select">
+                    <option value="general">General</option>
+                    <option value="nature">Nature</option>
+                    <option value="networks">Networks</option>
+                    <option value="aviation">Aviation</option>
+                </select>
+            </div>
+        </div>
+        <div id="centralArea">
+            <div id="graphContainer"></div>
+            <!-- <div id="bottomPalette">Bottom Palette</div> -->
+        </div>
+        <div id="rightPalette">
+            <h3>Properties</h3>
+            <div id="propertiesContent"></div>
+        </div>
+    </div>
+    <div id="footer">
+        <div class="right">
+            <button id="previewJSONGraphBtn" class="debug-btn">JSON</button>
+            <button id="previewDEVSMapBtn" class="debug-btn">DEVSMap</button>
+            <button id="previewCodeBtn" class="debug-btn">Code</button>
+            <button id="viewTraceBtn">CSV</button>
+        </div>
+    </div>
+
+    <!-- Load your main JS logic -->
+    <script type="module" src="./js/main.js"></script>
+
+</body>
+
+</html>
