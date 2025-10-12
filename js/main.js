@@ -270,7 +270,7 @@ function main(container) {
     }
 
 
-    
+
     // TODO
     function moveSelectedCells(x, y) {
 
@@ -373,6 +373,14 @@ function main(container) {
         if (cell) {
             if (graph.getModel().isVertex(cell)) {
                 // Menu for vertices
+                if (cell.isExperimentalFrame) {
+                    menu.addItem('func1', null, func1);
+                    menu.addItem('func2', null, func2);
+                    menu.addItem('func3', null, func3);
+                    menu.addItem('func4', null, func4);
+                    menu.addItem('func5', null, func5);
+                    menu.addItem('func6', null, func6);
+                }
                 menu.addItem('Group', null, groupCells);
                 menu.addItem('Copy', null, copySelectedCells);
                 menu.addItem('Paste', null, pasteClipboardCells);
@@ -500,6 +508,9 @@ function main(container) {
             // userObject to hold the JSON data
             cell.userObject = itemData.userObject;
 
+            // For experimental frames only (temp implementation)
+            cell.isExperimentalFrame = itemData.isExperimentalFrame;
+
             // centre in mini graph
             cell.geometry.x = (itemData.width * paletteScaleFactor - itemData.width * paletteScaleFactor) / 2 / paletteScaleFactor;
             cell.geometry.y = (itemData.height * paletteScaleFactor - itemData.height * paletteScaleFactor) / 2 / paletteScaleFactor;
@@ -549,6 +560,9 @@ function main(container) {
                 // userObject to hold the JSON data
                 newCell.userObject = itemData.userObject;
 
+                // For experimental frames only (temp implementation)
+                newCell.isExperimentalFrame = itemData.isExperimentalFrame;
+
                 // centre at mousedrop
                 newCell.geometry.x = pt.x - newCell.geometry.width / 2;
                 newCell.geometry.y = pt.y - newCell.geometry.height / 2;
@@ -568,20 +582,31 @@ function main(container) {
         return item;
     }
 
-    function fillPalette(category) {
+    const allPalettes = {
+        generalCategory: generalItems,
+        aviationCategory: aviationItems,
+        natureCategory: natureItems,
+        networkCategory: networkItems,
+        experimentalFramesCategory: experimentalFrames
+    };
+
+    function fillPalette(categoryName) {
         shapesDiv.innerHTML = '';
-        (categoryShapes[category] || []).forEach(data => {
-            shapesDiv.appendChild(createPaletteItem(data));
-        });
+        const category = allPalettes[categoryName] || [];
+        category.forEach(data => shapesDiv.appendChild(createPaletteItem(data)));
     }
 
     function styleObjectToString(obj) {
         return Object.entries(obj).map(([k, v]) => `${k}=${v}`).join(';');
     }
 
-    fillPalette('general');
+    fillPalette('generalCategory');
+
     const dropdown = document.getElementById('category-select');
-    dropdown.addEventListener('change', e => fillPalette(e.target.value));
+    dropdown.addEventListener('change', e => {
+        // console.log(e.target.value);
+        fillPalette(e.target.value)
+    });
 
     ////
 

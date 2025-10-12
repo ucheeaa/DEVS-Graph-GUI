@@ -15,7 +15,16 @@
     <!-- Load mxGraph library -->
     <script src="./mxgraph-4.2.2/javascript/mxClient.js"></script>
 
+    <!-- Temp related to experimental frames (TBD on implementation) -->
+    <script src="./models/experimental-frames.js"></script>
+    <script src="./js/experimentalFrames.js"></script>
+    
+    <!-- Temporary -->
     <script src="./models/test_models.js"></script>
+    <script src="./models/aviation.js"></script>
+    <script src="./models/nature.js"></script>
+    <script src="./models/networks.js"></script>
+    
     <!-- External Stylesheets -->
     <link rel="stylesheet" href="./css/styles.css">
 </head>
@@ -188,10 +197,11 @@
             <div id="categoryContainer">
                 <label for="category-select">Category:</label>
                 <select id="category-select">
-                    <option value="general">General</option>
-                    <option value="nature">Nature</option>
-                    <option value="networks">Networks</option>
-                    <option value="aviation">Aviation</option>
+                    <option value="generalCategory">General</option>
+                    <option value="aviationCategory">Aviation</option>
+                    <option value="natureCategory">Nature</option>
+                    <option value="networksCategory">Networks</option>
+                    <option value="experimentalFramesCategory">Experimental Frames</option>
                 </select>
             </div>
         </div>
