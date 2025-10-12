@@ -1,0 +1,12 @@
+# temporary files directory
+temp/
+
+# VS Code workspace settings
+.vscode/
+*.code-workspace
+
+# Avoid changes mxGraph
+mxGraph-4.2.2/
+
+js/i18n.js
+/i18n
