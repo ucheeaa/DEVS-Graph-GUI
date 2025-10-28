@@ -386,9 +386,9 @@ function main(container) {
                     menu.addItem('func6', null, func6);
                 }
                 menu.addItem('Group', null, groupCells);
-                menu.addItem('Copy', null, copySelectedCells);
-                menu.addItem('Paste', null, pasteClipboardCells);
                 menu.addItem('Cut', null, cutSelectedCells);
+                menu.addItem('Copy', null, copySelectedCells);
+                menu.addItem('Duplicate', null, duplicateSelectedCells);
                 menu.addItem('Delete', null, deleteSelectedCells);
             }
             else if (graph.getModel().isEdge(cell)) {
@@ -397,8 +397,7 @@ function main(container) {
             }
         } else {
             // Menu for empty space
-            menu.addItem('Undo', null, undoAction);
-            menu.addItem('Redo', null, redoAction)
+            menu.addItem('Paste', null, pasteClipboardCells);
             menu.addItem('Select All', null, selectAllCells);
             menu.addItem('Delete All', null, deleteAllCells);
         }
