@@ -1,5 +1,6 @@
 import { helloWorld } from './development.js'; // delete later
 
+import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
 
 
@@ -277,20 +278,6 @@ function main(container) {
     ///////// JSON Utils
     /////////////////////////////////////////////////////////////////////////////
 
-    // For previewing the JSON in the console
-    function previewGraphJSON() {
-        const encoder = new mxCodec();
-        const node = encoder.encode(graph.getModel());
-        const xml = mxUtils.getPrettyXml(node);
-        console.log(xml);
-    }
-
-    // For connecting to the trace viewer (LATER)
-    function getGraphJSON() {
-        const encoder = new mxCodec();
-        const node = encoder.encode(graph.getModel());
-        return mxUtils.getXml(node);
-    }
 
     // User saving JSON as a file for later
     function saveGraphJSON(filename) {
@@ -387,20 +374,15 @@ function main(container) {
 
 
     /////////////////////////////////////////////////////////////////////////////
-    ///////// Menubar Setup
+    ///////// Footer Setup
     /////////////////////////////////////////////////////////////////////////////
 
-    document.getElementById("previewJSONGraphBtn").addEventListener("click", previewGraphJSON);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
-    // button.addEventListener(document.getElementById(""), placeholderFunction);
+    const conversionManager = new ConversionManager(graph);
 
-
+    document.getElementById("previewJSONGraphBtn").addEventListener("click", () => conversionManager.previewGraphJSON());
+    document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
+    document.getElementById("previewCodeBtn").addEventListener("click", () => conversionManager.previewCadmiumCode());
+    document.getElementById("previewTraceBtn").addEventListener("click", () => conversionManager.previewTrace());
 
 
 
@@ -409,6 +391,8 @@ function main(container) {
 
     // Initial resize after the application is loaded
     resizeGraph(graph, container);
+
+    
 
 
     // Get parent for new cells
