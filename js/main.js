@@ -1,6 +1,6 @@
 import { helloWorld } from './development.js'; // delete later
 
-import { copySelectedCells } from './graph-utils.js';
+import { copySelectedCells, pasteClipboardCells, undoAction, redoAction, duplicateSelectedCells, cutSelectedCells, deleteSelectedCells, deleteAllCells, selectAllCells } from './graph-utils.js';
 
 import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
@@ -59,111 +59,6 @@ function main(container) {
     /////////////////////////////////////////////////////////////////////////////
     ///////// Graphing Utils
     /////////////////////////////////////////////////////////////////////////////
-    // function copySelectedCells() {
-    //     const selected = graph.getSelectionCells();
-    //     if (selected.length === 0) {
-    //         alert('Please select a cell to copy.');
-    //         return;
-    //     }
-    //     mxClipboard.copy(graph);
-    // }
-
-    function pasteClipboardCells() {
-        graph.getModel().beginUpdate(); // ensures undo works
-        try {
-            mxClipboard.paste(graph);
-        } finally {
-            graph.getModel().endUpdate();
-        }
-    }
-
-    function undoAction() {
-        if (undoManager.canUndo()) {
-            undoManager.undo();
-        }
-    }
-
-    function redoAction() {
-        if (undoManager.canRedo()) {
-            undoManager.redo();
-        }
-    }
-
-    function duplicateSelectedCells() {
-        const selected = graph.getSelectionCells();
-        if (!selected.length) return alert('Select a cell to duplicate');
-
-        graph.getModel().beginUpdate();
-        try {
-            // Copy current selection to clipboard
-            mxClipboard.copy(graph);
-            // Paste the copied cells
-            const pastedCells = mxClipboard.paste(graph);
-            // Select the newly pasted cells
-            graph.setSelectionCells(pastedCells);
-        } finally {
-            graph.getModel().endUpdate();
-        }
-    }
-
-    function cutSelectedCells() {
-        const selected = graph.getSelectionCells();
-        if (!selected.length) return alert('Select a cell to cut');
-
-        graph.getModel().beginUpdate();
-        try {
-            // Copy first
-            mxClipboard.copy(graph);
-            // Then remove
-            graph.removeCells(selected);
-        } finally {
-            graph.getModel().endUpdate();
-        }
-    }
-
-    function deleteSelectedCells() {
-        const selected = graph.getSelectionCells();
-        if (!selected.length) return alert('Select cells to delete');
-
-        graph.getModel().beginUpdate();
-        try {
-            graph.removeCells(selected);
-        } finally {
-            graph.getModel().endUpdate();
-        }
-    }
-
-    function deleteAllCells() {
-        const confirmed = confirm("Are you sure you want to delete all elements?");
-
-        if (confirmed) {
-            graph.getModel().beginUpdate();
-            try {
-                // Get all cells in the graph
-                const allCells = graph.getChildCells(graph.getDefaultParent(), true, true);
-
-                if (allCells.length === 0) return; // nothing to delete
-
-                // Remove all cells (vertices + edges)
-                graph.removeCells(allCells);
-            } finally {
-                graph.getModel().endUpdate();
-            }
-        }
-    }
-
-    function selectAllCells() {
-        // Get all cells (vertices + edges)
-        const allCells = graph.getChildCells(graph.getDefaultParent(), true, true);
-
-        if (allCells.length === 0) {
-            alert('No cells to select.');
-            return;
-        }
-
-        // Set selection
-        graph.setSelectionCells(allCells);
-    }
 
     function groupCells() {
         if (!graph || !graph.getSelectionCells) return;
@@ -306,14 +201,14 @@ function main(container) {
     // toolbar.addItem('*Load', null, placeholderFunction);
 
     toolbar.addItem('Copy', null, () => copySelectedCells(graph)); // Text label, icon, function
-    toolbar.addItem('Paste', null, pasteClipboardCells);
-    toolbar.addItem('Undo', null, undoAction);
-    toolbar.addItem('Redo', null, redoAction);
-    toolbar.addItem('Duplicate', null, duplicateSelectedCells);
-    toolbar.addItem('Cut', null, cutSelectedCells);
-    toolbar.addItem('Delete', null, deleteSelectedCells);
-    toolbar.addItem('Select All', null, selectAllCells);
-    toolbar.addItem('Delete All', null, deleteAllCells);
+    toolbar.addItem('Paste', null, () => pasteClipboardCells(graph));
+    toolbar.addItem('Undo', null, () => undoAction(undoManager));
+    toolbar.addItem('Redo', null, () => redoAction(undoManager));
+    toolbar.addItem('Duplicate', null, () => duplicateSelectedCells(graph));
+    toolbar.addItem('Cut', null, () => cutSelectedCells(graph));
+    toolbar.addItem('Delete', null, () => deleteSelectedCells(graph));
+    toolbar.addItem('Select All', null, () => selectAllCells(graph));
+    toolbar.addItem('Delete All', null, () => deleteAllCells(graph));
     toolbar.addItem('Group', null, groupCells);
     toolbar.addItem('Ungroup', null, ungroupCells);
 
@@ -356,20 +251,20 @@ function main(container) {
                     menu.addItem('func6', null, func6);
                 }
                 menu.addItem('Group', null, groupCells);
-                menu.addItem('Cut', null, cutSelectedCells);
+                menu.addItem('Cut', null, () => cutSelectedCells(graph));
                 menu.addItem('Copy', null, () => copySelectedCells(graph));
-                menu.addItem('Duplicate', null, duplicateSelectedCells);
-                menu.addItem('Delete', null, deleteSelectedCells);
+                menu.addItem('Duplicate', null, () => duplicateSelectedCells(graph));
+                menu.addItem('Delete', null, () => deleteSelectedCells(graph));
             }
             else if (graph.getModel().isEdge(cell)) {
                 // Menu for edges
-                menu.addItem('Delete', null, deleteSelectedCells);
+                menu.addItem('Delete', null, () => deleteSelectedCells(graph));
             }
         } else {
             // Menu for empty space
-            menu.addItem('Paste', null, pasteClipboardCells);
-            menu.addItem('Select All', null, selectAllCells);
-            menu.addItem('Delete All', null, deleteAllCells);
+            menu.addItem('Paste', null, () => pasteClipboardCells(graph));
+            menu.addItem('Select All', null, () => selectAllCells(graph));
+            menu.addItem('Delete All', null, () => deleteAllCells(graph));
         }
     };
 
@@ -595,15 +490,15 @@ function main(container) {
 
     // Map functName strings to actual functions
     const functionMap = {
-        deleteSelectedCells,
-        deleteAllCells,
-        selectAllCells,
+        deleteSelectedCells: () => deleteSelectedCells(graph),
+        deleteAllCells: () => deleteAllCells(graph),
+        selectAllCells: () => selectAllCells(graph),
         copySelectedCells: () => copySelectedCells(graph),
-        pasteClipboardCells,
-        undoAction,
-        redoAction,
-        duplicateSelectedCells,
-        cutSelectedCells,
+        pasteClipboardCells: () => pasteClipboardCells(graph),
+        undoAction: () => undoAction(undoManager),
+        redoAction: () => redoAction(undoManager),
+        duplicateSelectedCells: () => duplicateSelectedCells(graph),
+        cutSelectedCells: () => cutSelectedCells(graph),
         // moveLeft,
         // moveRight,
         // moveUp,
