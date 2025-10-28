@@ -150,17 +150,21 @@ function main(container) {
     }
 
     function deleteAllCells() {
-        graph.getModel().beginUpdate();
-        try {
-            // Get all cells in the graph
-            const allCells = graph.getChildCells(graph.getDefaultParent(), true, true);
+        const confirmed = confirm("Are you sure you want to delete all elements?");
 
-            if (allCells.length === 0) return; // nothing to delete
+        if (confirmed) {
+            graph.getModel().beginUpdate();
+            try {
+                // Get all cells in the graph
+                const allCells = graph.getChildCells(graph.getDefaultParent(), true, true);
 
-            // Remove all cells (vertices + edges)
-            graph.removeCells(allCells);
-        } finally {
-            graph.getModel().endUpdate();
+                if (allCells.length === 0) return; // nothing to delete
+
+                // Remove all cells (vertices + edges)
+                graph.removeCells(allCells);
+            } finally {
+                graph.getModel().endUpdate();
+            }
         }
     }
 
