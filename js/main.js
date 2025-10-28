@@ -1,5 +1,7 @@
 import { helloWorld } from './development.js'; // delete later
 
+import { copySelectedCells } from './graph-utils.js';
+
 import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
 
@@ -57,14 +59,14 @@ function main(container) {
     /////////////////////////////////////////////////////////////////////////////
     ///////// Graphing Utils
     /////////////////////////////////////////////////////////////////////////////
-    function copySelectedCells() {
-        const selected = graph.getSelectionCells();
-        if (selected.length === 0) {
-            alert('Please select a cell to copy.');
-            return;
-        }
-        mxClipboard.copy(graph);
-    }
+    // function copySelectedCells() {
+    //     const selected = graph.getSelectionCells();
+    //     if (selected.length === 0) {
+    //         alert('Please select a cell to copy.');
+    //         return;
+    //     }
+    //     mxClipboard.copy(graph);
+    // }
 
     function pasteClipboardCells() {
         graph.getModel().beginUpdate(); // ensures undo works
@@ -303,7 +305,7 @@ function main(container) {
     // toolbar.addItem('*Save', null, placeholderFunction);
     // toolbar.addItem('*Load', null, placeholderFunction);
 
-    toolbar.addItem('Copy', null, copySelectedCells); // Text label, icon, function
+    toolbar.addItem('Copy', null, () => copySelectedCells(graph)); // Text label, icon, function
     toolbar.addItem('Paste', null, pasteClipboardCells);
     toolbar.addItem('Undo', null, undoAction);
     toolbar.addItem('Redo', null, redoAction);
@@ -355,7 +357,7 @@ function main(container) {
                 }
                 menu.addItem('Group', null, groupCells);
                 menu.addItem('Cut', null, cutSelectedCells);
-                menu.addItem('Copy', null, copySelectedCells);
+                menu.addItem('Copy', null, () => copySelectedCells(graph));
                 menu.addItem('Duplicate', null, duplicateSelectedCells);
                 menu.addItem('Delete', null, deleteSelectedCells);
             }
@@ -596,7 +598,7 @@ function main(container) {
         deleteSelectedCells,
         deleteAllCells,
         selectAllCells,
-        copySelectedCells,
+        copySelectedCells: () => copySelectedCells(graph),
         pasteClipboardCells,
         undoAction,
         redoAction,
