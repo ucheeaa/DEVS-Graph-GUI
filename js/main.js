@@ -3,11 +3,6 @@ import { helloWorld } from './development.js'; // delete later
 import { shortcuts } from './shortcuts.js';
 
 
-function placeholderFunction() {
-    // TEMP for early development
-}
-
-
 function resizeGraph(graph, container) {
     // Changes container size
     const width = container.clientWidth;
@@ -335,7 +330,7 @@ function main(container) {
 
 
 
-    // toolbar.addItem('*Lock', null, placeholderFunction);
+    // toolbar.addItem('*Lock', null, () => alert("Not yet implemented"));
 
     // For Footer...RHS
     // toolbar.addItem('*Zoom In', null, placeholderFunction);
