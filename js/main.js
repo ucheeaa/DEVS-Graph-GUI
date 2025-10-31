@@ -6,16 +6,6 @@ import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
 
 
-function resizeGraph(graph, container) {
-    // Get the updated size
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-
-    // Notify mxGraph to update scrollbars, rubberbands, view validation and background 
-    graph.sizeDidChange();
-}
-
-
 function main(container) {
     // Check browser compatibility
     if (!mxClient.isBrowserSupported()) {
@@ -255,10 +245,10 @@ function main(container) {
 
 
     // Resize functionality when the user changes the size/shape of the window
-    window.addEventListener('resize', () => resizeGraph(graph, container));
+    window.addEventListener('resize', () => graph.sizeDidChange);
 
     // Initial resize after the application is loaded
-    resizeGraph(graph, container);
+    graph.sizeDidChange();
 
     // For now we populate a hello world, later can populate with traffic light
     helloWorld(graph);
