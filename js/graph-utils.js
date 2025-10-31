@@ -72,8 +72,8 @@ export function deleteSelectedCells(graph) {
     }
 }
 
-export function deleteAllCells(graph) {
-    const confirmed = confirm("Are you sure you want to delete all elements?");
+export function deleteAllCells(graph, message = "Are you sure you want to delete all elements?") {
+    const confirmed = confirm(message);
 
     if (confirmed) {
         graph.getModel().beginUpdate();

@@ -156,6 +156,24 @@ function main(container) {
 
 
     /////////////////////////////////////////////////////////////////////////////
+    ///////// MenuBar and Footer Setup
+    /////////////////////////////////////////////////////////////////////////////
+
+    const conversionManager = new ConversionManager(graph);
+
+    const CONFIRM_NEW_GRAPH_MESSAGE = "Are you sure you would like to start a new graph? This will delete the current graph.";
+
+    document.getElementById('newBtn').addEventListener('click', () => deleteAllCells(graph, CONFIRM_NEW_GRAPH_MESSAGE));
+    document.getElementById('loadBtn').addEventListener('click', () => conversionManager.loadGraphXML());
+    document.getElementById('saveBtn').addEventListener('click', () => conversionManager.saveGraphXML());
+
+    document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
+    document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
+    document.getElementById("previewCodeBtn").addEventListener("click", () => conversionManager.previewCadmiumCode());
+    document.getElementById("previewTraceBtn").addEventListener("click", () => conversionManager.previewTrace());
+
+
+    /////////////////////////////////////////////////////////////////////////////
     ///////// ToolBar Setup
     /////////////////////////////////////////////////////////////////////////////
 
@@ -165,9 +183,10 @@ function main(container) {
 
     toolbar.enabled = false; // no dragging items from toolbar
 
-    // toolbar.addItem('*New', null, () => alert("Not yet implemented")); // May add New/Save/Load once button text replaced with icons
-    // toolbar.addItem('*Save', null, () => alert("Not yet implemented"));
-    // toolbar.addItem('*Load', null, () => alert("Not yet implemented"));
+    // May add New/Save/Load once button text replaced with icons
+    // toolbar.addItem('New', null, () => deleteAllCells(graph, CONFIRM_NEW_GRAPH_MESSAGE));
+    // toolbar.addItem('Save', null, () => conversionManager.saveGraphXML());
+    // toolbar.addItem('Load', null, () => conversionManager.loadGraphXML());
     toolbar.addItem('Copy', null, () => copySelectedCells(graph)); // Text label, icon, function
     toolbar.addItem('Paste', null, () => pasteClipboardCells(graph));
     toolbar.addItem('Undo', null, () => undoAction(undoManager));
@@ -179,10 +198,10 @@ function main(container) {
     toolbar.addItem('Delete All', null, () => deleteAllCells(graph));
     toolbar.addItem('Group', null, groupCells);
     toolbar.addItem('Ungroup', null, ungroupCells);
-    // toolbar.addItem('*Lock', null, () => alert("Not yet implemented")); // May/may not be implemented
-    // toolbar.addItem('*Zoom In', null, () => alert("Not yet implemented")); // RHS?
-    // toolbar.addItem('*Zoom Out', null, () => alert("Not yet implemented")); // RHS?
-    // toolbar.addItem('*Reset Zoom', null, () => alert("Not yet implemented")); // RHS?
+    // toolbar.addItem('Lock', null, () => alert("Not yet implemented")); // May/may not be implemented
+    // toolbar.addItem('Zoom In', null, () => alert("Not yet implemented")); // RHS?
+    // toolbar.addItem('Zoom Out', null, () => alert("Not yet implemented")); // RHS?
+    // toolbar.addItem('Reset Zoom', null, () => alert("Not yet implemented")); // RHS?
 
 
 
@@ -225,23 +244,6 @@ function main(container) {
             menu.addItem('Delete All', null, () => deleteAllCells(graph));
         }
     };
-
-
-
-    /////////////////////////////////////////////////////////////////////////////
-    ///////// MenuBar and Footer Setup
-    /////////////////////////////////////////////////////////////////////////////
-
-    const conversionManager = new ConversionManager(graph);
-
-    document.getElementById('loadBtn').addEventListener('click', () => conversionManager.loadGraphXML());
-    document.getElementById('saveBtn').addEventListener('click', () => conversionManager.saveGraphXML());
-
-    document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
-    document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
-    document.getElementById("previewCodeBtn").addEventListener("click", () => conversionManager.previewCadmiumCode());
-    document.getElementById("previewTraceBtn").addEventListener("click", () => conversionManager.previewTrace());
-
 
 
     // Resize functionality when the user changes the size/shape of the window
