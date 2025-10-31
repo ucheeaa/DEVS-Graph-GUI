@@ -7,14 +7,11 @@ import { shortcuts } from './shortcuts.js';
 
 
 function resizeGraph(graph, container) {
-    // Changes container size
+    // Get the updated size
     const width = container.clientWidth;
     const height = container.clientHeight;
 
-    // console.log(`Graph container size: ${width}px x ${height}px`);
-
-    // Informs mxGraph
-    // Would update scrollbars, rubberbands, view validation and background 
+    // Notify mxGraph to update scrollbars, rubberbands, view validation and background 
     graph.sizeDidChange();
 }
 
@@ -196,10 +193,9 @@ function main(container) {
 
     toolbar.enabled = false; // no dragging items from toolbar
 
-    // toolbar.addItem('*New', null, placeholderFunction);
-    // toolbar.addItem('*Save', null, placeholderFunction);
-    // toolbar.addItem('*Load', null, placeholderFunction);
-
+    // toolbar.addItem('*New', null, () => alert("Not yet implemented")); // May add New/Save/Load once button text replaced with icons
+    // toolbar.addItem('*Save', null, () => alert("Not yet implemented"));
+    // toolbar.addItem('*Load', null, () => alert("Not yet implemented"));
     toolbar.addItem('Copy', null, () => copySelectedCells(graph)); // Text label, icon, function
     toolbar.addItem('Paste', null, () => pasteClipboardCells(graph));
     toolbar.addItem('Undo', null, () => undoAction(undoManager));
@@ -211,30 +207,20 @@ function main(container) {
     toolbar.addItem('Delete All', null, () => deleteAllCells(graph));
     toolbar.addItem('Group', null, groupCells);
     toolbar.addItem('Ungroup', null, ungroupCells);
+    // toolbar.addItem('*Lock', null, () => alert("Not yet implemented")); // May/may not be implemented
+    // toolbar.addItem('*Zoom In', null, () => alert("Not yet implemented")); // RHS?
+    // toolbar.addItem('*Zoom Out', null, () => alert("Not yet implemented")); // RHS?
+    // toolbar.addItem('*Reset Zoom', null, () => alert("Not yet implemented")); // RHS?
 
 
 
-    // toolbar.addItem('*Lock', null, () => alert("Not yet implemented"));
-
-    // For Footer...RHS
-    // toolbar.addItem('*Zoom In', null, placeholderFunction);
-    // toolbar.addItem('*Zoom Out', null, placeholderFunction);
-    // toolbar.addItem('*Reset Zoom', null, placeholderFunction);
-
-
-    // toolbar.addItem('', null, placeholderFunction);
-
-
+    /////////////////////////////////////////////////////////////////////////////
+    ///////// Right-click Context Menu Setup
+    /////////////////////////////////////////////////////////////////////////////
 
     // Setting up shortcuts
     // Allows user to focus on graph (required for keyHandler)
-
-
-
-    // Right-click context menu setup
     mxEvent.disableContextMenu(container);
-
-
 
     graph.popupMenuHandler.factoryMethod = function (menu, cell, evt) {
         // TODO add menu for grouped elements
@@ -289,11 +275,7 @@ function main(container) {
     // Initial resize after the application is loaded
     resizeGraph(graph, container);
 
-    
-
-
-    // Get parent for new cells
-    //const parent = graph.getDefaultParent();
+    // For now we populate a hello world, later can populate with traffic light
     helloWorld(graph);
 
 
@@ -331,7 +313,6 @@ function main(container) {
     /////////////////////////////////////////////////////////////////////////////
     ///////// Left palette setup
     /////////////////////////////////////////////////////////////////////////////
-
 
     const shapesDiv = document.getElementById('palette-shapes');
     // Scale factors
@@ -473,14 +454,6 @@ function main(container) {
         fillPalette(e.target.value)
     });
 
-    ////
-
-
-
-
-
-
-
 
     /////////////////////////////////////////////////////////////////////////////
     ///////// Keyboard Shortcuts setup
@@ -505,7 +478,7 @@ function main(container) {
         // moveDown
     };
 
-    // Bind all shortcuts
+    // Binds the functions in functionMap to the specified shortcuts in shortcut.js
     shortcuts.forEach(sc => {
         const fn = functionMap[sc.functName];
         if (!fn) return console.warn(`Function ${sc.functName} not found`);
@@ -524,15 +497,10 @@ function main(container) {
     function showShortcutHelp() {
         const shortcutHelpText = shortcuts.map(sc => `${sc.text}: ${sc.description}`).join('\n');
         //console.log(shortcutHelpText);
-        alert(shortcutHelpText); // TODO replace with nicer looking modal
+        alert(shortcutHelpText); // TODO replace with nicer looking modal or HTMLDialogElement
     }
 
     document.getElementById('shortcutsBtn').addEventListener('click', showShortcutHelp);
-
-
-
-
-
 
 
     /////////////////////////////////////////////////////////////////////////////
@@ -623,25 +591,13 @@ function main(container) {
             propertiesContent.appendChild(propDiv);
         });
 
-
-
     }
-
-
-
 
     graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
         populateRightPalette();
     });
 
     populateRightPalette();
-
-
-
-
-
-
-
 
     return graph;
 }
@@ -650,7 +606,4 @@ function main(container) {
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main
-
-
-
 });
