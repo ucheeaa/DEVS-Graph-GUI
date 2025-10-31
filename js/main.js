@@ -165,24 +165,6 @@ function main(container) {
     }
 
 
-
-
-
-    /////////////////////////////////////////////////////////////////////////////
-    ///////// JSON Utils
-    /////////////////////////////////////////////////////////////////////////////
-
-
-    // User saving JSON as a file for later
-    function saveGraphJSON(filename) {
-        // TODO
-    }
-
-    // User loading a Graph from the JSON graph representation
-    function importGraphJSON(file) {
-        // TODO
-    }
-
     /////////////////////////////////////////////////////////////////////////////
     ///////// ToolBar Setup
     /////////////////////////////////////////////////////////////////////////////
@@ -257,12 +239,15 @@ function main(container) {
 
 
     /////////////////////////////////////////////////////////////////////////////
-    ///////// Footer Setup
+    ///////// MenuBar and Footer Setup
     /////////////////////////////////////////////////////////////////////////////
 
     const conversionManager = new ConversionManager(graph);
 
-    document.getElementById("previewJSONGraphBtn").addEventListener("click", () => conversionManager.previewGraphJSON());
+    document.getElementById('loadBtn').addEventListener('click', () => conversionManager.loadGraphXML());
+    document.getElementById('saveBtn').addEventListener('click', () => conversionManager.saveGraphXML());
+
+    document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
     document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
     document.getElementById("previewCodeBtn").addEventListener("click", () => conversionManager.previewCadmiumCode());
     document.getElementById("previewTraceBtn").addEventListener("click", () => conversionManager.previewTrace());
