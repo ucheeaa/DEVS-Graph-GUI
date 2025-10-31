@@ -2,6 +2,8 @@ import { helloWorld } from './development.js'; // delete later
 
 import { copySelectedCells, pasteClipboardCells, undoAction, redoAction, duplicateSelectedCells, cutSelectedCells, deleteSelectedCells, deleteAllCells, selectAllCells } from './graph-utils.js';
 
+import { exportGraphImage } from './graph-utils.js';
+
 import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
 
@@ -166,6 +168,10 @@ function main(container) {
     document.getElementById('newBtn').addEventListener('click', () => deleteAllCells(graph, CONFIRM_NEW_GRAPH_MESSAGE));
     document.getElementById('loadBtn').addEventListener('click', () => conversionManager.loadGraphXML());
     document.getElementById('saveBtn').addEventListener('click', () => conversionManager.saveGraphXML());
+
+    document.getElementById('screenshotPngBtn').addEventListener('click', () => exportGraphImage(graph));
+    document.getElementById('screenshotJpgBtn').addEventListener('click', () => exportGraphImage(graph));
+
 
     document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
     document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());

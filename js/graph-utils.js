@@ -103,3 +103,8 @@ export function selectAllCells(graph) {
     // Set selection
     graph.setSelectionCells(allCells);
 }
+
+
+export function exportGraphImage(graph) {
+    alert("Not yet implemented");
+}
