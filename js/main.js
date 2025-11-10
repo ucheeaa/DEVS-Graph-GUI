@@ -177,6 +177,44 @@ function main(container) {
     }
 
 
+    /**
+ * Sets the fill and stroke color of a cell, 
+ * automatically making the stroke a darker shade of the fill.
+ * @param {mxGraph} graph - The mxGraph instance.
+ * @param {mxCell} cell - The cell to update.
+ * @param {string} color - Fill color as a named color or hex code.
+ */
+    function setCellColor(graph, cell, fillColor) {
+    if (!graph || !cell) return;
+
+    function darkenColor(col, percent) {
+        const ctx = document.createElement("canvas").getContext("2d");
+        ctx.fillStyle = col;
+        col = ctx.fillStyle; // normalize to hex
+        let r = parseInt(col.slice(1, 3), 16);
+        let g = parseInt(col.slice(3, 5), 16);
+        let b = parseInt(col.slice(5, 7), 16);
+        r = Math.max(0, Math.min(255, Math.floor(r * (1 - percent))));
+        g = Math.max(0, Math.min(255, Math.floor(g * (1 - percent))));
+        b = Math.max(0, Math.min(255, Math.floor(b * (1 - percent))));
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    }
+
+    const strokeColor = darkenColor(fillColor, 0.2);
+
+    graph.getModel().beginUpdate();
+    try {
+        let style = cell.getStyle(); // <-- use getStyle() to get the string
+        style = mxUtils.setStyle(style, 'fillColor', fillColor);
+        style = mxUtils.setStyle(style, 'strokeColor', strokeColor);
+        graph.getModel().setStyle(cell, style);
+    } finally {
+        graph.getModel().endUpdate();
+    }
+}
+
+
+
     function ungroupCells() {
         if (!graph || !graph.getSelectionCells) return;
 
@@ -310,6 +348,8 @@ function main(container) {
         // TODO add menu for grouped elements
 
         if (cell) {
+
+            console.log(cell.userObject);
             if (graph.getModel().isVertex(cell)) {
                 // Menu for vertices
                 if (cell.isExperimentalFrame) {
@@ -325,6 +365,9 @@ function main(container) {
                 menu.addItem('Copy', null, () => copySelectedCells(graph));
                 menu.addItem('Duplicate', null, () => duplicateSelectedCells(graph));
                 menu.addItem('Delete', null, () => deleteSelectedCells(graph));
+                if (cell.userObject.elementType.toLowerCase() === "coupledmodel") {
+                    menu.addItem('Change Colour', null, () => setCellColor(graph, cell, getRandomColor()));
+                }
             }
             else if (graph.getModel().isEdge(cell)) {
                 // Menu for edges
@@ -337,6 +380,16 @@ function main(container) {
             menu.addItem('Delete All', null, () => deleteAllCells(graph));
         }
     };
+
+    // Function to generate a random hex color
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+    }
 
 
     // Resize functionality when the user changes the size/shape of the window
