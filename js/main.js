@@ -113,6 +113,68 @@ function main(container) {
     }
 
 
+    function groupAsCoupledModel(graph) {
+        let selectedCells = graph.getSelectionCells();
+
+        // Keep only real mxCells that are vertices
+        selectedCells = selectedCells.filter(
+            c => c instanceof mxCell && graph.getModel().isVertex(c)
+        );
+
+        if (selectedCells.length < 2) {
+            alert("Select at least two cells to group");
+            return;
+        }
+
+        graph.getModel().beginUpdate();
+        try {
+            const border = 20;
+
+            // Group them
+            const group = graph.groupCells(null, border, selectedCells);
+
+            // Make the group rectangle visible and style it
+            group.setStyle('shape=rectangle;fillColor=#FFEB3B;strokeColor=#FBC02D;rounded=1;');
+
+            // Visible label for the group
+            group.value = "Enter a name for this coupled model";
+
+            // Attach DEVS metadata
+            group.userObject = {
+                elementType: "coupledModel",
+                stateVariables: [
+                    { name: "Child Count", type: "int", defaultValue: selectedCells.length }
+                ]
+            };
+
+            // Move the group on top of children, making the coupled model visible
+            const model = graph.getModel();
+            const parent = model.getParent(group);
+            if (parent) {
+                const index = model.getChildCount(parent) - 1;
+                model.add(parent, group, index);
+            }
+
+            // Collapse group automatically so only the coupled model is shown
+            graph.foldCells(true, false, [group]);
+
+            // Set the geometry of the group to determine the size of the group when collapsed
+            const groupGeo = graph.getCellGeometry(group);
+            if (groupGeo) {
+                groupGeo.width = 200;   // desired width
+                groupGeo.height = 100;  // desired height
+                graph.getModel().setGeometry(group, groupGeo);
+            }
+
+            // Select the group
+            graph.setSelectionCell(group);
+
+        } finally {
+            graph.getModel().endUpdate();
+        }
+
+        graph.refresh();
+    }
 
 
     function ungroupCells() {
@@ -231,6 +293,7 @@ function main(container) {
     toolbar.addItem('Zoom Out', null, () => graph.zoomOut());
     toolbar.addItem('Reset Zoom', null, () => graph.zoomActual());
     toolbar.addItem('Zoom to Fit', null, () => graph.fit(25));
+    toolbar.addItem('Test Couple', null, () => groupAsCoupledModel(graph));
 
 
 
@@ -305,19 +368,27 @@ function main(container) {
 
         graph.getModel().beginUpdate();
         try {
-            let cell;
-            if (item.type === 'rectangle' || item.type === 'ellipse') {
-                cell = graph.insertVertex(graph.getDefaultParent(), null, item.label, pt.x, pt.y, item.width, item.height, item.type);
-            } else if (item.type === 'image') {
-                cell = graph.insertVertex(graph.getDefaultParent(), null, '', pt.x, pt.y, item.width, item.height, 'shape=image;image=' + item.src);
-            } else if (item.type === 'svg') {
-                cell = graph.insertVertex(graph.getDefaultParent(), null, '', pt.x, pt.y, 50, 50, 'shape=rectangle;fillColor=white;strokeColor=black');
-                cell.value = item.svg;
-            }
+            // Create a proper mxCell from the palette item definition
+            const newCell = createMxCellFromItem(item);
+
+            // Position cell centered at the drop point
+            newCell.geometry.x = pt.x - (newCell.geometry.width / 2);
+            newCell.geometry.y = pt.y - (newCell.geometry.height / 2);
+
+            // Add to default parent
+            graph.addCell(newCell, graph.getDefaultParent());
+
+            // Optionally select the newly dropped cell
+            graph.setSelectionCell(newCell);
+
+            // Reset last drop stack because user manually positioned
+            lastDropX = null;
+            lastDropY = null;
         } finally {
             graph.getModel().endUpdate();
         }
     });
+
 
 
 
@@ -488,6 +559,37 @@ function main(container) {
 
     function styleObjectToString(obj) {
         return Object.entries(obj).map(([k, v]) => `${k}=${v}`).join(';');
+    }
+
+    function createMxCellFromItem(item) {
+        // Geometry: x,y will be set later by caller
+        const geo = new mxGeometry(0, 0, item.width || 80, item.height || 40);
+
+        // Build style string
+        let styleStr = '';
+        if (item.style) {
+            // For image shapes ensure mxGraph expects "image=..." not "src=..."
+            if (item.style.shape === 'image' && (item.style.image || item.style.src)) {
+                const src = item.style.image || item.style.src;
+                styleStr = `shape=image;image=${src}`;
+            } else {
+                // Reuse your existing converter if available
+                styleStr = typeof styleObjectToString === 'function'
+                    ? styleObjectToString(item.style)
+                    : Object.entries(item.style || {}).map(([k, v]) => `${k}=${v}`).join(';');
+            }
+        }
+
+        // Use label as the display value (if present)
+        const value = item.label || '';
+
+        const cell = new mxCell(value, geo, styleStr);
+        cell.setVertex(true);
+
+        // Keep your metadata on userObject (not the cell.value which is label)
+        cell.userObject = item.userObject || null;
+
+        return cell;
     }
 
     fillPalette('generalCategory');
