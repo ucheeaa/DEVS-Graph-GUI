@@ -244,6 +244,7 @@ function main(container) {
     mxEvent.disableContextMenu(container);
 
     graph.popupMenuHandler.factoryMethod = function (menu, cell, evt) {
+        const rightClickCoords = graph.getPointForEvent(evt);
         // TODO add menu for grouped elements
 
         if (cell) {
@@ -269,7 +270,7 @@ function main(container) {
             }
         } else {
             // Menu for empty space
-            menu.addItem('Paste', null, () => pasteClipboardCells(graph));
+            menu.addItem('Paste', null, () => pasteClipboardCells(graph, rightClickCoords));
             menu.addItem('Select All', null, () => selectAllCells(graph));
             menu.addItem('Delete All', null, () => deleteAllCells(graph));
         }

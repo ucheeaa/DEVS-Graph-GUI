@@ -7,10 +7,22 @@ export function copySelectedCells(graph) {
     mxClipboard.copy(graph);
 }
 
-export function pasteClipboardCells(graph) {
+export function pasteClipboardCells(graph, pasteLocation = null) {
+    // Paste location will be provided when pasting via right-click
+    // Otherwise null when pasting via menu button or keyboard shortcuts
     graph.getModel().beginUpdate();
     try {
-        mxClipboard.paste(graph);
+        // Paste
+        const pastedCells = mxClipboard.paste(graph);
+
+        // Move to paste location when applicable
+        if (pasteLocation && pastedCells && pastedCells.length > 0) {
+            const geometry = graph.getCellGeometry(pastedCells[0]);
+            const dx = pasteLocation.x - (geometry?.x || 0);
+            const dy = pasteLocation.y - (geometry?.y || 0);
+
+            graph.moveCells(pastedCells, dx, dy);
+        }
     } finally {
         graph.getModel().endUpdate();
     }
