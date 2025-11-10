@@ -469,6 +469,10 @@ function main(container) {
         redoAction: () => redoAction(undoManager),
         duplicateSelectedCells: () => duplicateSelectedCells(graph),
         cutSelectedCells: () => cutSelectedCells(graph),
+        zoomIn: () => graph.zoomIn(),
+        zoomOut: () => graph.zoomOut(),
+        zoomReset: () => graph.zoomActual(),
+        zoomFit: () => graph.fit()
         // moveLeft,
         // moveRight,
         // moveUp,

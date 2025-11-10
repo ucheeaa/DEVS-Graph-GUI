@@ -67,6 +67,34 @@ export const shortcuts = [
         modifier: 'ctrlShift',
         functName: 'deleteAllCells'
     },
+    {
+        keyCode: 187, // + key
+        text: 'Ctrl++',
+        description: 'Zoom in',
+        modifier: 'ctrl',
+        functName: 'zoomIn'
+    },
+    {
+        keyCode: 189, // - key
+        text: 'Ctrl+-',
+        description: 'Zoom out',
+        modifier: 'ctrl',
+        functName: 'zoomOut'
+    },
+    {
+        keyCode: 48, // 0 key
+        text: 'Ctrl+0',
+        description: 'Reset zoom to 100%',
+        modifier: 'ctrl',
+        functName: 'zoomReset'
+    },
+    {
+        keyCode: 70, // F key
+        text: 'Ctrl+Shift+F',
+        description: 'Zoom to fit the graph',
+        modifier: 'ctrlShift',
+        functName: 'zoomFit'
+    }
     // {
     //     keyCode: 37, // Left Arrow
     //     text: 'Left Arrow',
