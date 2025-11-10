@@ -46,6 +46,19 @@ function main(container) {
 
 
     /////////////////////////////////////////////////////////////////////////////
+    ///////// Mouse Wheel Zoom
+    /////////////////////////////////////////////////////////////////////////////
+    mxEvent.addMouseWheelListener(function (evt, up) {
+        if (up) {
+            graph.zoomIn();
+        } else {
+            graph.zoomOut();
+        }
+        evt.preventDefault();
+    });
+
+
+    /////////////////////////////////////////////////////////////////////////////
     ///////// Graphing Utils
     /////////////////////////////////////////////////////////////////////////////
 
@@ -205,9 +218,10 @@ function main(container) {
     toolbar.addItem('Group', null, groupCells);
     toolbar.addItem('Ungroup', null, ungroupCells);
     // toolbar.addItem('Lock', null, () => alert("Not yet implemented")); // May/may not be implemented
-    // toolbar.addItem('Zoom In', null, () => alert("Not yet implemented")); // RHS?
-    // toolbar.addItem('Zoom Out', null, () => alert("Not yet implemented")); // RHS?
-    // toolbar.addItem('Reset Zoom', null, () => alert("Not yet implemented")); // RHS?
+    toolbar.addItem('Zoom In', null, () => graph.zoomIn());
+    toolbar.addItem('Zoom Out', null, () => graph.zoomOut());
+    toolbar.addItem('Reset Zoom', null, () => graph.zoomActual());
+    toolbar.addItem('Zoom to Fit', null, () => graph.fit());
 
 
 
