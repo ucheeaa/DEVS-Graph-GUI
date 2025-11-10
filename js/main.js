@@ -155,18 +155,28 @@ function main(container) {
     }
 
 
+    function moveCells(x, y) {
+        const MOVE_INCREMENT = 10; // pixels per move
+        const cells = graph.getSelectionCells();
 
-    // TODO
-    function moveSelectedCells(x, y) {
-
-    }
-
-    function moveLeft() {
-        moveSelectedCells(-10, 0);
-    }
-
-    function moveRight() {
-        moveSelectedCells(10, 0);
+        if (cells.length > 0) {
+            graph.getModel().beginUpdate();
+            try {
+                cells.forEach(cell => {
+                    // Geometry object for a cell contains:  x, y, height, width
+                    const geometry = graph.getCellGeometry(cell);
+                    if (geometry != null) {
+                        // Erratic behaviour occurs if we don't use a new geometry object
+                        const newGeometry = geometry.clone(); 
+                        newGeometry.x += x * MOVE_INCREMENT;
+                        newGeometry.y += y * MOVE_INCREMENT;
+                        graph.getModel().setGeometry(cell, newGeometry);
+                    }
+                });
+            } finally {
+                graph.getModel().endUpdate();
+            }
+        }
     }
 
 
@@ -502,6 +512,11 @@ function main(container) {
     }
 
     document.getElementById('shortcutsBtn').addEventListener('click', showShortcutHelp);
+
+    keyHandler.bindKey(37, function () { moveCells(-1, 0); }); // Left arrow
+    keyHandler.bindKey(38, function () { moveCells(0, -1); }); // Up arrow
+    keyHandler.bindKey(39, function () { moveCells(1, 0); });  // Right arrow
+    keyHandler.bindKey(40, function () { moveCells(0, 1); });  // Down arrow
 
 
     /////////////////////////////////////////////////////////////////////////////
