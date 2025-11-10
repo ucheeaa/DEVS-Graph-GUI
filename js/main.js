@@ -2,7 +2,7 @@ import { helloWorld } from './development.js'; // delete later
 
 import { copySelectedCells, pasteClipboardCells, undoAction, redoAction, duplicateSelectedCells, cutSelectedCells, deleteSelectedCells, deleteAllCells, selectAllCells } from './graph-utils.js';
 
-import { exportGraphImage } from './graph-utils.js';
+import { exportGraphImage } from './image-utils.js';
 
 import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
