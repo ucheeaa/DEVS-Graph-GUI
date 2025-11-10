@@ -1,7 +1,9 @@
 const generalItems = [
   {
     label: 'State',
-    userObject: [
+    userObject: {
+      elementType: "state",
+      stateVariables: [
       {
         name: "type",
         type: "string",
@@ -12,7 +14,8 @@ const generalItems = [
         type: "string",
         defaultValue: "example"
       }
-    ],
+    ]
+  },
     width: 75,
     height: 75,
     style: {
@@ -25,41 +28,12 @@ const generalItems = [
   },
 
 
-  // {
-  //   label: 'Traffic Light',
-  //   userObject: [
-  //     {
-  //       name: "Green Duration (seconds)",
-  //       type: "int",
-  //       defaultValue: 10
-  //     },
-  //     {
-  //       name: "Yellow Duration (seconds)",
-  //       type: "int",
-  //       defaultValue: 3
-  //     },
-  //     {
-  //       name: "Red Duration (seconds)",
-  //       type: "int",
-  //       defaultValue: 13
-  //     }
-  //   ],
-  //   width: 120,
-  //   height: 60,
-  //   style: {
-  //     shape: 'rectangle',
-  //     rounded: 1,
-  //     arcSize: 20,
-  //     fillColor: '#FFEB3B',
-  //     strokeColor: '#FBC02D',
-  //     fontSize: 16
-  //   }
-  // },
-
 
   {
     label: 'Counter',
-    userObject: [
+    userObject: {
+      elementType: "atomicModel",
+      stateVariables: [
       {
         name: "Counting Frequency (seconds)",
         type: "int",
@@ -90,7 +64,8 @@ const generalItems = [
         type: "int",
         defaultValue: 100
       }
-    ],
+    ]
+  },
     width: 120,
     height: 60,
     style: {
@@ -106,7 +81,9 @@ const generalItems = [
 
   {
     label: 'Integer \nGenerator',
-    userObject: [
+    userObject: {
+      elementType: "atomicModel",
+      stateVariables: [
       {
         name: "Output Frequency",
         type: "double",
@@ -122,7 +99,8 @@ const generalItems = [
         type: "int",
         defaultValue: 10
       }
-    ],
+    ]
+  },
     width: 120,
     height: 60,
     style: {
@@ -138,7 +116,9 @@ const generalItems = [
 
   {
     label: 'Boolean \nGenerator',
-    userObject: [
+    userObject: {
+      elementType: "atomicModel",
+      stateVariables: [
       {
         name: "Output Frequency",
         type: "double",
@@ -154,7 +134,8 @@ const generalItems = [
         type: "dropdown:Random/Alternating",
         defaultValue: "Random"
       }
-    ],
+    ]
+  },
     width: 120,
     height: 60,
     style: {
@@ -170,7 +151,9 @@ const generalItems = [
 
   {
     label: '',
-    userObject: [
+    userObject: {
+      elementType: "atomicModel", // state, atomicModel, coupledModel, experimentalFrame
+      stateVariables: [
       {
         name: "Green Duration (seconds)",
         type: "int",
@@ -186,7 +169,7 @@ const generalItems = [
         type: "int",
         defaultValue: 13
       }
-    ],
+    ]},
     width: 80,
     height: 80,
     style: {
@@ -195,25 +178,6 @@ const generalItems = [
       fontSize: 16,
     }
   },
-
-
-  // {
-  //   label: 'Custom \nImage',
-  //   userObject: [
-  //     {
-  //       name: "type",
-  //       type: "string",
-  //       defaultValue: "custom"
-  //     }
-  //   ],
-  //   width: 80,
-  //   height: 80,
-  //   style: {
-  //     shape: 'image',
-  //     src: './images/temp_int.png',  // image path stays in style
-  //     fontSize: 16,
-  //   }
-  // },
 
 
 ];

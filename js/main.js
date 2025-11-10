@@ -579,7 +579,7 @@ function main(container) {
             return;
         }
 
-        const userObject = selected[0].userObject || [];
+        const userObject = selected[0].userObject?.stateVariables || [];
 
         // Case 2: single cell selected but no properties
         if (!Array.isArray(userObject) || userObject.length === 0) {
