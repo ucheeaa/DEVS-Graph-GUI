@@ -230,7 +230,7 @@ function main(container) {
     toolbar.addItem('Zoom In', null, () => graph.zoomIn());
     toolbar.addItem('Zoom Out', null, () => graph.zoomOut());
     toolbar.addItem('Reset Zoom', null, () => graph.zoomActual());
-    toolbar.addItem('Zoom to Fit', null, () => graph.fit());
+    toolbar.addItem('Zoom to Fit', null, () => graph.fit(25));
 
 
 
@@ -525,7 +525,7 @@ function main(container) {
         zoomIn: () => graph.zoomIn(),
         zoomOut: () => graph.zoomOut(),
         zoomReset: () => graph.zoomActual(),
-        zoomFit: () => graph.fit()
+        zoomFit: () => graph.fit(25)
         // moveLeft,
         // moveRight,
         // moveUp,
