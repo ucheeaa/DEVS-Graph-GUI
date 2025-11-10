@@ -117,7 +117,9 @@ export function selectAllCells(graph) {
 }
 
 
-export function exportGraphImage(graph, format = "png") {
+export function exportGraphImage(graph, format = "png", imgFilename="DEVS_Graph") {
+    const filename = `${imgFilename}.${format}`;
+
     if (!graph) return console.warn("[Export] Graph is undefined.");
     if (!window.html2canvas) return console.error("[Export] html2canvas not loaded");
 
@@ -131,7 +133,6 @@ export function exportGraphImage(graph, format = "png") {
     const tempImages = [];
     const hiddenElements = [];
     const mimeType = format === "png" ? "image/png" : "image/jpeg";
-    const filename = `graph.${format}`;
 
     try {
         // Overlay <img> elements for all custom image cells
