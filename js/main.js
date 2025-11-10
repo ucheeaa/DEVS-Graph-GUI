@@ -291,6 +291,10 @@ function main(container) {
     ///////// Drag and drop setup
     /////////////////////////////////////////////////////////////////////////////
 
+    let lastDropX = null;
+    let lastDropY = null;
+    const DROP_OFFSET = 10; // pixels to offset each new drop
+
     // Handle dropping shapes from the palette
     graphContainer.addEventListener('dragover', e => e.preventDefault());
 
@@ -398,22 +402,24 @@ function main(container) {
                 document.removeEventListener('mousemove', mouseMoveHandler);
                 document.removeEventListener('mouseup', mouseUpHandler);
 
-                let pt;
-
-                // Get bounding rect of graph container
+                // Get graph container bounds
                 const rect = graph.container.getBoundingClientRect();
-
-                // Check if mouse is inside graph container
-                if (
+                const isInsideGraph =
                     evt.clientX >= rect.left &&
                     evt.clientX <= rect.right &&
                     evt.clientY >= rect.top &&
-                    evt.clientY <= rect.bottom
-                ) {
-                    // Mouse is over graph → use graph coordinates
+                    evt.clientY <= rect.bottom;
+
+                let pt;
+
+                if (isInsideGraph) {
+                    // Use mouse location for drops inside the graph
                     pt = graph.getPointForEvent(evt);
+                    // Reset lastDropX/Y because the user manually positioned this one
+                    lastDropX = null;
+                    lastDropY = null;
                 } else {
-                    // Drop outside graph → center
+                    // Use center + offset for drops outside the graph
                     const container = graph.container;
                     const view = graph.getView();
                     const scale = view.scale;
@@ -423,15 +429,25 @@ function main(container) {
                         x: container.clientWidth / 2 / scale - translate.x,
                         y: container.clientHeight / 2 / scale - translate.y
                     };
+
+                    // Apply stack offset if previous drop exists
+                    if (lastDropX !== null && lastDropY !== null) {
+                        pt.x = lastDropX + DROP_OFFSET;
+                        pt.y = lastDropY + DROP_OFFSET;
+                    }
+
+                    // Save this as last drop position
+                    lastDropX = pt.x;
+                    lastDropY = pt.y;
                 }
 
+                // Create new cell at pt
                 let newCell;
                 if (itemData.style.shape === 'image') {
                     newCell = new mxCell('', new mxGeometry(0, 0, itemData.width * graphScaleFactor, itemData.height * graphScaleFactor), `shape=image;image=${itemData.style.src}`);
                 } else {
                     newCell = new mxCell(itemData.label, new mxGeometry(0, 0, itemData.width * graphScaleFactor, itemData.height * graphScaleFactor), styleObjectToString(itemData.style));
                 }
-
                 newCell.vertex = true;
                 newCell.value = itemData.label;
                 newCell.userObject = itemData.userObject;
@@ -441,14 +457,14 @@ function main(container) {
                 newCell.geometry.y = pt.y - newCell.geometry.height / 2;
 
                 graph.getModel().beginUpdate();
-                try { graph.addCell(newCell); }
-                finally { graph.getModel().endUpdate(); }
-
+                try {
+                    graph.addCell(newCell);
+                } finally {
+                    graph.getModel().endUpdate();
+                }
                 graph.clearSelection();
                 window.getSelection().removeAllRanges();
             }
-
-
             document.addEventListener('mousemove', mouseMoveHandler);
             document.addEventListener('mouseup', mouseUpHandler);
         });
@@ -480,6 +496,12 @@ function main(container) {
     dropdown.addEventListener('change', e => {
         // console.log(e.target.value);
         fillPalette(e.target.value)
+    });
+
+
+    graph.addListener(mxEvent.CELLS_MOVED, function (sender, evt) {
+        lastDropX = null;
+        lastDropY = null;
     });
 
 
