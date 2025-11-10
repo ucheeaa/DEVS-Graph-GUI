@@ -394,59 +394,59 @@ function main(container) {
             function mouseMoveHandler(evt) { moveGhost(evt); }
 
             function mouseUpHandler(evt) {
-    document.body.removeChild(ghost);
-    document.removeEventListener('mousemove', mouseMoveHandler);
-    document.removeEventListener('mouseup', mouseUpHandler);
+                document.body.removeChild(ghost);
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
 
-    let pt;
+                let pt;
 
-    // Get bounding rect of graph container
-    const rect = graph.container.getBoundingClientRect();
+                // Get bounding rect of graph container
+                const rect = graph.container.getBoundingClientRect();
 
-    // Check if mouse is inside graph container
-    if (
-        evt.clientX >= rect.left &&
-        evt.clientX <= rect.right &&
-        evt.clientY >= rect.top &&
-        evt.clientY <= rect.bottom
-    ) {
-        // Mouse is over graph → use graph coordinates
-        pt = graph.getPointForEvent(evt);
-    } else {
-        // Drop outside graph → center
-        const container = graph.container;
-        const view = graph.getView();
-        const scale = view.scale;
-        const translate = view.translate;
+                // Check if mouse is inside graph container
+                if (
+                    evt.clientX >= rect.left &&
+                    evt.clientX <= rect.right &&
+                    evt.clientY >= rect.top &&
+                    evt.clientY <= rect.bottom
+                ) {
+                    // Mouse is over graph → use graph coordinates
+                    pt = graph.getPointForEvent(evt);
+                } else {
+                    // Drop outside graph → center
+                    const container = graph.container;
+                    const view = graph.getView();
+                    const scale = view.scale;
+                    const translate = view.translate;
 
-        pt = {
-            x: container.clientWidth / 2 / scale - translate.x,
-            y: container.clientHeight / 2 / scale - translate.y
-        };
-    }
+                    pt = {
+                        x: container.clientWidth / 2 / scale - translate.x,
+                        y: container.clientHeight / 2 / scale - translate.y
+                    };
+                }
 
-    let newCell;
-    if (itemData.style.shape === 'image') {
-        newCell = new mxCell('', new mxGeometry(0, 0, itemData.width * graphScaleFactor, itemData.height * graphScaleFactor), `shape=image;image=${itemData.style.src}`);
-    } else {
-        newCell = new mxCell(itemData.label, new mxGeometry(0, 0, itemData.width * graphScaleFactor, itemData.height * graphScaleFactor), styleObjectToString(itemData.style));
-    }
+                let newCell;
+                if (itemData.style.shape === 'image') {
+                    newCell = new mxCell('', new mxGeometry(0, 0, itemData.width * graphScaleFactor, itemData.height * graphScaleFactor), `shape=image;image=${itemData.style.src}`);
+                } else {
+                    newCell = new mxCell(itemData.label, new mxGeometry(0, 0, itemData.width * graphScaleFactor, itemData.height * graphScaleFactor), styleObjectToString(itemData.style));
+                }
 
-    newCell.vertex = true;
-    newCell.value = itemData.label;
-    newCell.userObject = itemData.userObject;
-    newCell.isExperimentalFrame = itemData.isExperimentalFrame;
+                newCell.vertex = true;
+                newCell.value = itemData.label;
+                newCell.userObject = itemData.userObject;
+                newCell.isExperimentalFrame = itemData.isExperimentalFrame;
 
-    newCell.geometry.x = pt.x - newCell.geometry.width / 2;
-    newCell.geometry.y = pt.y - newCell.geometry.height / 2;
+                newCell.geometry.x = pt.x - newCell.geometry.width / 2;
+                newCell.geometry.y = pt.y - newCell.geometry.height / 2;
 
-    graph.getModel().beginUpdate();
-    try { graph.addCell(newCell); }
-    finally { graph.getModel().endUpdate(); }
+                graph.getModel().beginUpdate();
+                try { graph.addCell(newCell); }
+                finally { graph.getModel().endUpdate(); }
 
-    graph.clearSelection();
-    window.getSelection().removeAllRanges();
-}
+                graph.clearSelection();
+                window.getSelection().removeAllRanges();
+            }
 
 
             document.addEventListener('mousemove', mouseMoveHandler);
