@@ -10,6 +10,9 @@ export function exportGraphImage(graph, format = "png", imgFilename="DEVS_Graph"
         format = "png";
     }
 
+    // Clear selected cells so they don't appear selected on the image
+    graph.clearSelection();
+
     const container = graph.container;
     const tempImages = [];
     const hiddenElements = [];
