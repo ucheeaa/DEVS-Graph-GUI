@@ -117,13 +117,21 @@ export function selectAllCells(graph) {
 }
 
 
-export function exportGraphImage(graph) {
+export function exportGraphImage(graph, format = "png") {
     if (!graph) return console.warn("[Export] Graph is undefined.");
     if (!window.html2canvas) return console.error("[Export] html2canvas not loaded");
+
+    const validFormats = ["png", "jpg"];
+    if (!validFormats.includes(format)) {
+        console.warn(`[Export] Invalid format "${format}", defaulting to "png".`);
+        format = "png";
+    }
 
     const container = graph.container;
     const tempImages = [];
     const hiddenElements = [];
+    const mimeType = format === "png" ? "image/png" : "image/jpeg";
+    const filename = `graph.${format}`;
 
     try {
         // Overlay <img> elements for all custom image cells
@@ -180,12 +188,12 @@ export function exportGraphImage(graph) {
                                 const url = URL.createObjectURL(blob);
                                 const link = document.createElement("a");
                                 link.href = url;
-                                link.download = "graph.png";
+                                link.download = filename;
                                 document.body.appendChild(link);
                                 link.click();
                                 document.body.removeChild(link);
-                                console.log("[Export] PNG screenshot downloaded successfully");
-                            });
+                                console.log("[Export] screenshot downloaded successfully");
+                            }, mimeType, 0.95);
                         }).catch(err => console.error("[Export] html2canvas failed:", err))
                         .finally(() => {
                             // Restore default mxGraph icons
