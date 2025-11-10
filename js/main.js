@@ -192,9 +192,8 @@ function main(container) {
     document.getElementById('loadBtn').addEventListener('click', () => conversionManager.loadGraphXML());
     document.getElementById('saveBtn').addEventListener('click', () => conversionManager.saveGraphXML());
 
-    document.getElementById('screenshotPngBtn').addEventListener('click', () => exportGraphImage(graph));
-    document.getElementById('screenshotJpgBtn').addEventListener('click', () => exportGraphImage(graph));
-
+    document.getElementById('screenshotPngBtn').addEventListener('click', () => exportGraphImage(graph, "png"));
+    document.getElementById('screenshotJpgBtn').addEventListener('click', () => exportGraphImage(graph, "jpg"));
 
     document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
     document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
