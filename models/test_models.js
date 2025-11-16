@@ -1,3 +1,34 @@
+const DEFAULT_STYLES = {
+  state: {
+    shape: 'ellipse',
+    fillColor: '#FFFFFF',
+    strokeColor: '#424242',
+    aspect: 'fixed',
+    fontSize: 16
+  },
+  atomicModel: {
+    shape: 'rectangle',
+    rounded: 1,
+    arcSize: 20,
+    fillColor: "#FFFFFF",
+    strokeColor: "#424242",
+    fontSize: 16
+  },
+  coupledModel: {
+    shape: 'rectangle',
+    rounded: 1,
+    arcSize: 20,
+    fillColor: "#FFFFFF",
+    strokeColor: "#424242",
+    fontSize: 16
+  },
+  experimentalFrame: {
+    fillColor: "#FFFFFF",
+    strokeColor: "#424242"
+  }
+};
+
+
 const generalItems = [
   {
     label: 'State',
@@ -18,13 +49,7 @@ const generalItems = [
     },
     width: 75,
     height: 75,
-    style: {
-      shape: 'ellipse',
-      fillColor: '#FFFFFF',
-      strokeColor: '#424242',
-      aspect: 'fixed',
-      fontSize: 16
-    }
+    style: DEFAULT_STYLES.state
   },
 
 
@@ -36,14 +61,7 @@ const generalItems = [
     },
     width: 120,
     height: 60,
-    style: {
-      shape: 'rectangle',
-      rounded: 1,
-      arcSize: 20,
-      fillColor: '#FFEB3B',
-      strokeColor: '#FBC02D',
-      fontSize: 16
-    }
+    style: DEFAULT_STYLES.coupledModel
   },
 
 
@@ -87,14 +105,7 @@ const generalItems = [
     },
     width: 120,
     height: 60,
-    style: {
-      shape: 'rectangle',
-      rounded: 1,
-      arcSize: 20,
-      fillColor: '#90CAF9',
-      strokeColor: '#1E88E5',
-      fontSize: 16
-    }
+    style: DEFAULT_STYLES.atomicModel
   },
 
 
@@ -122,14 +133,7 @@ const generalItems = [
     },
     width: 120,
     height: 60,
-    style: {
-      shape: 'rectangle',
-      rounded: 1,
-      arcSize: 20,
-      fillColor: '#90CAF9',
-      strokeColor: '#1E88E5',
-      fontSize: 16
-    }
+    style: DEFAULT_STYLES.atomicModel
   },
 
 
@@ -157,14 +161,7 @@ const generalItems = [
     },
     width: 120,
     height: 60,
-    style: {
-      shape: 'rectangle',
-      rounded: 1,
-      arcSize: 20,
-      fillColor: '#90CAF9',
-      strokeColor: '#1E88E5',
-      fontSize: 16
-    }
+    style: DEFAULT_STYLES.atomicModel
   },
 
 
