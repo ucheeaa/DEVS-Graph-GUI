@@ -154,13 +154,26 @@ function main(container) {
 
         graph.getModel().beginUpdate();
         try {
-            const border = 20;
+            const border = 30;
 
             // Group them
             const group = graph.groupCells(null, border, selectedCells);
 
             // Make the group rectangle visible and style it
-            group.setStyle('shape=rectangle;fillColor=#FFFFFF;strokeColor=#424242;rounded=1;');
+            // group.setStyle('shape=rectangle;fillColor=#FFFFFF;strokeColor=#424242;rounded=1;');
+            group.setStyle('shape=rectangle;fillColor=#FFFFFF;strokeColor=#424242;rounded=1;verticalAlign=top;align=center;spacingTop=4;whiteSpace=wrap;');
+            group.setStyle(
+                'shape=rectangle;' +
+                'fillColor=#FFFFFF;' +
+                'strokeColor=#424242;' +
+                'rounded=1;' +
+                'verticalAlign=top;' +
+                'align=center;' +
+                'spacingTop=4;' +
+                'whiteSpace=wrap;' +
+                'fontSize=16;' +
+                'fontColor=#000000;'
+            );
 
             // Visible label for the group
             group.value = "Enter a name for this coupled model";
