@@ -169,7 +169,7 @@ function main(container) {
                 'align=center;' +
                 'spacingTop=4;' +
                 'whiteSpace=wrap;' +
-                'overflow=fill;' + 
+                'overflow=fill;' +
                 'fontSize=16;' +
                 'fontColor=#000000;'
             );
@@ -197,8 +197,12 @@ function main(container) {
             const originalGeo = group.geometry.clone();
             group.setAttribute('originalGeometry', JSON.stringify(originalGeo));
 
-            // Do NOT collapse initially
-            // But prepare a listener for when user collapses later
+            // Ensure the group starts uncollapsed
+            if (graph.isCellCollapsed(group)) {
+                graph.foldCells(false, false, [group]);
+            }
+
+            // Listener for when the group is collapsed or uncollapsed
             const listener = function (sender, evt) {
                 const cells = evt.getProperty('cells');
                 cells.forEach(c => {
@@ -206,14 +210,15 @@ function main(container) {
                         const geo = graph.getCellGeometry(c).clone();
 
                         if (graph.isCellCollapsed(c)) {
-                            // Collapsed: fixed size
+                            // Collapsed: fixed 200x100
                             geo.width = 200;
                             geo.height = 100;
                             graph.getModel().setGeometry(c, geo);
                         } else {
                             // Uncollapsed: restore original geometry
-                            const orig = JSON.parse(c.getAttribute('originalGeometry'));
-                            if (orig) {
+                            const origAttr = c.getAttribute('originalGeometry');
+                            if (origAttr) {
+                                const orig = JSON.parse(origAttr);
                                 const restoredGeo = new mxGeometry(orig.x, orig.y, orig.width, orig.height);
                                 graph.getModel().setGeometry(c, restoredGeo);
                             }
@@ -228,13 +233,13 @@ function main(container) {
             graph.setSelectionCell(group);
 
         } finally {
-
             graph.getModel().endUpdate();
-
         }
 
         graph.refresh();
     }
+
+
 
 
     function ungroupCells() {
