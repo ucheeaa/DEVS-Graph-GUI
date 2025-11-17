@@ -114,7 +114,14 @@ const generalItems = [
           type: "int",
           defaultValue: 10
         }
-      ]
+      ],
+      outputPorts: [
+        {
+          portName: "int_out",
+          dataType: "int"
+        }
+      ],
+      inputPorts: [],
     },
     width: 120,
     height: 60,
@@ -142,7 +149,14 @@ const generalItems = [
           type: "dropdown:Random/Alternating",
           defaultValue: "Random"
         }
-      ]
+      ],
+      outputPorts: [
+        {
+          portName: "bool_out",
+          dataType: "bool"
+        }
+      ],
+      inputPorts: [],
     },
     width: 120,
     height: 60,
