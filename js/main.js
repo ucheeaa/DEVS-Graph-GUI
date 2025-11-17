@@ -156,12 +156,10 @@ function main(container) {
         try {
             const border = 30;
 
-            // Group them
+            // Group the selected cells
             const group = graph.groupCells(null, border, selectedCells);
 
-            // Make the group rectangle visible and style it
-            // group.setStyle('shape=rectangle;fillColor=#FFFFFF;strokeColor=#424242;rounded=1;');
-            group.setStyle('shape=rectangle;fillColor=#FFFFFF;strokeColor=#424242;rounded=1;verticalAlign=top;align=center;spacingTop=4;whiteSpace=wrap;');
+            // Style the group
             group.setStyle(
                 'shape=rectangle;' +
                 'fillColor=#FFFFFF;' +
@@ -171,6 +169,7 @@ function main(container) {
                 'align=center;' +
                 'spacingTop=4;' +
                 'whiteSpace=wrap;' +
+                'overflow=fill;' + 
                 'fontSize=16;' +
                 'fontColor=#000000;'
             );
@@ -186,7 +185,7 @@ function main(container) {
                 ]
             };
 
-            // Move the group on top of children, making the coupled model visible
+            // Move the group on top of children
             const model = graph.getModel();
             const parent = model.getParent(group);
             if (parent) {
@@ -194,22 +193,44 @@ function main(container) {
                 model.add(parent, group, index);
             }
 
-            // Collapse group automatically so only the coupled model is shown
-            graph.foldCells(true, false, [group]);
+            // Store original (uncollapsed) geometry
+            const originalGeo = group.geometry.clone();
+            group.setAttribute('originalGeometry', JSON.stringify(originalGeo));
 
-            // Set the geometry of the group to determine the size of the group when collapsed
-            const groupGeo = graph.getCellGeometry(group);
-            if (groupGeo) {
-                groupGeo.width = 200;   // desired width
-                groupGeo.height = 100;  // desired height
-                graph.getModel().setGeometry(group, groupGeo);
-            }
+            // Do NOT collapse initially
+            // But prepare a listener for when user collapses later
+            const listener = function (sender, evt) {
+                const cells = evt.getProperty('cells');
+                cells.forEach(c => {
+                    if (c === group) {
+                        const geo = graph.getCellGeometry(c).clone();
+
+                        if (graph.isCellCollapsed(c)) {
+                            // Collapsed: fixed size
+                            geo.width = 200;
+                            geo.height = 100;
+                            graph.getModel().setGeometry(c, geo);
+                        } else {
+                            // Uncollapsed: restore original geometry
+                            const orig = JSON.parse(c.getAttribute('originalGeometry'));
+                            if (orig) {
+                                const restoredGeo = new mxGeometry(orig.x, orig.y, orig.width, orig.height);
+                                graph.getModel().setGeometry(c, restoredGeo);
+                            }
+                        }
+                    }
+                });
+            };
+
+            graph.addListener(mxEvent.FOLD_CELLS, listener);
 
             // Select the group
             graph.setSelectionCell(group);
 
         } finally {
+
             graph.getModel().endUpdate();
+
         }
 
         graph.refresh();
