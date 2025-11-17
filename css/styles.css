@@ -11,6 +11,11 @@
     
 }
 
+/* ===== Hiding/Removing DOM elements ===== */
+.hidden {
+    display: none;
+}
+
 /* ===== Page setup ===== */
 html,
 body {
@@ -267,7 +272,6 @@ body {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
-
 
 /* ===== Central area: vertical flex for graph + bottom palette ===== */
 #centralArea {

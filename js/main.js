@@ -75,9 +75,17 @@ function main(container) {
         return this.userObject?.elementType?.toLowerCase() === "coupledmodel";
     };
 
-    // mxCell.prototype.isExperimentalFrame = function () {
-    //     return this.userObject?.elementType?.toLowerCase() === "experimentalframe";
-    // };
+    mxCell.prototype.isExperimentalFrame = function () {
+        return this.userObject?.elementType?.toLowerCase() === "experimentalframe";
+    };
+
+    mxCell.prototype.getInputPorts = function () {
+        return this.userObject?.inputPorts || [];
+    };
+
+    mxCell.prototype.getOutputPorts = function () {
+        return this.userObject?.outputPorts || [];
+    };
 
 
     function groupCells() {
@@ -258,6 +266,157 @@ function main(container) {
             }
         }
     }
+
+
+    function renderPorts(cell, portType, headerEl, contentEl) {
+        // portType should be "input" or "output"
+
+        // Show the section
+        headerEl.classList.remove("hidden");
+        contentEl.classList.remove("hidden");
+
+        // Clear previous content
+        contentEl.innerHTML = '';
+
+        // Get ports dynamically
+        const getterName = `get${portType.charAt(0).toUpperCase() + portType.slice(1)}Ports`;
+        const ports = typeof cell[getterName] === 'function' ? cell[getterName]() : [];
+
+        // Display each port
+        ports.forEach(port => {
+            const portDiv = document.createElement('div');
+            portDiv.textContent = `${port.portName}<${port.dataType}>`;
+            contentEl.appendChild(portDiv);
+        });
+
+        // --- Add new port section ---
+        const addPortDiv = document.createElement('div');
+        addPortDiv.style.marginTop = '10px';
+
+        // Input for port name
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.placeholder = 'Port Name';
+        nameInput.style.marginRight = '4px';
+
+        // Dropdown for data type
+        const typeSelect = document.createElement('select');
+        ['int', 'double', 'bool'].forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            typeSelect.appendChild(option);
+        });
+        typeSelect.style.marginRight = '4px';
+
+        // Button to add port
+        const addButton = document.createElement('button');
+        addButton.textContent = `Add ${portType.charAt(0).toUpperCase() + portType.slice(1)} Port`;
+        addButton.addEventListener('click', () => {
+            const name = nameInput.value.trim();
+            const type = typeSelect.value;
+
+            if (!name) return alert('Port name is required');
+
+            // Initialize port array if missing
+            const userPortsKey = `${portType}Ports`;
+            if (!cell.userObject[userPortsKey]) {
+                cell.userObject[userPortsKey] = [];
+            }
+
+            // Add new port
+            cell.userObject[userPortsKey].push({ portName: name, dataType: type });
+
+            // Refresh the display
+            populateRightPalette();
+        });
+
+        // Append input and button
+        addPortDiv.appendChild(nameInput);
+        addPortDiv.appendChild(typeSelect);
+        addPortDiv.appendChild(addButton);
+
+        contentEl.appendChild(addPortDiv);
+    }
+
+
+    function renderStateVariables(cell, containerEl, graph, headerEl) {
+        if (!cell || !containerEl) return;
+
+        // Show header and container
+        if (headerEl) headerEl.classList.remove("hidden");
+        containerEl.classList.remove("hidden");
+
+        // Clear container
+        containerEl.innerHTML = '';
+
+        const stateVariables = cell.userObject?.stateVariables || [];
+
+        stateVariables.forEach((prop, index) => {
+            const propDiv = document.createElement('div');
+            propDiv.className = 'property-item';
+
+            const label = document.createElement('label');
+            label.textContent = prop.name;
+
+            let input;
+
+            // Handle different types
+            if (prop.type === "int" || prop.type === "double") {
+                input = document.createElement('input');
+                input.type = 'number';
+                input.value = prop.defaultValue;
+            } else if (prop.type === "bool") {
+                input = document.createElement('select');
+                ["true", "false"].forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    input.appendChild(option);
+                });
+                input.value = prop.defaultValue ? "true" : "false";
+            } else if (prop.type.startsWith("dropdown:")) {
+                input = document.createElement('select');
+                const options = prop.type.split(":")[1].split("/");
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    input.appendChild(option);
+                });
+                input.value = prop.defaultValue;
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.value = prop.defaultValue;
+            }
+
+            // Update userObject when input changes
+            input.addEventListener('change', (e) => {
+                if (prop.type === "int") {
+                    prop.defaultValue = parseInt(e.target.value) || 0;
+                } else if (prop.type === "double") {
+                    prop.defaultValue = parseFloat(e.target.value) || 0.0;
+                } else if (prop.type === "bool") {
+                    prop.defaultValue = e.target.value === "true";
+                } else if (prop.type.startsWith("dropdown:")) {
+                    prop.defaultValue = e.target.value;
+                } else {
+                    prop.defaultValue = e.target.value;
+                }
+
+                // Update the stateVariables array
+                cell.userObject.stateVariables[index] = prop;
+
+                graph.refresh();
+            });
+
+            propDiv.appendChild(label);
+            propDiv.appendChild(input);
+            containerEl.appendChild(propDiv);
+        });
+    }
+
 
 
     /////////////////////////////////////////////////////////////////////////////
@@ -542,7 +701,7 @@ function main(container) {
                 }
                 newCell.vertex = true;
                 newCell.value = itemData.label;
-                newCell.userObject = itemData.userObject;
+                newCell.userObject = itemData.userObject ? JSON.parse(JSON.stringify(itemData.userObject)) : null;
                 newCell.isExperimentalFrame = itemData.isExperimentalFrame;
 
                 newCell.geometry.x = pt.x - newCell.geometry.width / 2;
@@ -607,8 +766,10 @@ function main(container) {
         const cell = new mxCell(value, geo, styleStr);
         cell.setVertex(true);
 
-        // Keep your metadata on userObject (not the cell.value which is label)
-        cell.userObject = item.userObject || null;
+        // // Keep your metadata on userObject (not the cell.value which is label)
+        // cell.userObject = item.userObject || null;
+        // Deep clone userObject so each cell has its own independent copy
+        cell.userObject = item.userObject ? JSON.parse(JSON.stringify(item.userObject)) : null;
 
         return cell;
     }
@@ -693,85 +854,128 @@ function main(container) {
     function populateRightPalette() {
         const selected = graph.getSelectionCells();
 
-        // Clear existing content
-        propertiesContent.innerHTML = '';
+        // Grab all headers/sections
+        const propertiesHeader = document.getElementById("propertiesHeader");
+        const propertiesContent = document.getElementById("propertiesContent");
+        const inputPortsHeader = document.getElementById("inputPortsHeader");
+        const inputPortsContent = document.getElementById("inputPortsContent");
+        const outputPortsHeader = document.getElementById("outputPortsHeader");
+        const outputPortsContent = document.getElementById("outputPortsContent");
+        const selectACellIndicator = document.getElementById("selectACellIndicator");
+
+        // Hide all sections initially
+        [propertiesHeader, propertiesContent, inputPortsHeader, inputPortsContent,
+            outputPortsHeader, outputPortsContent, selectACellIndicator].forEach(el => el.classList.add("hidden"));
+
+
 
         // Case 1: no cell or multiple cells selected
         if (selected.length !== 1) {
-            propertiesContent.innerHTML = '<em>Select a single cell to edit properties</em>';
+            selectACellIndicator.innerHTML = '<em>Select a single cell to edit properties</em>';
+            selectACellIndicator.classList.remove("hidden");
             return;
         }
 
-        const userObject = selected[0].userObject?.stateVariables || [];
+        const cell = selected[0];
 
-        // Case 2: single cell selected but no properties
-        if (!Array.isArray(userObject) || userObject.length === 0) {
+        if (cell.isAtomicModel()) {
+
+            renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
+
+            // // Show Properties section
+            // propertiesHeader.classList.remove("hidden");
+            // propertiesContent.classList.remove("hidden");
+
+            // // Clear previous content
+            // propertiesContent.innerHTML = '';
+
+            // const stateVariabes = selected[0].userObject?.stateVariables || [];
+            // stateVariabes.forEach((prop, index) => {
+            //     const propDiv = document.createElement('div');
+            //     propDiv.className = 'property-item';
+
+            //     const label = document.createElement('label');
+            //     label.textContent = prop.name;
+
+            //     let input;
+
+            //     // Handle different types
+            //     if (prop.type === "int" || prop.type === "double") {
+            //         input = document.createElement('input');
+            //         input.type = 'number';
+            //         input.value = prop.defaultValue;
+            //     } else if (prop.type === "bool") {
+            //         input = document.createElement('select');
+            //         ["true", "false"].forEach(opt => {
+            //             const option = document.createElement('option');
+            //             option.value = opt;
+            //             option.textContent = opt;
+            //             input.appendChild(option);
+            //         });
+            //         input.value = prop.defaultValue ? "true" : "false";
+            //     } else if (prop.type.startsWith("dropdown:")) {
+            //         input = document.createElement('select');
+            //         const options = prop.type.split(":")[1].split("/");
+            //         options.forEach(opt => {
+            //             const option = document.createElement('option');
+            //             option.value = opt;
+            //             option.textContent = opt;
+            //             input.appendChild(option);
+            //         });
+            //         input.value = prop.defaultValue;
+            //     } else {
+            //         input = document.createElement('input');
+            //         input.type = 'text';
+            //         input.value = prop.defaultValue;
+            //     }
+
+            //     // Update userObject when input changes
+            //     input.addEventListener('change', (e) => {
+            //         if (prop.type === "int") {
+            //             prop.defaultValue = parseInt(e.target.value) || 0;
+            //         } else if (prop.type === "double") {
+            //             prop.defaultValue = parseFloat(e.target.value) || 0.0;
+            //         } else if (prop.type === "bool") {
+            //             prop.defaultValue = e.target.value === "true";
+            //         } else if (prop.type.startsWith("dropdown:")) {
+            //             prop.defaultValue = e.target.value;
+            //         } else {
+            //             prop.defaultValue = e.target.value;
+            //         }
+
+            //         selected[0].userObject[index] = prop;
+            //         graph.refresh();
+            //     });
+
+            //     propDiv.appendChild(label);
+            //     propDiv.appendChild(input);
+            //     propertiesContent.appendChild(propDiv);
+            // });
+
+            ///////////////////////////////
+            // SECTION 2 - Ports
+            ///////////////////////////////
+
+            // Render input ports
+            renderPorts(cell, "input", inputPortsHeader, inputPortsContent);
+
+            // Render output ports
+            renderPorts(cell, "output", outputPortsHeader, outputPortsContent);
+
+            console.log("Atomic model selected");
+
+        } else if (cell.isCoupledModel()) {
+
+            console.log("Coupled model selected");
+
+        } else if (cell.isExperimentalFrame()) {
+
+            console.log("ExperimentalFrame selected");
+
+        } else {
             propertiesContent.innerHTML = '<em>This cell has no editable properties</em>';
             return;
         }
-
-        // Case 3: populate properties
-        userObject.forEach((prop, index) => {
-            const propDiv = document.createElement('div');
-            propDiv.className = 'property-item';
-
-            const label = document.createElement('label');
-            label.textContent = prop.name;
-
-            let input;
-
-            // Handle different types
-            if (prop.type === "int" || prop.type === "double") {
-                input = document.createElement('input');
-                input.type = 'number';
-                input.value = prop.defaultValue;
-            } else if (prop.type === "bool") {
-                input = document.createElement('select');
-                ["true", "false"].forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    input.appendChild(option);
-                });
-                input.value = prop.defaultValue ? "true" : "false";
-            } else if (prop.type.startsWith("dropdown:")) {
-                input = document.createElement('select');
-                const options = prop.type.split(":")[1].split("/");
-                options.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    input.appendChild(option);
-                });
-                input.value = prop.defaultValue;
-            } else {
-                input = document.createElement('input');
-                input.type = 'text';
-                input.value = prop.defaultValue;
-            }
-
-            // Update userObject when input changes
-            input.addEventListener('change', (e) => {
-                if (prop.type === "int") {
-                    prop.defaultValue = parseInt(e.target.value) || 0;
-                } else if (prop.type === "double") {
-                    prop.defaultValue = parseFloat(e.target.value) || 0.0;
-                } else if (prop.type === "bool") {
-                    prop.defaultValue = e.target.value === "true";
-                } else if (prop.type.startsWith("dropdown:")) {
-                    prop.defaultValue = e.target.value;
-                } else {
-                    prop.defaultValue = e.target.value;
-                }
-
-                selected[0].userObject[index] = prop;
-                graph.refresh();
-            });
-
-            propDiv.appendChild(label);
-            propDiv.appendChild(input);
-            propertiesContent.appendChild(propDiv);
-        });
 
     }
 

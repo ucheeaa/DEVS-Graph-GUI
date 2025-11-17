@@ -70,7 +70,23 @@ const generalItems = [
           type: "int",
           defaultValue: 100
         }
-      ]
+      ],
+      outputPorts: [
+        {
+          portName: "count_out",
+          dataType: "int"
+        }
+      ],
+      inputPorts: [
+        {
+          portName: "increment_in",
+          dataType: "int"
+        },
+        {
+          portName: "direction_in",
+          dataType: "bool"
+        },
+      ],
     },
     width: 120,
     height: 60,
