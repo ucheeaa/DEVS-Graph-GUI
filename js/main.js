@@ -160,7 +160,7 @@ function main(container) {
             const group = graph.groupCells(null, border, selectedCells);
 
             // Make the group rectangle visible and style it
-            group.setStyle('shape=rectangle;fillColor=#FFEB3B;strokeColor=#FBC02D;rounded=1;');
+            group.setStyle('shape=rectangle;fillColor=#FFFFFF;strokeColor=#424242;rounded=1;');
 
             // Visible label for the group
             group.value = "Enter a name for this coupled model";
