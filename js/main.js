@@ -282,10 +282,40 @@ function main(container) {
         const getterName = `get${portType.charAt(0).toUpperCase() + portType.slice(1)}Ports`;
         const ports = typeof cell[getterName] === 'function' ? cell[getterName]() : [];
 
+        const userPortsKey = `${portType}Ports`;
+
         // Display each port
-        ports.forEach(port => {
+        ports.forEach((port, index) => {
             const portDiv = document.createElement('div');
-            portDiv.textContent = `${port.portName}<${port.dataType}>`;
+            portDiv.style.display = "flex";
+            portDiv.style.alignItems = "center";
+            portDiv.style.marginBottom = "4px";
+
+            const labelSpan = document.createElement('span');
+            labelSpan.textContent = `${port.portName}<${port.dataType}>`;
+
+            // Delete button
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = "-";
+            deleteBtn.style.marginLeft = "8px";
+            deleteBtn.style.width = "22px";
+            deleteBtn.style.height = "22px";
+            deleteBtn.style.padding = "0";
+            deleteBtn.style.cursor = "pointer";
+
+            deleteBtn.addEventListener('click', () => {
+                if (!cell.userObject[userPortsKey]) return;
+
+                // Remove this port
+                cell.userObject[userPortsKey].splice(index, 1);
+
+                // Refresh UI
+                populateRightPalette();
+            });
+
+            portDiv.appendChild(labelSpan);
+            portDiv.appendChild(deleteBtn);
+
             contentEl.appendChild(portDiv);
         });
 
@@ -309,35 +339,35 @@ function main(container) {
         });
         typeSelect.style.marginRight = '4px';
 
-        // Button to add port
+        // Add button
         const addButton = document.createElement('button');
         addButton.textContent = `Add ${portType.charAt(0).toUpperCase() + portType.slice(1)} Port`;
+
         addButton.addEventListener('click', () => {
             const name = nameInput.value.trim();
             const type = typeSelect.value;
 
             if (!name) return alert('Port name is required');
 
-            // Initialize port array if missing
-            const userPortsKey = `${portType}Ports`;
+            // Ensure array exists
             if (!cell.userObject[userPortsKey]) {
                 cell.userObject[userPortsKey] = [];
             }
 
-            // Add new port
+            // Add the new port
             cell.userObject[userPortsKey].push({ portName: name, dataType: type });
 
-            // Refresh the display
+            // Refresh UI
             populateRightPalette();
         });
 
-        // Append input and button
         addPortDiv.appendChild(nameInput);
         addPortDiv.appendChild(typeSelect);
         addPortDiv.appendChild(addButton);
 
         contentEl.appendChild(addPortDiv);
     }
+
 
 
     function renderStateVariables(cell, containerEl, graph, headerEl) {
@@ -880,91 +910,19 @@ function main(container) {
 
         if (cell.isAtomicModel()) {
 
+            // For an atomic model we show State Variables, Input Ports, Output Ports (for now)
+
             renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
-
-            // // Show Properties section
-            // propertiesHeader.classList.remove("hidden");
-            // propertiesContent.classList.remove("hidden");
-
-            // // Clear previous content
-            // propertiesContent.innerHTML = '';
-
-            // const stateVariabes = selected[0].userObject?.stateVariables || [];
-            // stateVariabes.forEach((prop, index) => {
-            //     const propDiv = document.createElement('div');
-            //     propDiv.className = 'property-item';
-
-            //     const label = document.createElement('label');
-            //     label.textContent = prop.name;
-
-            //     let input;
-
-            //     // Handle different types
-            //     if (prop.type === "int" || prop.type === "double") {
-            //         input = document.createElement('input');
-            //         input.type = 'number';
-            //         input.value = prop.defaultValue;
-            //     } else if (prop.type === "bool") {
-            //         input = document.createElement('select');
-            //         ["true", "false"].forEach(opt => {
-            //             const option = document.createElement('option');
-            //             option.value = opt;
-            //             option.textContent = opt;
-            //             input.appendChild(option);
-            //         });
-            //         input.value = prop.defaultValue ? "true" : "false";
-            //     } else if (prop.type.startsWith("dropdown:")) {
-            //         input = document.createElement('select');
-            //         const options = prop.type.split(":")[1].split("/");
-            //         options.forEach(opt => {
-            //             const option = document.createElement('option');
-            //             option.value = opt;
-            //             option.textContent = opt;
-            //             input.appendChild(option);
-            //         });
-            //         input.value = prop.defaultValue;
-            //     } else {
-            //         input = document.createElement('input');
-            //         input.type = 'text';
-            //         input.value = prop.defaultValue;
-            //     }
-
-            //     // Update userObject when input changes
-            //     input.addEventListener('change', (e) => {
-            //         if (prop.type === "int") {
-            //             prop.defaultValue = parseInt(e.target.value) || 0;
-            //         } else if (prop.type === "double") {
-            //             prop.defaultValue = parseFloat(e.target.value) || 0.0;
-            //         } else if (prop.type === "bool") {
-            //             prop.defaultValue = e.target.value === "true";
-            //         } else if (prop.type.startsWith("dropdown:")) {
-            //             prop.defaultValue = e.target.value;
-            //         } else {
-            //             prop.defaultValue = e.target.value;
-            //         }
-
-            //         selected[0].userObject[index] = prop;
-            //         graph.refresh();
-            //     });
-
-            //     propDiv.appendChild(label);
-            //     propDiv.appendChild(input);
-            //     propertiesContent.appendChild(propDiv);
-            // });
-
-            ///////////////////////////////
-            // SECTION 2 - Ports
-            ///////////////////////////////
-
-            // Render input ports
             renderPorts(cell, "input", inputPortsHeader, inputPortsContent);
-
-            // Render output ports
             renderPorts(cell, "output", outputPortsHeader, outputPortsContent);
 
             console.log("Atomic model selected");
 
         } else if (cell.isCoupledModel()) {
+
+            // For a coupled model we show...
+
+
 
             console.log("Coupled model selected");
 
