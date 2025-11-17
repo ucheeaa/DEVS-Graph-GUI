@@ -1115,6 +1115,14 @@ function main(container) {
 
     populateRightPalette();
 
+    // Log id of cells upon clicking for development purposes
+    graph.addListener(mxEvent.CLICK, function (sender, evt) {
+        var cell = evt.getProperty('cell'); // the clicked cell
+        if (cell != null) {
+            console.log('Clicked cell ID:', cell.getId());
+        }
+    });
+
     return graph;
 }
 
