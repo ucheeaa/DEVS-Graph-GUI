@@ -488,6 +488,133 @@ function main(container) {
 
 
 
+    function renderInternalCouplings(parentCell, headerEl, contentEl) {
+        // Show the section
+        headerEl.classList.remove("hidden");
+        contentEl.classList.remove("hidden");
+
+        // Clear previous content
+        contentEl.innerHTML = '';
+
+        const children = parentCell.children || [];
+        if (children.length === 0) return;
+
+        const formContainer = document.createElement('div');
+        formContainer.style.marginTop = '12px';
+        formContainer.style.display = 'flex';
+        formContainer.style.flexDirection = 'column';
+        formContainer.style.gap = '8px';
+
+        // --- Component From ---
+        const componentFromLabel = document.createElement('label');
+        componentFromLabel.textContent = "Component From:";
+        formContainer.appendChild(componentFromLabel);
+
+        const fromCellSelect = document.createElement('select');
+        children.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = c.value || 'Child';
+            fromCellSelect.appendChild(option);
+        });
+        formContainer.appendChild(fromCellSelect);
+
+        // --- Port From ---
+        const portFromLabel = document.createElement('label');
+        portFromLabel.textContent = "Port From:";
+        formContainer.appendChild(portFromLabel);
+
+        const fromPortSelect = document.createElement('select');
+        formContainer.appendChild(fromPortSelect);
+
+        const updateFromPorts = () => {
+            fromPortSelect.innerHTML = '';
+            const selectedId = fromCellSelect.value;
+            const selectedCell = children.find(c => c.id === selectedId);
+            if (!selectedCell) return;
+
+            const outputPorts = (typeof selectedCell.getOutputPorts === 'function') ? selectedCell.getOutputPorts() : [];
+            outputPorts.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.portName;
+                opt.textContent = `${p.portName} <${p.dataType}>`;
+                fromPortSelect.appendChild(opt);
+            });
+        };
+        fromCellSelect.addEventListener('change', updateFromPorts);
+        updateFromPorts();
+
+        // --- Component To ---
+        const componentToLabel = document.createElement('label');
+        componentToLabel.textContent = "Component To:";
+        formContainer.appendChild(componentToLabel);
+
+        const toCellSelect = document.createElement('select');
+        children.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = c.value || 'Child';
+            toCellSelect.appendChild(option);
+        });
+        formContainer.appendChild(toCellSelect);
+
+        // --- Port To ---
+        const portToLabel = document.createElement('label');
+        portToLabel.textContent = "Port To:";
+        formContainer.appendChild(portToLabel);
+
+        const toPortSelect = document.createElement('select');
+        formContainer.appendChild(toPortSelect);
+
+        const updateToPorts = () => {
+            toPortSelect.innerHTML = '';
+            const selectedId = toCellSelect.value;
+            const selectedCell = children.find(c => c.id === selectedId);
+            if (!selectedCell) return;
+
+            const inputPorts = (typeof selectedCell.getInputPorts === 'function') ? selectedCell.getInputPorts() : [];
+            inputPorts.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.portName;
+                opt.textContent = `${p.portName} <${p.dataType}>`;
+                toPortSelect.appendChild(opt);
+            });
+        };
+        toCellSelect.addEventListener('change', updateToPorts);
+        updateToPorts();
+
+        // --- Add Coupling Button ---
+        const addButton = document.createElement('button');
+        addButton.textContent = "Add Coupling";
+        addButton.style.marginTop = '12px';
+        addButton.addEventListener('click', () => {
+            const fromCellId = fromCellSelect.value;
+            const fromPort = fromPortSelect.value;
+            const toCellId = toCellSelect.value;
+            const toPort = toPortSelect.value;
+
+            if (!fromCellId || !fromPort || !toCellId || !toPort) {
+                alert("Please select all fields to add a coupling");
+                return;
+            }
+
+            // Here you can handle the coupling logic
+            console.log(`Coupling added: ${fromCellId}:${fromPort} → ${toCellId}:${toPort}`);
+            alert(`Coupling added: ${fromCellId}:${fromPort} → ${toCellId}:${toPort}`);
+        });
+
+        formContainer.appendChild(addButton);
+
+        contentEl.appendChild(formContainer);
+    }
+
+
+
+
+
+
+
+
     /////////////////////////////////////////////////////////////////////////////
     ///////// MenuBar and Footer Setup
     /////////////////////////////////////////////////////////////////////////////
@@ -924,18 +1051,23 @@ function main(container) {
         const selected = graph.getSelectionCells();
 
         // Grab all headers/sections
+        const selectACellIndicator = document.getElementById("selectACellIndicator");
         const propertiesHeader = document.getElementById("propertiesHeader");
         const propertiesContent = document.getElementById("propertiesContent");
         const inputPortsHeader = document.getElementById("inputPortsHeader");
         const inputPortsContent = document.getElementById("inputPortsContent");
         const outputPortsHeader = document.getElementById("outputPortsHeader");
         const outputPortsContent = document.getElementById("outputPortsContent");
-        const selectACellIndicator = document.getElementById("selectACellIndicator");
+        const internalCouplingsHeader = document.getElementById("internalCouplingsHeader");
+        const internalCouplingsContent = document.getElementById("internalCouplingsContent");
+
 
         // Hide all sections initially
-        [propertiesHeader, propertiesContent, inputPortsHeader, inputPortsContent,
-            outputPortsHeader, outputPortsContent, selectACellIndicator].forEach(el => el.classList.add("hidden"));
-
+        [selectACellIndicator,
+            propertiesHeader, propertiesContent,
+            inputPortsHeader, inputPortsContent,
+            outputPortsHeader, outputPortsContent,
+            internalCouplingsHeader, internalCouplingsContent].forEach(el => el.classList.add("hidden"));
 
 
         // Case 1: no cell or multiple cells selected
@@ -960,6 +1092,7 @@ function main(container) {
         } else if (cell.isCoupledModel()) {
 
             // For a coupled model we show...
+            renderInternalCouplings(cell, internalCouplingsHeader, internalCouplingsContent);
 
 
 
