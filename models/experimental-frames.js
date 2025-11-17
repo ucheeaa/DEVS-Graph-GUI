@@ -34,12 +34,7 @@ const experimentalFrames = [
     width: 120,
     height: 60,
     style: {
-      shape: 'rectangle',
-      rounded: 1,
-      arcSize: 20,
-      fillColor: '#FFEB3B',
-      strokeColor: '#FBC02D',
-      fontSize: 16
+      
     }
   },
 
