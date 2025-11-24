@@ -17,7 +17,7 @@
 
     <!-- Script required for image export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+
     <!-- Temporary -->
     <script src="./models/defaultStyles.js"></script>
     <script src="./models/test_models.js"></script>
@@ -28,7 +28,7 @@
     <!-- Temp related to experimental frames (TBD on implementation) -->
     <script src="./models/experimental-frames.js"></script>
     <script src="./js/experimental-frames.js"></script>
-    
+
     <!-- External Stylesheets -->
     <link rel="stylesheet" href="./css/styles.css">
 </head>
@@ -222,8 +222,32 @@
                 <div id="inputPortsContent" class="hidden"></div>
                 <h3 id="outputPortsHeader" class="hidden">Output Ports</h3>
                 <div id="outputPortsContent" class="hidden"></div>
+                <h3 id="addNewPortHeader" class="hidden">Add New Port</h3>
+                <div id="addNewPortContent" class="hidden"></div>
+                <h3 id="externalInputCouplingsHeader" class="hidden">External Input Couplings</h3>
+                <div id="externalInputCouplingsContent" class="hidden"></div>
+                <h3 id="externalOutputCouplingsHeader" class="hidden">External Output Couplings</h3>
+                <div id="externalOutputCouplingsContent" class="hidden"></div>
                 <h3 id="internalCouplingsHeader" class="hidden">Internal Couplings</h3>
                 <div id="internalCouplingsContent" class="hidden"></div>
+                <div id="addCouplingSection" class="coupling-add-container hidden">
+                    <h3>Add Coupling</h3>
+                    <label>Coupling Type</label>
+                    <select id="couplingType">
+                        <option value="EIC">EIC</option>
+                        <option value="IC">IC</option>
+                        <option value="EOC">EOC</option>
+                    </select>
+                    <label>Component From</label>
+                    <select id="componentFrom"></select>
+                    <label>Port From</label>
+                    <select id="portFrom"></select>
+                    <label>Component To</label>
+                    <select id="componentTo"></select>
+                    <label>Port To</label>
+                    <select id="portTo"></select>
+                    <button id="addCouplingBtn">Add Coupling</button>
+                </div>
             </div>
         </div>
     </div>

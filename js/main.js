@@ -80,12 +80,17 @@ function main(container) {
     };
 
     mxCell.prototype.getInputPorts = function () {
-        return this.userObject?.inputPorts || [];
+        const ports = this.userObject?.json?.model?.x || {};
+        // Convert to array of { name, type }
+        return Object.entries(ports).map(([name, type]) => ({ name, type }));
     };
 
     mxCell.prototype.getOutputPorts = function () {
-        return this.userObject?.outputPorts || [];
+        const ports = this.userObject?.json?.model?.y || {};
+        // Convert to array of { name, type }
+        return Object.entries(ports).map(([name, type]) => ({ name, type }));
     };
+
 
 
     function groupCells() {
@@ -179,10 +184,20 @@ function main(container) {
 
             // Attach DEVS metadata
             group.userObject = {
-                elementType: "coupledModel",
-                stateVariables: [
-                    { name: "Child Count", type: "int", defaultValue: selectedCells.length }
-                ]
+                elementType: 'coupledModel',
+                model_name: 'name',
+                unique_id: 'id',
+                json: {
+                    model: {
+                        x: {},
+                        y: {},
+                        components: {},
+                        eic: [],
+                        eoc: [],
+                        ic: []
+                    },
+                    include_sets: ["default_sets.json"],
+                },
             };
 
             // Move the group on top of children
@@ -409,6 +424,129 @@ function main(container) {
 
 
 
+    function renderPortsNEW(cell) {
+        // Get all relevant DOM elements
+        const inputHeader = document.getElementById('inputPortsHeader');
+        const inputContent = document.getElementById('inputPortsContent');
+        const outputHeader = document.getElementById('outputPortsHeader');
+        const outputContent = document.getElementById('outputPortsContent');
+        const addHeader = document.getElementById('addNewPortHeader');
+        const addContent = document.getElementById('addNewPortContent');
+
+        // --- Hide everything by default ---
+        [inputHeader, inputContent, outputHeader, outputContent, addHeader, addContent]
+            .forEach(el => el?.classList.add('hidden'));
+
+        if (!cell || !cell.userObject) return; // nothing selected
+
+        const model = cell.userObject.json?.model;
+        if (!model) return;
+
+        // --- Helper to render ports (with placeholder support) ---
+        const renderPortList = (ports, contentEl) => {
+            contentEl.innerHTML = '';
+
+            const entries = Object.entries(ports || {});
+            if (entries.length === 0) {
+                const placeholder = document.createElement('div');
+                placeholder.textContent = '(no ports)';
+                contentEl.appendChild(placeholder);
+                return;
+            }
+
+            entries.forEach(([name, type]) => {
+                const portDiv = document.createElement('div');
+
+                const label = document.createElement('span');
+                label.textContent = `${name}<${type}>`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '-';
+                deleteBtn.addEventListener('click', () => {
+                    delete ports[name];
+                    renderPortsNEW(cell);
+                    renderAddCouplingUI(cell);
+                });
+
+                portDiv.appendChild(label);
+                portDiv.appendChild(deleteBtn);
+                contentEl.appendChild(portDiv);
+            });
+        };
+
+        // --- ALWAYS SHOW Input Ports section ---
+        inputHeader.classList.remove('hidden');
+        inputContent.classList.remove('hidden');
+        renderPortList(model.x || {}, inputContent);
+
+        // --- ALWAYS SHOW Output Ports section ---
+        outputHeader.classList.remove('hidden');
+        outputContent.classList.remove('hidden');
+        renderPortList(model.y || {}, outputContent);
+
+        // --- Render Add New Port Section ---
+        addHeader.classList.remove('hidden');
+        addContent.classList.remove('hidden');
+        addContent.innerHTML = '';
+
+        // Line 1: Port type & data type dropdowns
+        const line1 = document.createElement('div');
+
+        const portTypeSelect = document.createElement('select');
+        ['input', 'output'].forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+            portTypeSelect.appendChild(option);
+        });
+
+        const dataTypeSelect = document.createElement('select');
+        ['int', 'double', 'bool', 'string'].forEach(dt => {
+            const option = document.createElement('option');
+            option.value = dt;
+            option.textContent = dt;
+            dataTypeSelect.appendChild(option);
+        });
+
+        line1.appendChild(portTypeSelect);
+        line1.appendChild(dataTypeSelect);
+
+        // Line 2: Port name input
+        const portNameInput = document.createElement('input');
+        portNameInput.type = 'text';
+        portNameInput.placeholder = 'Port Name';
+
+        // Line 3: Add button
+        const addBtn = document.createElement('button');
+        addBtn.textContent = 'Add Port';
+        addBtn.addEventListener('click', () => {
+            const type = portTypeSelect.value;
+            const name = portNameInput.value.trim();
+            const dataType = dataTypeSelect.value;
+
+            if (!name) return alert('Port name is required');
+
+            if (type === 'input') {
+                if (!model.x) model.x = {};
+                model.x[name] = dataType;
+            } else {
+                if (!model.y) model.y = {};
+                model.y[name] = dataType;
+            }
+
+            portNameInput.value = '';
+            renderPortsNEW(cell);
+            renderAddCouplingUI(cell);
+        });
+
+        addContent.appendChild(line1);
+        addContent.appendChild(portNameInput);
+        addContent.appendChild(addBtn);
+    }
+
+
+
+
     function renderStateVariables(cell, containerEl, graph, headerEl) {
         if (!cell || !containerEl) return;
 
@@ -487,6 +625,59 @@ function main(container) {
     }
 
 
+    function renderStateVariablesNEW(cell, containerEl, graph, headerEl) {
+        if (!cell || !containerEl) return;
+
+        // Show header and container
+        if (headerEl) headerEl.classList.remove("hidden");
+        containerEl.classList.remove("hidden");
+
+        // Clear container
+        containerEl.innerHTML = '';
+
+        // State variables in new format: userObject.json.model.s
+        const stateVariables = cell.userObject?.json?.model?.s || {};
+
+        // Iterate over each key in s
+        Object.entries(stateVariables).forEach(([name, type]) => {
+            const propDiv = document.createElement('div');
+            propDiv.className = 'property-item';
+
+            const label = document.createElement('label');
+            label.textContent = name;
+
+            let input;
+
+            // Determine input type based on variable type
+            if (type === "int" || type === "double") {
+                input = document.createElement('input');
+                input.type = 'number';
+                input.value = 0; // default value for int/double
+            } else if (type === "bool") {
+                input = document.createElement('select');
+                ["true", "false"].forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.textContent = opt;
+                    input.appendChild(option);
+                });
+                input.value = "true"; // default value for bool
+            } else {
+                input = document.createElement('input');
+                input.type = 'text';
+                input.value = ''; // default value for string
+            }
+
+            propDiv.appendChild(label);
+            propDiv.appendChild(input);
+            containerEl.appendChild(propDiv);
+        });
+    }
+
+
+
+
+
 
     function renderInternalCouplings(parentCell, headerEl, contentEl) {
         // Show the section
@@ -504,6 +695,22 @@ function main(container) {
         formContainer.style.display = 'flex';
         formContainer.style.flexDirection = 'column';
         formContainer.style.gap = '8px';
+
+        // --- Existing Couplings ---
+        const existingCouplings = parentCell.userObject?.internalCouplings || [];
+        if (existingCouplings.length > 0) {
+            const existingHeader = document.createElement('div');
+            existingHeader.textContent = "Existing Couplings:";
+            existingHeader.style.fontWeight = 'bold';
+            formContainer.appendChild(existingHeader);
+
+            existingCouplings.forEach(c => {
+                const div = document.createElement('div');
+                div.textContent = `${c.component_from}:${c.port_from} → ${c.component_to}:${c.port_to}`;
+                div.style.paddingLeft = '8px';
+                formContainer.appendChild(div);
+            });
+        }
 
         // --- Component From ---
         const componentFromLabel = document.createElement('label');
@@ -598,15 +805,245 @@ function main(container) {
                 return;
             }
 
-            // Here you can handle the coupling logic
-            console.log(`Coupling added: ${fromCellId}:${fromPort} → ${toCellId}:${toPort}`);
-            alert(`Coupling added: ${fromCellId}:${fromPort} → ${toCellId}:${toPort}`);
+            // Initialize internalCouplings array if needed
+            if (!parentCell.userObject.internalCouplings) {
+                parentCell.userObject.internalCouplings = [];
+            }
+
+            // Add the new coupling
+            parentCell.userObject.internalCouplings.push({
+                component_from: fromCellId,
+                port_from: fromPort,
+                component_to: toCellId,
+                port_to: toPort
+            });
+
+            // Refresh UI
+            renderInternalCouplings(parentCell, headerEl, contentEl);
         });
 
         formContainer.appendChild(addButton);
 
         contentEl.appendChild(formContainer);
     }
+
+
+
+
+
+
+
+
+
+    function renderCouplingsNEW(parentCell) {
+        if (!parentCell) return;
+
+        const model = parentCell.userObject?.json?.model;
+        if (!model) return;
+
+        // Helper to render a coupling array
+        const renderCouplingSection = (couplings, headerId, contentId) => {
+            const header = document.getElementById(headerId);
+            const content = document.getElementById(contentId);
+
+            header.classList.remove('hidden');
+            content.classList.remove('hidden');
+            content.innerHTML = '';
+
+            if (couplings && couplings.length > 0) {
+                couplings.forEach((c, idx) => {
+                    const div = document.createElement('div');
+                    div.textContent = `${c.component_from}:${c.port_from} → ${c.component_to}:${c.port_to}`;
+                    content.appendChild(div);
+
+                    if (idx < couplings.length - 1) {
+                        content.appendChild(document.createElement('br'));
+                    }
+                });
+            } else {
+                const placeholder = document.createElement('div');
+                placeholder.textContent = "(no couplings)";
+                content.appendChild(placeholder);
+            }
+        };
+
+        // Render the three coupling sections
+        renderCouplingSection(model.eic, 'externalInputCouplingsHeader', 'externalInputCouplingsContent');
+        renderCouplingSection(model.eoc, 'externalOutputCouplingsHeader', 'externalOutputCouplingsContent');
+        renderCouplingSection(model.ic, 'internalCouplingsHeader', 'internalCouplingsContent');
+    }
+
+
+
+
+
+
+
+
+
+    function renderAddCouplingUI(cell) { // TODO alert box when the data types don't match
+        const addCouplingSection = document.getElementById("addCouplingSection");
+        addCouplingSection.classList.remove("hidden");
+
+        const typeSelect = document.getElementById("couplingType");
+        const compFrom = document.getElementById("componentFrom");
+        const portFrom = document.getElementById("portFrom");
+        const compTo = document.getElementById("componentTo");
+        const portTo = document.getElementById("portTo");
+
+        const children = graph.model.getChildCells(cell) || [];
+
+        // --- Update typeSelect options ---
+        typeSelect.innerHTML = ''; // clear existing
+        const typeOptions = [
+            { value: 'EIC', text: 'EIC - External Input Coupling' },
+            { value: 'EOC', text: 'EOC - External Output Coupling' },
+            { value: 'IC', text: 'IC - Internal Coupling' }
+        ];
+        typeOptions.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.text;
+            typeSelect.appendChild(option);
+        });
+
+        // Helper: get cell object by unique_id
+        function getCellById(id) {
+            if (id === cell.userObject.unique_id) return cell;
+            return children.find(c => c.userObject.unique_id === id);
+        }
+
+        // Populate componentFrom and componentTo
+        function populateComponents() {
+            const type = typeSelect.value;
+            compFrom.innerHTML = '';
+            compTo.innerHTML = '';
+
+            if (type === "EIC") {
+                addOptions(compFrom, [cell.userObject.unique_id]);
+                addOptions(compTo, children.map(c => c.userObject.unique_id));
+            } else if (type === "IC") {
+                addOptions(compFrom, children.map(c => c.userObject.unique_id));
+                addOptions(compTo, children.map(c => c.userObject.unique_id));
+            } else if (type === "EOC") {
+                addOptions(compFrom, children.map(c => c.userObject.unique_id));
+                addOptions(compTo, [cell.userObject.unique_id]);
+            }
+        }
+
+        // Populate ports based on selected components
+        function populatePorts() {
+            const fromCell = getCellById(compFrom.value);
+            const toCell = getCellById(compTo.value);
+
+            const fromPorts = fromCell ? (typeSelect.value === "EIC" ? fromCell.getInputPorts() : fromCell.getOutputPorts()) : [];
+            const toPorts = toCell ? (typeSelect.value === "EOC" ? toCell.getOutputPorts() : toCell.getInputPorts()) : [];
+
+            addOptions(portFrom, fromPorts.map(p => `${p.name}<${p.type}>`));
+            addOptions(portTo, toPorts.map(p => `${p.name}<${p.type}>`));
+        }
+
+        function populateAll() {
+            populateComponents();
+            populatePorts();
+        }
+
+        typeSelect.onchange = populateAll;
+        compFrom.onchange = populatePorts;
+        compTo.onchange = populatePorts;
+
+        populateAll();
+
+        document.getElementById("addCouplingBtn").onclick = () => {
+            const coupling = {
+                type: typeSelect.value,
+                componentFrom: compFrom.value,
+                portFrom: portFrom.value,
+                componentTo: compTo.value,
+                portTo: portTo.value
+            };
+            console.log("Adding coupling:", coupling);
+            addCouplingToModel(cell, coupling); // Save to model
+        };
+    }
+
+
+
+    function addOptions(selectEl, items) {
+        if (!Array.isArray(items)) items = []; // ensure array
+        selectEl.innerHTML = ''; // clear previous options
+
+        items.forEach(i => {
+            const opt = document.createElement("option");
+
+            // If i is an object with name/type, format as name<type>
+            if (i && typeof i === 'object' && i.name && i.type) {
+                opt.value = i.name;
+                opt.textContent = `${i.name}<${i.type}>`;
+            } else {
+                opt.value = i;
+                opt.textContent = i;
+            }
+
+            selectEl.appendChild(opt);
+        });
+    }
+
+
+    function flatten(arr) {
+        if (!arr) return [];
+        return [].concat(...arr);
+    }
+
+
+
+
+    function addCouplingToModel(parentCell, coupling) {
+        if (!parentCell || !coupling) return;
+
+        const model = parentCell.userObject?.json?.model;
+        if (!model) return;
+
+        switch (coupling.type) {
+            case 'EIC':
+                if (!model.eic) model.eic = [];
+                model.eic.push({
+                    port_from: coupling.portFrom,
+                    port_to: coupling.portTo,
+                    component_to: coupling.componentTo
+                });
+                break;
+
+            case 'EOC':
+                if (!model.eoc) model.eoc = [];
+                model.eoc.push({
+                    port_from: coupling.portFrom,
+                    port_to: coupling.portTo,
+                    component_from: coupling.componentFrom,
+                });
+                break;
+
+            case 'IC':
+                if (!model.ic) model.ic = [];
+                model.ic.push({
+                    port_from: coupling.portFrom,
+                    port_to: coupling.portTo,
+                    component_from: coupling.componentFrom,
+                    component_to: coupling.componentTo,
+                });
+                break;
+
+            default:
+                console.warn("Unknown coupling type:", coupling.type);
+        }
+    }
+
+
+
+
+
+
+
 
 
 
@@ -1058,8 +1495,15 @@ function main(container) {
         const inputPortsContent = document.getElementById("inputPortsContent");
         const outputPortsHeader = document.getElementById("outputPortsHeader");
         const outputPortsContent = document.getElementById("outputPortsContent");
+        const addNewPortHeader = document.getElementById("addNewPortHeader");
+        const addNewPortContent = document.getElementById("addNewPortContent");
+        const externalInputCouplingsHeader = document.getElementById("externalInputCouplingsHeader");
+        const externalInputCouplingsContent = document.getElementById("externalInputCouplingsContent");
+        const externalOutputCouplingsHeader = document.getElementById("externalOutputCouplingsHeader");
+        const externalOutputCouplingsContent = document.getElementById("externalOutputCouplingsContent");
         const internalCouplingsHeader = document.getElementById("internalCouplingsHeader");
         const internalCouplingsContent = document.getElementById("internalCouplingsContent");
+        const addCouplingSection = document.getElementById("addCouplingSection");
 
 
         // Hide all sections initially
@@ -1067,7 +1511,11 @@ function main(container) {
             propertiesHeader, propertiesContent,
             inputPortsHeader, inputPortsContent,
             outputPortsHeader, outputPortsContent,
-            internalCouplingsHeader, internalCouplingsContent].forEach(el => el.classList.add("hidden"));
+            addNewPortHeader, addNewPortContent,
+            externalInputCouplingsHeader, externalInputCouplingsContent,
+            externalOutputCouplingsHeader, externalOutputCouplingsContent,
+            internalCouplingsHeader, internalCouplingsContent,
+            addCouplingSection].forEach(el => el.classList.add("hidden"));
 
 
         // Case 1: no cell or multiple cells selected
@@ -1083,16 +1531,21 @@ function main(container) {
 
             // For an atomic model we show State Variables, Input Ports, Output Ports (for now)
 
-            renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
-            renderPorts(cell, "input", inputPortsHeader, inputPortsContent);
-            renderPorts(cell, "output", outputPortsHeader, outputPortsContent);
+            // renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
+            renderStateVariablesNEW(selected[0], propertiesContent, graph, propertiesHeader);
+            //renderPorts(cell, "input", inputPortsHeader, inputPortsContent);
+            //renderPorts(cell, "output", outputPortsHeader, outputPortsContent);
+            renderPortsNEW(cell);
 
             console.log("Atomic model selected");
 
         } else if (cell.isCoupledModel()) {
 
             // For a coupled model we show...
-            renderInternalCouplings(cell, internalCouplingsHeader, internalCouplingsContent);
+            renderPortsNEW(cell);
+            // renderInternalCouplings(cell, internalCouplingsHeader, internalCouplingsContent);
+            renderCouplingsNEW(cell);
+            renderAddCouplingUI(cell);
 
 
 

@@ -23,10 +23,55 @@ const generalItems = [
 
 
 
+  // {
+  //   label: 'Counter',
+  //   userObject: {
+  //     elementType: "coupledModel",
+  //   },
+  //   width: 120,
+  //   height: 60,
+  //   style: DEFAULT_STYLES.coupledModel
+  // },
+
+
   {
-    label: 'Counter',
+    label: 'counter_system',
     userObject: {
-      elementType: "coupledModel",
+      elementType: 'coupledModel',
+      model_name: 'counter_system',
+      unique_id: 'counter_system',
+      json: {
+        model: {
+          x: {},
+          y: {
+            count: 'int'
+          },
+          components: {},
+          eic: [],
+          eoc: [
+            {
+              port_from: 'count_out',
+              port_to: 'count',
+              component_from: 'counter_model'
+            }
+          ],
+          ic: [
+            {
+            port_from: 'bool_out',
+            port_to: 'direction_in',
+            component_to: 'counter_model',
+            component_from: 'direction_generator'
+            },
+            {
+            port_from: 'int_out',
+            port_to: 'increment_in',
+            component_to: 'counter_model',
+            component_from: 'increment_generator'
+            }
+          ]
+        },
+        include_sets: ["default_sets.json"],
+      },
     },
     width: 120,
     height: 60,
@@ -34,59 +79,36 @@ const generalItems = [
   },
 
 
-
-  {
-    label: 'Counter(Atomic)',
+{
+    label: 'Counter Model: Counter',
     userObject: {
-      elementType: "atomicModel",
-      stateVariables: [
-        {
-          name: "Counting Frequency (seconds)",
-          type: "int",
-          defaultValue: 3
+      elementType: 'atomicModel',
+      model_name: 'Counter',
+      unique_id: 'Counter Model',
+      json: {
+        model: {
+          x: {
+            increment_in: 'int',
+            direction_in: 'bool'
+          },
+          y: {
+            count_out: 'int'
+          },
+          s: {
+            sigma: 'double',
+            count: 'int',
+            increment: 'int',
+            countUp: 'bool'
+          },
+          delta_int: {},
+          delta_ext: {},
+          delta_con: {},
+          lambda: {},
+          ta: {}
         },
-        {
-          name: "Initial Count",
-          type: "int",
-          defaultValue: 0
-        },
-        {
-          name: "Counting Direction",
-          type: "dropdown:Up/Down",
-          defaultValue: "Up"
-        },
-        {
-          name: "Count Increment",
-          type: "int",
-          defaultValue: 1
-        },
-        {
-          name: "Minimum Count",
-          type: "int",
-          defaultValue: 0
-        },
-        {
-          name: "Maximum Count",
-          type: "int",
-          defaultValue: 100
-        }
-      ],
-      outputPorts: [
-        {
-          portName: "count_out",
-          dataType: "int"
-        }
-      ],
-      inputPorts: [
-        {
-          portName: "increment_in",
-          dataType: "int"
-        },
-        {
-          portName: "direction_in",
-          dataType: "bool"
-        },
-      ],
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
     },
     width: 120,
     height: 60,
@@ -95,33 +117,30 @@ const generalItems = [
 
 
   {
-    label: 'Integer \nGenerator',
+    label: 'Increment Generator: Integer Generator',
     userObject: {
-      elementType: "atomicModel",
-      stateVariables: [
-        {
-          name: "Output Frequency",
-          type: "double",
-          defaultValue: 5.0
+      elementType: 'atomicModel',
+      model_name: 'Integer Generator',
+      unique_id: 'Increment Generator',
+      json: {
+        model: {
+          x: {},
+          y: {
+            int_out: 'int',
+          },
+          s: {
+            sigma: 'double',
+            nextInt: 'int'
+          },
+          delta_int: {},
+          delta_ext: {},
+          delta_con: {},
+          lambda: {},
+          ta: {}
         },
-        {
-          name: "Minimum Value",
-          type: "int",
-          defaultValue: 0
-        },
-        {
-          name: "Maximum Value",
-          type: "int",
-          defaultValue: 10
-        }
-      ],
-      outputPorts: [
-        {
-          portName: "int_out",
-          dataType: "int"
-        }
-      ],
-      inputPorts: [],
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
     },
     width: 120,
     height: 60,
@@ -130,58 +149,106 @@ const generalItems = [
 
 
   {
-    label: 'Boolean \nGenerator',
+    label: 'Direction Generator: Boolean Generator',
     userObject: {
-      elementType: "atomicModel",
-      stateVariables: [
-        {
-          name: "Output Frequency",
-          type: "double",
-          defaultValue: 5.0
+      elementType: 'atomicModel',
+      model_name: 'Boolean Generator',
+      unique_id: 'Direction Generator',
+      json: {
+        model: {
+          x: {},
+          y: {
+            bool_out: 'bool',
+          },
+          s: {
+            sigma: 'double',
+            nextBool: 'bool'
+          },
+          delta_int: {},
+          delta_ext: {},
+          delta_con: {},
+          lambda: {},
+          ta: {}
         },
-        {
-          name: "Initial Value",
-          type: "bool",
-          defaultValue: "true"
-        },
-        {
-          name: "Output Generation",
-          type: "dropdown:Random/Alternating",
-          defaultValue: "Random"
-        }
-      ],
-      outputPorts: [
-        {
-          portName: "bool_out",
-          dataType: "bool"
-        }
-      ],
-      inputPorts: [],
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
     },
     width: 120,
     height: 60,
     style: DEFAULT_STYLES.atomicModel
+  },
+
+
+  {
+    label: 'testAtomic',
+    userObject: {
+      elementType: 'atomicModel',
+      model_name: 'name',
+      unique_id: 'id',
+      json: {
+        model: {
+          x: {},
+          y: {},
+          s: {},
+          delta_int: {},
+          delta_ext: {},
+          delta_con: {},
+          lambda: {},
+          ta: {}
+        },
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
+    },
+    width: 120,
+    height: 60,
+    style: DEFAULT_STYLES.atomicModel
+  },
+
+
+  {
+    label: 'testCoupled',
+    userObject: {
+      elementType: 'coupledModel',
+      model_name: 'name',
+      unique_id: 'id',
+      json: {
+        model: {
+          x: {},
+          y: {},
+          components: {},
+          eic: [],
+          eoc: [],
+          ic: []
+        },
+        include_sets: ["default_sets.json"],
+      },
+    },
+    width: 120,
+    height: 60,
+    style: DEFAULT_STYLES.coupledModel
   },
 
 
   {
     label: '',
     userObject: {
-      elementType: "atomicModel", // state, atomicModel, coupledModel, experimentalFrame
+      elementType: 'atomicModel', // state, atomicModel, coupledModel, experimentalFrame
       stateVariables: [
         {
-          name: "Green Duration (seconds)",
-          type: "int",
+          name: 'Green Duration (seconds)',
+          type: 'int',
           defaultValue: 10
         },
         {
-          name: "Yellow Duration (seconds)",
-          type: "int",
+          name: 'Yellow Duration (seconds)',
+          type: 'int',
           defaultValue: 3
         },
         {
-          name: "Red Duration (seconds)",
-          type: "int",
+          name: 'Red Duration (seconds)',
+          type: 'int',
           defaultValue: 13
         }
       ]
