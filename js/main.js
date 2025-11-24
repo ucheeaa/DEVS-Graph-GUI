@@ -200,6 +200,13 @@ function main(container) {
                 },
             };
 
+            // Populate components with model_name: unique_id of children
+            selectedCells.forEach(child => {
+                const childName = child.userObject?.model_name || 'unnamed';
+                const childId = child.userObject?.unique_id || child.getId();
+                group.userObject.json.model.components[childName] = childId;
+            });
+
             // Move the group on top of children
             const model = graph.getModel();
             const parent = model.getParent(group);
