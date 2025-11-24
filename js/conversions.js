@@ -71,66 +71,66 @@ export class ConversionManager {
 
 
     previewDEVSMap() {
-    // Encode graph to XML
-    const encoder = new mxCodec();
-    const node = encoder.encode(this.graph.getModel());
-    const xmlText = mxUtils.getPrettyXml(node);
+        // Encode graph to XML
+        const encoder = new mxCodec();
+        const node = encoder.encode(this.graph.getModel());
+        const xmlText = mxUtils.getPrettyXml(node);
 
-    // Parse XML
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        // Parse XML
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-    // Recursive XML → JS converter
-    function parseXmlNode(xmlNode) {
-        if (!xmlNode) return null;
+        // Recursive XML → JS converter
+        function parseXmlNode(xmlNode) {
+            if (!xmlNode) return null;
 
-        if (xmlNode.tagName === "Object") {
-            const obj = {};
+            if (xmlNode.tagName === "Object") {
+                const obj = {};
 
-            // Copy attributes in order
-            for (let i = 0; i < xmlNode.attributes.length; i++) {
-                const attr = xmlNode.attributes[i];
-                if (attr.name !== "as") obj[attr.name] = attr.value;
-            }
-
-            // Add children in order
-            for (let i = 0; i < xmlNode.children.length; i++) {
-                const child = xmlNode.children[i];
-                const key = child.getAttribute("as") || child.tagName;
-                const value = parseXmlNode(child);
-                obj[key] = value; // no array needed since no duplicate keys
-            }
-
-            return obj;
-        }
-
-        if (xmlNode.tagName === "Array") {
-            const arr = [];
-            for (let i = 0; i < xmlNode.children.length; i++) {
-                const child = xmlNode.children[i];
-                if (child.tagName === "add") {
-                    arr.push(child.getAttribute("value"));
-                } else {
-                    arr.push(parseXmlNode(child));
+                // Copy attributes in order
+                for (let i = 0; i < xmlNode.attributes.length; i++) {
+                    const attr = xmlNode.attributes[i];
+                    if (attr.name !== "as") obj[attr.name] = attr.value;
                 }
+
+                // Add children in order
+                for (let i = 0; i < xmlNode.children.length; i++) {
+                    const child = xmlNode.children[i];
+                    const key = child.getAttribute("as") || child.tagName;
+                    const value = parseXmlNode(child);
+                    obj[key] = value; // no array needed since no duplicate keys
+                }
+
+                return obj;
             }
-            return arr;
+
+            if (xmlNode.tagName === "Array") {
+                const arr = [];
+                for (let i = 0; i < xmlNode.children.length; i++) {
+                    const child = xmlNode.children[i];
+                    if (child.tagName === "add") {
+                        arr.push(child.getAttribute("value"));
+                    } else {
+                        arr.push(parseXmlNode(child));
+                    }
+                }
+                return arr;
+            }
+
+            if (xmlNode.tagName === "add") {
+                return xmlNode.getAttribute("value");
+            }
+
+            return null;
         }
 
-        if (xmlNode.tagName === "add") {
-            return xmlNode.getAttribute("value");
-        }
+        // Find all userObjects
+        const userObjectNodes = xmlDoc.querySelectorAll('Object[as="userObject"]');
+        const userObjects = Array.from(userObjectNodes).map(node => parseXmlNode(node));
 
-        return null;
+        // Log plain JS objects
+        console.log(JSON.stringify(userObjects, null, 2));
     }
-
-    // Find all userObjects
-    const userObjectNodes = xmlDoc.querySelectorAll('Object[as="userObject"]');
-    const userObjects = Array.from(userObjectNodes).map(node => parseXmlNode(node));
-
-    // Log plain JS objects
-    console.log(JSON.stringify(userObjects, null, 2));
-}
 
 
 
