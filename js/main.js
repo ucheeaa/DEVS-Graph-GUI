@@ -841,7 +841,6 @@ function main(container) {
         const model = parentCell.userObject?.json?.model;
         if (!model) return;
 
-        // Helper to render a coupling array
         const renderCouplingSection = (couplings, headerId, contentId) => {
             const header = document.getElementById(headerId);
             const content = document.getElementById(contentId);
@@ -853,7 +852,10 @@ function main(container) {
             if (couplings && couplings.length > 0) {
                 couplings.forEach((c, idx) => {
                     const div = document.createElement('div');
-                    div.textContent = `${c.component_from}:${c.port_from} → ${c.component_to}:${c.port_to}`;
+                    div.textContent = `${c.component_from ?? parentCell.userObject.unique_id
+                        }:${c.port_from ?? parentCell.userObject.unique_id} → ${c.component_to ?? parentCell.userObject.unique_id
+                        }:${c.port_to ?? parentCell.userObject.unique_id}`;
+
                     content.appendChild(div);
 
                     if (idx < couplings.length - 1) {
@@ -866,6 +868,7 @@ function main(container) {
                 content.appendChild(placeholder);
             }
         };
+
 
         // Render the three coupling sections
         renderCouplingSection(model.eic, 'externalInputCouplingsHeader', 'externalInputCouplingsContent');
@@ -955,15 +958,17 @@ function main(container) {
         populateAll();
 
         document.getElementById("addCouplingBtn").onclick = () => {
+
             const coupling = {
                 type: typeSelect.value,
                 componentFrom: compFrom.value,
-                portFrom: portFrom.value,
+                portFrom: portFrom.value.split('<')[0],
                 componentTo: compTo.value,
-                portTo: portTo.value
+                portTo: portTo.value.split('<')[0]
             };
-            console.log("Adding coupling:", coupling);
+            //console.log("Adding coupling:", coupling);
             addCouplingToModel(cell, coupling); // Save to model
+            renderCouplingsNEW(cell);
         };
     }
 
