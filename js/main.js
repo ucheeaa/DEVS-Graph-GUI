@@ -852,15 +852,24 @@ function main(container) {
             if (couplings && couplings.length > 0) {
                 couplings.forEach((c, idx) => {
                     const div = document.createElement('div');
-                    div.textContent = `${c.component_from ?? parentCell.userObject.unique_id
-                        }:${c.port_from ?? parentCell.userObject.unique_id} → ${c.component_to ?? parentCell.userObject.unique_id
-                        }:${c.port_to ?? parentCell.userObject.unique_id}`;
+
+                    const label = document.createElement('span');
+                    label.textContent = `${c.component_from ?? parentCell.userObject.unique_id
+                        } : ${c.port_from ?? parentCell.userObject.unique_id} → ${c.component_to ?? parentCell.userObject.unique_id
+                        } : ${c.port_to ?? parentCell.userObject.unique_id}`;
+                    div.appendChild(label);
+
+                    // Remove button
+                    const removeBtn = document.createElement('button');
+                    removeBtn.textContent = '-';
+                    removeBtn.style.marginLeft = '8px';
+                    removeBtn.addEventListener('click', () => {
+                        couplings.splice(idx, 1); // remove coupling from the model
+                        renderCouplingsNEW(parentCell);
+                    });
+                    div.appendChild(removeBtn);
 
                     content.appendChild(div);
-
-                    if (idx < couplings.length - 1) {
-                        content.appendChild(document.createElement('br'));
-                    }
                 });
             } else {
                 const placeholder = document.createElement('div');
@@ -869,12 +878,12 @@ function main(container) {
             }
         };
 
-
         // Render the three coupling sections
         renderCouplingSection(model.eic, 'externalInputCouplingsHeader', 'externalInputCouplingsContent');
         renderCouplingSection(model.eoc, 'externalOutputCouplingsHeader', 'externalOutputCouplingsContent');
         renderCouplingSection(model.ic, 'internalCouplingsHeader', 'internalCouplingsContent');
     }
+
 
 
 
