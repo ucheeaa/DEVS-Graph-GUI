@@ -180,13 +180,13 @@ function main(container) {
             );
 
             // Visible label for the group
-            group.value = "Enter a name for this coupled model";
+            group.value = "Enter a name and id for this coupled model";
 
             // Attach DEVS metadata
             group.userObject = {
                 elementType: 'coupledModel',
-                model_name: 'name',
-                unique_id: 'id',
+                model_name: '',
+                unique_id: '',
                 json: {
                     model: {
                         x: {},
@@ -322,6 +322,72 @@ function main(container) {
                         graph.getModel().setGeometry(cell, newGeometry);
                     }
                 });
+            } finally {
+                graph.getModel().endUpdate();
+            }
+        }
+    }
+
+
+    function renderModelAndUniqueID(cell) {
+
+        const headerEl = document.getElementById("modelNameIDHeader");
+        const container = document.getElementById("modelNameIDContent");
+
+        // Ensure userObject exists
+        cell.userObject = cell.userObject || {};
+        if (!cell.userObject.model_name) cell.userObject.model_name = "";
+        if (!cell.userObject.unique_id) cell.userObject.unique_id = "";
+
+        const userObj = cell.userObject;
+
+        headerEl.classList.remove("hidden");
+        container.classList.remove("hidden");
+        container.innerHTML = "";
+
+        const wrapper = document.createElement("div");
+        wrapper.classList.add("property-section");
+
+        // Unique ID
+        const idLabel = document.createElement("label");
+        idLabel.textContent = "Unique ID:";
+        const idInput = document.createElement("input");
+        idInput.type = "text";
+        idInput.value = userObj.unique_id;
+        idInput.classList.add("property-input");
+
+        // Model Name
+        const modelLabel = document.createElement("label");
+        modelLabel.textContent = "Model Name:";
+        const modelInput = document.createElement("input");
+        modelInput.type = "text";
+        modelInput.value = userObj.model_name;
+        modelInput.classList.add("property-input");
+
+        wrapper.appendChild(idLabel);
+        wrapper.appendChild(idInput);
+        wrapper.appendChild(modelLabel);
+        wrapper.appendChild(modelInput);
+        container.appendChild(wrapper);
+
+        // Update events
+        idInput.addEventListener("input", () => {
+            userObj.unique_id = idInput.value;
+            updateLabel();
+        });
+
+        modelInput.addEventListener("input", () => {
+            userObj.model_name = modelInput.value;
+            updateLabel();
+        });
+
+        function updateLabel() {
+            const id = userObj.unique_id || "";
+            const model = userObj.model_name || "";
+            graph.getModel().beginUpdate();
+            try {
+                cell.value = `${id} : ${model}`;
+                graph.refresh(cell);
             } finally {
                 graph.getModel().endUpdate();
             }
@@ -1510,6 +1576,8 @@ function main(container) {
 
         // Grab all headers/sections
         const selectACellIndicator = document.getElementById("selectACellIndicator");
+        const modelNameIDHeader = document.getElementById("modelNameIDHeader");
+        const modelNameIDContent = document.getElementById("modelNameIDContent");
         const propertiesHeader = document.getElementById("propertiesHeader");
         const propertiesContent = document.getElementById("propertiesContent");
         const inputPortsHeader = document.getElementById("inputPortsHeader");
@@ -1529,6 +1597,7 @@ function main(container) {
 
         // Hide all sections initially
         [selectACellIndicator,
+            modelNameIDHeader, modelNameIDContent,
             propertiesHeader, propertiesContent,
             inputPortsHeader, inputPortsContent,
             outputPortsHeader, outputPortsContent,
@@ -1551,7 +1620,7 @@ function main(container) {
         if (cell.isAtomicModel()) {
 
             // For an atomic model we show State Variables, Input Ports, Output Ports (for now)
-
+            renderModelAndUniqueID(cell);
             // renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
             renderStateVariablesNEW(selected[0], propertiesContent, graph, propertiesHeader);
             //renderPorts(cell, "input", inputPortsHeader, inputPortsContent);
@@ -1563,6 +1632,7 @@ function main(container) {
         } else if (cell.isCoupledModel()) {
 
             // For a coupled model we show...
+            renderModelAndUniqueID(cell);
             renderPortsNEW(cell);
             // renderInternalCouplings(cell, internalCouplingsHeader, internalCouplingsContent);
             renderCouplingsNEW(cell);
