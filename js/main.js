@@ -185,8 +185,8 @@ function main(container) {
             // Attach DEVS metadata
             group.userObject = {
                 elementType: 'coupledModel',
-                model_name: '',
-                unique_id: '',
+                model_name: 'defaultName',
+                unique_id: 'defaultID',
                 json: {
                     model: {
                         x: {},

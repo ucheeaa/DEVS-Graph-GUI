@@ -69,8 +69,14 @@ export class ConversionManager {
     }
 
 
-
     previewDEVSMap() {
+        const userObjects = this.getUserObjects();
+
+        console.log(userObjects);
+    }
+
+
+    getUserObjects() {
         // Encode graph to XML
         const encoder = new mxCodec();
         const node = encoder.encode(this.graph.getModel());
@@ -128,8 +134,8 @@ export class ConversionManager {
         const userObjectNodes = xmlDoc.querySelectorAll('Object[as="userObject"]');
         const userObjects = Array.from(userObjectNodes).map(node => parseXmlNode(node));
 
-        // Log plain JS objects
-        console.log(JSON.stringify(userObjects, null, 2));
+        // Return plain JS objects
+        return JSON.stringify(userObjects, null, 2);
     }
 
 
