@@ -395,109 +395,7 @@ function main(container) {
     }
 
 
-    function renderPorts(cell, portType, headerEl, contentEl) {
-        // portType should be "input" or "output"
-
-        // Show the section
-        headerEl.classList.remove("hidden");
-        contentEl.classList.remove("hidden");
-
-        // Clear previous content
-        contentEl.innerHTML = '';
-
-        // Get ports dynamically
-        const getterName = `get${portType.charAt(0).toUpperCase() + portType.slice(1)}Ports`;
-        const ports = typeof cell[getterName] === 'function' ? cell[getterName]() : [];
-
-        const userPortsKey = `${portType}Ports`;
-
-        // Display each port
-        ports.forEach((port, index) => {
-            const portDiv = document.createElement('div');
-            portDiv.style.display = "flex";
-            portDiv.style.alignItems = "center";
-            portDiv.style.marginBottom = "4px";
-
-            const labelSpan = document.createElement('span');
-            labelSpan.textContent = `${port.portName}<${port.dataType}>`;
-
-            // Delete button
-            const deleteBtn = document.createElement('button');
-            deleteBtn.textContent = "-";
-            deleteBtn.style.marginLeft = "8px";
-            deleteBtn.style.width = "22px";
-            deleteBtn.style.height = "22px";
-            deleteBtn.style.padding = "0";
-            deleteBtn.style.cursor = "pointer";
-
-            deleteBtn.addEventListener('click', () => {
-                if (!cell.userObject[userPortsKey]) return;
-
-                // Remove this port
-                cell.userObject[userPortsKey].splice(index, 1);
-
-                // Refresh UI
-                populateRightPalette();
-            });
-
-            portDiv.appendChild(labelSpan);
-            portDiv.appendChild(deleteBtn);
-
-            contentEl.appendChild(portDiv);
-        });
-
-        // --- Add new port section ---
-        const addPortDiv = document.createElement('div');
-        addPortDiv.style.marginTop = '10px';
-
-        // Input for port name
-        const nameInput = document.createElement('input');
-        nameInput.type = 'text';
-        nameInput.placeholder = 'Port Name';
-        nameInput.style.marginRight = '4px';
-
-        // Dropdown for data type
-        const typeSelect = document.createElement('select');
-        ['int', 'double', 'bool'].forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type;
-            typeSelect.appendChild(option);
-        });
-        typeSelect.style.marginRight = '4px';
-
-        // Add button
-        const addButton = document.createElement('button');
-        addButton.textContent = `Add ${portType.charAt(0).toUpperCase() + portType.slice(1)} Port`;
-
-        addButton.addEventListener('click', () => {
-            const name = nameInput.value.trim();
-            const type = typeSelect.value;
-
-            if (!name) return alert('Port name is required');
-
-            // Ensure array exists
-            if (!cell.userObject[userPortsKey]) {
-                cell.userObject[userPortsKey] = [];
-            }
-
-            // Add the new port
-            cell.userObject[userPortsKey].push({ portName: name, dataType: type });
-
-            // Refresh UI
-            populateRightPalette();
-        });
-
-        addPortDiv.appendChild(nameInput);
-        addPortDiv.appendChild(typeSelect);
-        addPortDiv.appendChild(addButton);
-
-        contentEl.appendChild(addPortDiv);
-    }
-
-
-
-    function renderPortsNEW(cell) {
+    function renderPorts(cell) {
         // Get all relevant DOM elements
         const inputHeader = document.getElementById('inputPortsHeader');
         const inputContent = document.getElementById('inputPortsContent');
@@ -537,7 +435,7 @@ function main(container) {
                 deleteBtn.textContent = '-';
                 deleteBtn.addEventListener('click', () => {
                     delete ports[name];
-                    renderPortsNEW(cell);
+                    renderPorts(cell);
                     renderAddCouplingUI(cell);
                 });
 
@@ -608,7 +506,7 @@ function main(container) {
             }
 
             portNameInput.value = '';
-            renderPortsNEW(cell);
+            renderPorts(cell);
             renderAddCouplingUI(cell);
         });
 
@@ -618,87 +516,7 @@ function main(container) {
     }
 
 
-
-
     function renderStateVariables(cell, containerEl, graph, headerEl) {
-        if (!cell || !containerEl) return;
-
-        // Show header and container
-        if (headerEl) headerEl.classList.remove("hidden");
-        containerEl.classList.remove("hidden");
-
-        // Clear container
-        containerEl.innerHTML = '';
-
-        const stateVariables = cell.userObject?.stateVariables || [];
-
-        stateVariables.forEach((prop, index) => {
-            const propDiv = document.createElement('div');
-            propDiv.className = 'property-item';
-
-            const label = document.createElement('label');
-            label.textContent = prop.name;
-
-            let input;
-
-            // Handle different types
-            if (prop.type === "int" || prop.type === "double") {
-                input = document.createElement('input');
-                input.type = 'number';
-                input.value = prop.defaultValue;
-            } else if (prop.type === "bool") {
-                input = document.createElement('select');
-                ["true", "false"].forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    input.appendChild(option);
-                });
-                input.value = prop.defaultValue ? "true" : "false";
-            } else if (prop.type.startsWith("dropdown:")) {
-                input = document.createElement('select');
-                const options = prop.type.split(":")[1].split("/");
-                options.forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    input.appendChild(option);
-                });
-                input.value = prop.defaultValue;
-            } else {
-                input = document.createElement('input');
-                input.type = 'text';
-                input.value = prop.defaultValue;
-            }
-
-            // Update userObject when input changes
-            input.addEventListener('change', (e) => {
-                if (prop.type === "int") {
-                    prop.defaultValue = parseInt(e.target.value) || 0;
-                } else if (prop.type === "double") {
-                    prop.defaultValue = parseFloat(e.target.value) || 0.0;
-                } else if (prop.type === "bool") {
-                    prop.defaultValue = e.target.value === "true";
-                } else if (prop.type.startsWith("dropdown:")) {
-                    prop.defaultValue = e.target.value;
-                } else {
-                    prop.defaultValue = e.target.value;
-                }
-
-                // Update the stateVariables array
-                cell.userObject.stateVariables[index] = prop;
-
-                graph.refresh();
-            });
-
-            propDiv.appendChild(label);
-            propDiv.appendChild(input);
-            containerEl.appendChild(propDiv);
-        });
-    }
-
-
-    function renderStateVariablesNEW(cell, containerEl, graph, headerEl) {
         if (!cell || !containerEl) return;
 
         // Show header and container
@@ -901,14 +719,7 @@ function main(container) {
     }
 
 
-
-
-
-
-
-
-
-    function renderCouplingsNEW(parentCell) {
+    function renderCouplings(parentCell) {
         if (!parentCell) return;
 
         const model = parentCell.userObject?.json?.model;
@@ -938,7 +749,7 @@ function main(container) {
                     removeBtn.style.marginLeft = '8px';
                     removeBtn.addEventListener('click', () => {
                         couplings.splice(idx, 1); // remove coupling from the model
-                        renderCouplingsNEW(parentCell);
+                        renderCouplings(parentCell);
                     });
                     div.appendChild(removeBtn);
 
@@ -1050,7 +861,7 @@ function main(container) {
             };
             //console.log("Adding coupling:", coupling);
             addCouplingToModel(cell, coupling); // Save to model
-            renderCouplingsNEW(cell);
+            renderCouplings(cell);
         };
     }
 
@@ -1621,11 +1432,8 @@ function main(container) {
 
             // For an atomic model we show State Variables, Input Ports, Output Ports (for now)
             renderModelAndUniqueID(cell);
-            // renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
-            renderStateVariablesNEW(selected[0], propertiesContent, graph, propertiesHeader);
-            //renderPorts(cell, "input", inputPortsHeader, inputPortsContent);
-            //renderPorts(cell, "output", outputPortsHeader, outputPortsContent);
-            renderPortsNEW(cell);
+            renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
+            renderPorts(cell);
 
             console.log("Atomic model selected");
 
@@ -1633,12 +1441,9 @@ function main(container) {
 
             // For a coupled model we show...
             renderModelAndUniqueID(cell);
-            renderPortsNEW(cell);
-            // renderInternalCouplings(cell, internalCouplingsHeader, internalCouplingsContent);
-            renderCouplingsNEW(cell);
+            renderPorts(cell);
+            renderCouplings(cell);
             renderAddCouplingUI(cell);
-
-
 
             console.log("Coupled model selected");
 
