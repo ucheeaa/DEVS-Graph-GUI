@@ -665,7 +665,7 @@ function main(container) {
 
         container.appendChild(addBtn);
     }
-    
+
 
     function renderCouplings(parentCell) {
         if (!parentCell) return;
@@ -890,6 +890,7 @@ function main(container) {
     document.getElementById('screenshotJpgBtn').addEventListener('click', () => exportGraphImage(graph, "jpg"));
 
     document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
+    document.getElementById("previewUserObjectsBtn").addEventListener("click", () => conversionManager.previewUserObjects());
     document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
     document.getElementById("previewCodeBtn").addEventListener("click", () => conversionManager.previewCadmiumCode());
     document.getElementById("previewTraceBtn").addEventListener("click", () => conversionManager.previewTrace());

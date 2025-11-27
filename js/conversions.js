@@ -69,13 +69,6 @@ export class ConversionManager {
     }
 
 
-    previewDEVSMap() {
-        const userObjects = this.getUserObjects();
-
-        console.log(userObjects);
-    }
-
-
     getUserObjects() {
         // Encode graph to XML
         const encoder = new mxCodec();
@@ -139,9 +132,18 @@ export class ConversionManager {
     }
 
 
+    previewDEVSMap() {
+        const userObjects = this.getUserObjects();
+
+        console.log(userObjects);
+    }
 
 
+    previewUserObjects() {
+        const userObjects = this.getUserObjects();
 
+        console.log(userObjects);
+    }
 
 
 
