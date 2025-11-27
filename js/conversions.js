@@ -1,8 +1,10 @@
 export class ConversionManager {
 
+
     constructor(graph) {
         this.graph = graph;
     }
+
 
     // For previewing the JSON in the console
     getGraphXML() {
@@ -12,9 +14,11 @@ export class ConversionManager {
         return xml;
     }
 
+
     previewGraphXML() {
         console.log(this.getGraphXML());
     }
+
 
     saveGraphXML() {
         // application/octet-stream prevents XML preview in some browsers
@@ -27,6 +31,7 @@ export class ConversionManager {
 
         URL.revokeObjectURL(link.href);
     }
+
 
     loadGraphXML() {
         // Prompt user to select file
@@ -132,16 +137,78 @@ export class ConversionManager {
     }
 
 
-    previewDEVSMap() {
+    previewUserObjects() {
         const userObjects = this.getUserObjects();
 
         console.log(userObjects);
     }
 
 
-    previewUserObjects() {
-        const userObjects = this.getUserObjects();
+    getTopModel() {
+        const model = this.graph.getModel();
+        const root = model.getRoot();
+        const topLevelCoupled = [];
 
+        // Recursive function to traverse the graph
+        function traverse(cell) {
+            if (!cell) return;
+
+            // Check if the cell is a coupled model
+            if (cell.isCoupledModel()) {
+                // Only add if parent is not a coupled model
+                if (!cell.parent || !cell.parent.isCoupledModel()) {
+                    topLevelCoupled.push(cell);
+                }
+            }
+
+            // Recurse on children
+            const childCount = model.getChildCount(cell);
+            for (let i = 0; i < childCount; i++) {
+                traverse(model.getChildAt(cell, i));
+            }
+        }
+
+        traverse(root);
+
+        if (topLevelCoupled.length === 0) {
+            console.error("No top-level coupled model found.");
+            return undefined;
+        } else if (topLevelCoupled.length > 1) {
+            console.error(
+                `Multiple top-level coupled models found: ${topLevelCoupled
+                    .map(c => c.userObject?.unique_id)
+                    .join(", ")}`
+            );
+            return undefined;
+        }
+
+        // Exactly one top model → return its unique_id
+        return topLevelCoupled[0].userObject?.unique_id;
+    }
+
+
+
+    getSimulationTime() {
+        let inputValue = parseFloat(document.getElementById("previewNumberInput").value);
+        if (isNaN(inputValue)) {
+            console.log("Number input is empty or invalid.");
+            inputValue = 50.0; // Use 50 as default during development if not invalid/unspecified
+        }
+        console.log("Generating DEVSMap with simulation time:", inputValue);
+
+        return inputValue;
+    }
+
+
+    previewDEVSMap() {
+        let time_span = this.getSimulationTime();
+        console.log("time_span = " + time_span);
+
+        let top_model_id = this.getTopModel();
+        console.log("top_model_id = " + top_model_id);
+
+        // Then we will process the JSON to convert it to legal DEVSMap
+        const userObjects = this.getUserObjects();
         console.log(userObjects);
     }
 
