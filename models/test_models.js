@@ -57,16 +57,16 @@ const generalItems = [
           ],
           ic: [
             {
-            port_from: 'bool_out',
-            port_to: 'direction_in',
-            component_to: 'counter_model',
-            component_from: 'direction_generator'
+              port_from: 'bool_out',
+              port_to: 'direction_in',
+              component_to: 'counter_model',
+              component_from: 'direction_generator'
             },
             {
-            port_from: 'int_out',
-            port_to: 'increment_in',
-            component_to: 'counter_model',
-            component_from: 'increment_generator'
+              port_from: 'int_out',
+              port_to: 'increment_in',
+              component_to: 'counter_model',
+              component_from: 'increment_generator'
             }
           ]
         },
@@ -79,7 +79,7 @@ const generalItems = [
   },
 
 
-{
+  {
     label: 'Counter_Model : Counter',
     userObject: {
       elementType: 'atomicModel',
@@ -95,10 +95,10 @@ const generalItems = [
             count_out: 'int'
           },
           s: {
-            sigma: 'double',
-            count: 'int',
-            increment: 'int',
-            countUp: 'bool'
+            sigma: { dataType: 'double', init_state: 'inf' },
+            count: { dataType: 'int', init_state: '0' },
+            increment: { dataType: 'int', init_state: '1' },
+            countUp: { dataType: 'bool', init_state: 'true' },
           },
           delta_int: {},
           delta_ext: {},
@@ -129,8 +129,8 @@ const generalItems = [
             int_out: 'int',
           },
           s: {
-            sigma: 'double',
-            nextInt: 'int'
+            sigma: { dataType: 'double', init_state: '3.0' },
+            nextInt: { dataType: 'int', init_state: '1' },
           },
           delta_int: {},
           delta_ext: {},
@@ -161,8 +161,8 @@ const generalItems = [
             bool_out: 'bool',
           },
           s: {
-            sigma: 'double',
-            nextBool: 'bool'
+            sigma: { dataType: 'double', init_state: '13.0' },
+            nextBool: { dataType: 'bool', init_state: 'false' },
           },
           delta_int: {},
           delta_ext: {},

@@ -516,65 +516,127 @@ function main(container) {
     }
 
 
-    function renderStateVariablesNEW(cell) {
-    if (!cell) return;
+    function renderStateVariables(cell) {
+        if (!cell || !cell.userObject || !cell.userObject.json?.model?.s) return;
 
-    // Locate UI elements
-    const headerEl = document.getElementById("propertiesHeader");
-    const containerEl = document.getElementById("propertiesContent");
+        const container = document.getElementById("propertiesContent");
+        const header = document.getElementById("propertiesHeader");
 
-    // Show them
-    headerEl.classList.remove("hidden");
-    containerEl.classList.remove("hidden");
+        header.classList.remove("hidden");
+        container.classList.remove("hidden");
+        container.innerHTML = "";
 
-    // Clear previous content
-    containerEl.innerHTML = "";
+        const stateVars = cell.userObject.json.model.s;
 
-    // Retrieve the state variables under userObject.json.model.s
-    const stateVariables = cell.userObject?.json?.model?.s || {};
+        Object.entries(stateVars).forEach(([varName, varObj]) => {
+            const { dataType, init_state } = varObj;
 
-    // Build UI for each entry in s
-    Object.entries(stateVariables).forEach(([name, type]) => {
+            const row = document.createElement("div");
+            row.classList.add("property-item");
 
-        const propDiv = document.createElement("div");
-        propDiv.className = "property-item";
+            const label = document.createElement("label");
+            label.textContent = varName;
 
-        const label = document.createElement("label");
-        label.textContent = name;
+            let input;
 
-        let input;
+            // Choose input type based on dataType
+            if (dataType === "int" || dataType === "double") {
+                input = document.createElement("input");
+                input.type = "number";
+                input.value = parseFloat(init_state) || 0;
+            } else if (dataType === "bool") {
+                input = document.createElement("select");
+                ["true", "false"].forEach(v => {
+                    const option = document.createElement("option");
+                    option.value = v;
+                    option.textContent = v;
+                    input.appendChild(option);
+                });
+                input.value = String(init_state).toLowerCase() === "true" ? "true" : "false";
+            } else {
+                input = document.createElement("input");
+                input.type = "text";
+                input.value = init_state || "";
+            }
 
-        // Numeric inputs
-        if (type === "int" || type === "double") {
-            input = document.createElement("input");
-            input.type = "number";
-            input.value = 0;
+            // Listen for changes and write back to JSON
+            input.addEventListener("input", () => {
+                let newValue = input.value;
 
-        // Boolean dropdown
-        } else if (type === "bool") {
-            input = document.createElement("select");
+                if (dataType === "int") newValue = parseInt(newValue) || 0;
+                else if (dataType === "double") newValue = parseFloat(newValue) || 0.0;
+                else if (dataType === "bool") newValue = (newValue === "true");
 
-            ["true", "false"].forEach(val => {
-                const opt = document.createElement("option");
-                opt.value = val;
-                opt.textContent = val;
-                input.appendChild(opt);
+                varObj.init_state = newValue;
+                console.log(`Updated ${varName} ->`, newValue);
             });
 
-            input.value = "true";
+            row.appendChild(label);
+            row.appendChild(input);
+            container.appendChild(row);
+        });
+    }
 
-        // Fallback: string input
-        } else {
-            input = document.createElement("input");
-            input.type = "text";
-            input.value = "";
-        }
 
-        propDiv.appendChild(label);
-        propDiv.appendChild(input);
-        containerEl.appendChild(propDiv);
-    });
-}
+    function renderStateVariablesNEW(cell) {
+        if (!cell) return;
+
+        // Locate UI elements
+        const headerEl = document.getElementById("propertiesHeader");
+        const containerEl = document.getElementById("propertiesContent");
+
+        // Show them
+        headerEl.classList.remove("hidden");
+        containerEl.classList.remove("hidden");
+
+        // Clear previous content
+        containerEl.innerHTML = "";
+
+        // Retrieve the state variables under userObject.json.model.s
+        const stateVariables = cell.userObject?.json?.model?.s || {};
+
+        // Build UI for each entry in s
+        Object.entries(stateVariables).forEach(([name, type]) => {
+
+            const propDiv = document.createElement("div");
+            propDiv.className = "property-item";
+
+            const label = document.createElement("label");
+            label.textContent = name;
+
+            let input;
+
+            // Numeric inputs
+            if (type === "int" || type === "double") {
+                input = document.createElement("input");
+                input.type = "number";
+                input.value = 0;
+
+                // Boolean dropdown
+            } else if (type === "bool") {
+                input = document.createElement("select");
+
+                ["true", "false"].forEach(val => {
+                    const opt = document.createElement("option");
+                    opt.value = val;
+                    opt.textContent = val;
+                    input.appendChild(opt);
+                });
+
+                input.value = "true";
+
+                // Fallback: string input
+            } else {
+                input = document.createElement("input");
+                input.type = "text";
+                input.value = "";
+            }
+
+            propDiv.appendChild(label);
+            propDiv.appendChild(input);
+            containerEl.appendChild(propDiv);
+        });
+    }
 
     function renderCouplings(parentCell) {
         if (!parentCell) return;
@@ -1265,8 +1327,8 @@ function main(container) {
 
             // For an atomic model we show State Variables, Input Ports, Output Ports (for now)
             renderModelAndUniqueID(cell);
-            renderStateVariablesNEW(cell);
-            // renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
+            renderStateVariables(cell);
+            // renderStateVariablesNEW(cell);
             renderPorts(cell);
 
             console.log("Atomic model selected");
