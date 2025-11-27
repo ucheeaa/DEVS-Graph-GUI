@@ -578,66 +578,6 @@ function main(container) {
     }
 
 
-    function renderStateVariablesNEW(cell) {
-        if (!cell) return;
-
-        // Locate UI elements
-        const headerEl = document.getElementById("propertiesHeader");
-        const containerEl = document.getElementById("propertiesContent");
-
-        // Show them
-        headerEl.classList.remove("hidden");
-        containerEl.classList.remove("hidden");
-
-        // Clear previous content
-        containerEl.innerHTML = "";
-
-        // Retrieve the state variables under userObject.json.model.s
-        const stateVariables = cell.userObject?.json?.model?.s || {};
-
-        // Build UI for each entry in s
-        Object.entries(stateVariables).forEach(([name, type]) => {
-
-            const propDiv = document.createElement("div");
-            propDiv.className = "property-item";
-
-            const label = document.createElement("label");
-            label.textContent = name;
-
-            let input;
-
-            // Numeric inputs
-            if (type === "int" || type === "double") {
-                input = document.createElement("input");
-                input.type = "number";
-                input.value = 0;
-
-                // Boolean dropdown
-            } else if (type === "bool") {
-                input = document.createElement("select");
-
-                ["true", "false"].forEach(val => {
-                    const opt = document.createElement("option");
-                    opt.value = val;
-                    opt.textContent = val;
-                    input.appendChild(opt);
-                });
-
-                input.value = "true";
-
-                // Fallback: string input
-            } else {
-                input = document.createElement("input");
-                input.type = "text";
-                input.value = "";
-            }
-
-            propDiv.appendChild(label);
-            propDiv.appendChild(input);
-            containerEl.appendChild(propDiv);
-        });
-    }
-
     function renderCouplings(parentCell) {
         if (!parentCell) return;
 
