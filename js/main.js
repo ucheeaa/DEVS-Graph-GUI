@@ -529,7 +529,7 @@ function main(container) {
         const stateVars = cell.userObject.json.model.s;
 
         Object.entries(stateVars).forEach(([varName, varObj]) => {
-            let { dataType, init_state } = varObj;
+            let { data_type, init_state } = varObj;
 
             const row = document.createElement("div");
             row.classList.add("property-item");
@@ -567,16 +567,16 @@ function main(container) {
                 option.textContent = type;
                 typeSelect.appendChild(option);
             });
-            typeSelect.value = dataType;
+            typeSelect.value = data_type;
 
             typeSelect.addEventListener("change", () => {
-                dataType = typeSelect.value;
-                varObj.dataType = dataType;
+                data_type = typeSelect.value;
+                varObj.data_type = data_type;
 
                 // Reset init_state for new type
-                if (dataType === "bool") varObj.init_state = false;
-                else if (dataType === "double") varObj.init_state = 0.0;
-                else if (dataType === "int") varObj.init_state = 0;
+                if (data_type === "bool") varObj.init_state = false;
+                else if (data_type === "double") varObj.init_state = 0.0;
+                else if (data_type === "int") varObj.init_state = 0;
                 else varObj.init_state = "";
 
                 renderValueInput();
@@ -609,11 +609,11 @@ function main(container) {
 
                 let inputElem;
 
-                if (dataType === "int" || dataType === "double") {
+                if (data_type === "int" || data_type === "double") {
                     inputElem = document.createElement("input");
                     inputElem.type = "number";
                     inputElem.value = parseFloat(varObj.init_state) || 0;
-                } else if (dataType === "bool") {
+                } else if (data_type === "bool") {
                     inputElem = document.createElement("select");
                     ["true", "false"].forEach(v => {
                         const option = document.createElement("option");
@@ -631,9 +631,9 @@ function main(container) {
                 inputElem.addEventListener("input", () => {
                     let newValue = inputElem.value;
 
-                    if (dataType === "int") newValue = parseInt(newValue) || 0;
-                    else if (dataType === "double") newValue = parseFloat(newValue) || 0.0;
-                    else if (dataType === "bool") newValue = (newValue === "true");
+                    if (data_type === "int") newValue = parseInt(newValue) || 0;
+                    else if (data_type === "double") newValue = parseFloat(newValue) || 0.0;
+                    else if (data_type === "bool") newValue = (newValue === "true");
 
                     varObj.init_state = newValue;
                     console.log(`Updated ${varName} ->`, newValue);
@@ -659,13 +659,13 @@ function main(container) {
                 newVarName = `newVar${counter++}`;
             }
 
-            stateVars[newVarName] = { dataType: "double", init_state: 0 };
+            stateVars[newVarName] = { data_type: "double", init_state: 0 };
             renderStateVariables(cell);
         });
 
         container.appendChild(addBtn);
     }
-
+    
 
     function renderCouplings(parentCell) {
         if (!parentCell) return;
@@ -1357,7 +1357,6 @@ function main(container) {
             // For an atomic model we show State Variables, Input Ports, Output Ports (for now)
             renderModelAndUniqueID(cell);
             renderStateVariables(cell);
-            // renderStateVariablesNEW(cell);
             renderPorts(cell);
 
             console.log("Atomic model selected");

@@ -95,10 +95,10 @@ const generalItems = [
             count_out: 'int'
           },
           s: {
-            sigma: { dataType: 'double', init_state: 'inf' },
-            count: { dataType: 'int', init_state: '0' },
-            increment: { dataType: 'int', init_state: '1' },
-            countUp: { dataType: 'bool', init_state: 'true' },
+            sigma: { data_type: 'double', init_state: 'inf' },
+            count: { data_type: 'int', init_state: '0' },
+            increment: { data_type: 'int', init_state: '1' },
+            countUp: { data_type: 'bool', init_state: 'true' },
           },
           delta_int: {},
           delta_ext: {},
@@ -129,8 +129,8 @@ const generalItems = [
             int_out: 'int',
           },
           s: {
-            sigma: { dataType: 'double', init_state: '3.0' },
-            nextInt: { dataType: 'int', init_state: '1' },
+            sigma: { data_type: 'double', init_state: '3.0' },
+            nextInt: { data_type: 'int', init_state: '1' },
           },
           delta_int: {},
           delta_ext: {},
@@ -161,8 +161,8 @@ const generalItems = [
             bool_out: 'bool',
           },
           s: {
-            sigma: { dataType: 'double', init_state: '13.0' },
-            nextBool: { dataType: 'bool', init_state: 'false' },
+            sigma: { data_type: 'double', init_state: '13.0' },
+            nextBool: { data_type: 'bool', init_state: 'false' },
           },
           delta_int: {},
           delta_ext: {},
