@@ -516,55 +516,65 @@ function main(container) {
     }
 
 
-    function renderStateVariables(cell, containerEl, graph, headerEl) {
-        if (!cell || !containerEl) return;
+    function renderStateVariablesNEW(cell) {
+    if (!cell) return;
 
-        // Show header and container
-        if (headerEl) headerEl.classList.remove("hidden");
-        containerEl.classList.remove("hidden");
+    // Locate UI elements
+    const headerEl = document.getElementById("propertiesHeader");
+    const containerEl = document.getElementById("propertiesContent");
 
-        // Clear container
-        containerEl.innerHTML = '';
+    // Show them
+    headerEl.classList.remove("hidden");
+    containerEl.classList.remove("hidden");
 
-        // State variables in new format: userObject.json.model.s
-        const stateVariables = cell.userObject?.json?.model?.s || {};
+    // Clear previous content
+    containerEl.innerHTML = "";
 
-        // Iterate over each key in s
-        Object.entries(stateVariables).forEach(([name, type]) => {
-            const propDiv = document.createElement('div');
-            propDiv.className = 'property-item';
+    // Retrieve the state variables under userObject.json.model.s
+    const stateVariables = cell.userObject?.json?.model?.s || {};
 
-            const label = document.createElement('label');
-            label.textContent = name;
+    // Build UI for each entry in s
+    Object.entries(stateVariables).forEach(([name, type]) => {
 
-            let input;
+        const propDiv = document.createElement("div");
+        propDiv.className = "property-item";
 
-            // Determine input type based on variable type
-            if (type === "int" || type === "double") {
-                input = document.createElement('input');
-                input.type = 'number';
-                input.value = 0; // default value for int/double
-            } else if (type === "bool") {
-                input = document.createElement('select');
-                ["true", "false"].forEach(opt => {
-                    const option = document.createElement('option');
-                    option.value = opt;
-                    option.textContent = opt;
-                    input.appendChild(option);
-                });
-                input.value = "true"; // default value for bool
-            } else {
-                input = document.createElement('input');
-                input.type = 'text';
-                input.value = ''; // default value for string
-            }
+        const label = document.createElement("label");
+        label.textContent = name;
 
-            propDiv.appendChild(label);
-            propDiv.appendChild(input);
-            containerEl.appendChild(propDiv);
-        });
-    }
+        let input;
 
+        // Numeric inputs
+        if (type === "int" || type === "double") {
+            input = document.createElement("input");
+            input.type = "number";
+            input.value = 0;
+
+        // Boolean dropdown
+        } else if (type === "bool") {
+            input = document.createElement("select");
+
+            ["true", "false"].forEach(val => {
+                const opt = document.createElement("option");
+                opt.value = val;
+                opt.textContent = val;
+                input.appendChild(opt);
+            });
+
+            input.value = "true";
+
+        // Fallback: string input
+        } else {
+            input = document.createElement("input");
+            input.type = "text";
+            input.value = "";
+        }
+
+        propDiv.appendChild(label);
+        propDiv.appendChild(input);
+        containerEl.appendChild(propDiv);
+    });
+}
 
     function renderCouplings(parentCell) {
         if (!parentCell) return;
@@ -1255,7 +1265,8 @@ function main(container) {
 
             // For an atomic model we show State Variables, Input Ports, Output Ports (for now)
             renderModelAndUniqueID(cell);
-            renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
+            renderStateVariablesNEW(cell);
+            // renderStateVariables(selected[0], propertiesContent, graph, propertiesHeader);
             renderPorts(cell);
 
             console.log("Atomic model selected");
