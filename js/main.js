@@ -529,52 +529,141 @@ function main(container) {
         const stateVars = cell.userObject.json.model.s;
 
         Object.entries(stateVars).forEach(([varName, varObj]) => {
-            const { dataType, init_state } = varObj;
+            let { dataType, init_state } = varObj;
 
             const row = document.createElement("div");
             row.classList.add("property-item");
 
-            const label = document.createElement("label");
-            label.textContent = varName;
+            // --- Top row: Name + DataType + Delete Button ---
+            const topRow = document.createElement("div");
+            topRow.style.display = "flex";
+            topRow.style.gap = "8px";
+            topRow.style.alignItems = "center";
 
-            let input;
+            // Variable Name Input
+            const nameInput = document.createElement("input");
+            nameInput.type = "text";
+            nameInput.value = varName;
+            nameInput.placeholder = "Variable Name";
+            nameInput.style.flex = "1";
 
-            // Choose input type based on dataType
-            if (dataType === "int" || dataType === "double") {
-                input = document.createElement("input");
-                input.type = "number";
-                input.value = parseFloat(init_state) || 0;
-            } else if (dataType === "bool") {
-                input = document.createElement("select");
-                ["true", "false"].forEach(v => {
-                    const option = document.createElement("option");
-                    option.value = v;
-                    option.textContent = v;
-                    input.appendChild(option);
-                });
-                input.value = String(init_state).toLowerCase() === "true" ? "true" : "false";
-            } else {
-                input = document.createElement("input");
-                input.type = "text";
-                input.value = init_state || "";
-            }
+            nameInput.addEventListener("input", () => {
+                const newName = nameInput.value.trim();
+                if (!newName || newName === varName || stateVars[newName]) return;
 
-            // Listen for changes and write back to JSON
-            input.addEventListener("input", () => {
-                let newValue = input.value;
+                // Rename key in s
+                stateVars[newName] = varObj;
+                delete stateVars[varName];
 
-                if (dataType === "int") newValue = parseInt(newValue) || 0;
-                else if (dataType === "double") newValue = parseFloat(newValue) || 0.0;
-                else if (dataType === "bool") newValue = (newValue === "true");
-
-                varObj.init_state = newValue;
-                console.log(`Updated ${varName} ->`, newValue);
+                console.log(`Renamed variable ${varName} -> ${newName}`);
+                varName = newName;
             });
 
-            row.appendChild(label);
-            row.appendChild(input);
+            // DataType Dropdown
+            const typeSelect = document.createElement("select");
+            ["double", "int", "bool", "string"].forEach(type => {
+                const option = document.createElement("option");
+                option.value = type;
+                option.textContent = type;
+                typeSelect.appendChild(option);
+            });
+            typeSelect.value = dataType;
+
+            typeSelect.addEventListener("change", () => {
+                dataType = typeSelect.value;
+                varObj.dataType = dataType;
+
+                // Reset init_state for new type
+                if (dataType === "bool") varObj.init_state = false;
+                else if (dataType === "double") varObj.init_state = 0.0;
+                else if (dataType === "int") varObj.init_state = 0;
+                else varObj.init_state = "";
+
+                renderValueInput();
+            });
+
+            // Delete Button
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "-";
+            deleteBtn.title = "Delete this variable";
+            deleteBtn.style.marginLeft = "4px";
+            deleteBtn.addEventListener("click", () => {
+                delete stateVars[varName];
+                console.log(`Deleted variable ${varName}`);
+                renderStateVariables(cell); // Re-render the panel
+            });
+
+            topRow.appendChild(nameInput);
+            topRow.appendChild(typeSelect);
+            topRow.appendChild(deleteBtn);
+            row.appendChild(topRow);
+
+            // --- Bottom row: init_state ---
+            let valueInput;
+
+            function renderValueInput() {
+                if (valueInput) row.removeChild(valueInput);
+
+                valueInput = document.createElement("div");
+                valueInput.style.marginTop = "4px";
+
+                let inputElem;
+
+                if (dataType === "int" || dataType === "double") {
+                    inputElem = document.createElement("input");
+                    inputElem.type = "number";
+                    inputElem.value = parseFloat(varObj.init_state) || 0;
+                } else if (dataType === "bool") {
+                    inputElem = document.createElement("select");
+                    ["true", "false"].forEach(v => {
+                        const option = document.createElement("option");
+                        option.value = v;
+                        option.textContent = v;
+                        inputElem.appendChild(option);
+                    });
+                    inputElem.value = String(varObj.init_state).toLowerCase() === "true" ? "true" : "false";
+                } else { // string or custom
+                    inputElem = document.createElement("input");
+                    inputElem.type = "text";
+                    inputElem.value = varObj.init_state || "";
+                }
+
+                inputElem.addEventListener("input", () => {
+                    let newValue = inputElem.value;
+
+                    if (dataType === "int") newValue = parseInt(newValue) || 0;
+                    else if (dataType === "double") newValue = parseFloat(newValue) || 0.0;
+                    else if (dataType === "bool") newValue = (newValue === "true");
+
+                    varObj.init_state = newValue;
+                    console.log(`Updated ${varName} ->`, newValue);
+                });
+
+                valueInput.appendChild(inputElem);
+                row.appendChild(valueInput);
+            }
+
+            renderValueInput();
             container.appendChild(row);
         });
+
+        // --- Add State Variable Button ---
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Add State Variable";
+        addBtn.style.marginTop = "10px";
+        addBtn.addEventListener("click", () => {
+            // Generate a unique name
+            let newVarName = "newVar";
+            let counter = 1;
+            while (stateVars[newVarName]) {
+                newVarName = `newVar${counter++}`;
+            }
+
+            stateVars[newVarName] = { dataType: "double", init_state: 0 };
+            renderStateVariables(cell);
+        });
+
+        container.appendChild(addBtn);
     }
 
 
