@@ -133,14 +133,14 @@ export class ConversionManager {
         const userObjects = Array.from(userObjectNodes).map(node => parseXmlNode(node));
 
         // Return plain JS objects
-        return JSON.stringify(userObjects, null, 2);
+        return userObjects;
     }
 
 
     previewUserObjects() {
         const userObjects = this.getUserObjects();
 
-        console.log(userObjects);
+        console.log(JSON.stringify(userObjects, null, 2));
     }
 
 
@@ -194,22 +194,104 @@ export class ConversionManager {
             console.log("Number input is empty or invalid.");
             inputValue = 50.0; // Use 50 as default during development if not invalid/unspecified
         }
-        console.log("Generating DEVSMap with simulation time:", inputValue);
+        // console.log("Generating DEVSMap with simulation time:", inputValue);
 
         return inputValue;
     }
 
 
     previewDEVSMap() {
+        // Get required values for generating DEVSMap
         let time_span = this.getSimulationTime();
         console.log("time_span = " + time_span);
 
         let top_model_id = this.getTopModel();
         console.log("top_model_id = " + top_model_id);
 
+        // Additional values may need to be added/obtained here as the functionality is extended
+
         // Then we will process the JSON to convert it to legal DEVSMap
         const userObjects = this.getUserObjects();
-        console.log(userObjects);
+
+        let DEVSMap = {};
+
+        DEVSMap[top_model_id + '_experiment.json'] = {
+            'model_under_test': {
+                'model': top_model_id + '_coupled.json',
+                'initial_state': top_model_id + '_init_state.json',
+                'parameters': ''
+            },
+            'experimental_frame': {},
+            'cpic': {},
+            'pocc': {},
+            'time_span': time_span
+        }
+
+
+        // TODO a function here to build up the entire hierarchy based on the graph
+
+
+        DEVSMap[top_model_id + '_init_state.json'] = {
+            'init_states': {
+                top_model_id: {}
+            }
+        }
+
+
+        for (let i = 0; i < userObjects.length; i++) {
+            if (userObjects[i].elementType === "atomicModel") {
+                console.log("atomic");
+
+                let modelName = userObjects[i].model_name.toLowerCase();
+
+                // Values for model_atomic.json
+                DEVSMap[modelName + '_atomic.json'] = {
+                    ['' + modelName]: userObjects[i].json.model,
+                    'include_sets': [userObjects[i].include_sets],
+                    'parameters': userObjects[i].parameters
+                }
+
+                // console.log(DEVSMap[modelName + '_atomic.json']);
+
+                // iterate through state variables
+                Object.entries(DEVSMap[modelName + '_atomic.json'][modelName]['s']).forEach(([key, value]) => {
+                    console.log(key, value);
+
+                    // TODO Store data for init_state file
+                    console.log(modelName);
+                    console.log(key);
+                    console.log(value['init_state']);
+
+                    // Then update the format to match DEVSMap {name: type}
+                    DEVSMap[modelName + '_atomic.json'][modelName]['s'][key] = value['data_type'];
+
+                });
+
+                // Update s values from {name: {data_type: type, init_state: value}}
+
+
+                // Values for init_states.json
+
+            } else if (userObjects[i].elementType === "coupledModel") {
+                console.log("coupled");
+
+
+
+
+
+            } else {
+                console.log("Invalid elementType: " + userObjects[i].elementType);
+            }
+
+
+
+
+
+            console.log(userObjects[i]);
+        }
+
+
+        console.log(DEVSMap);
     }
 
 

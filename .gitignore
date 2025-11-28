@@ -1,5 +1,6 @@
 # temporary files directory
 temp/
+temp2/
 
 # VS Code workspace settings
 .vscode/
