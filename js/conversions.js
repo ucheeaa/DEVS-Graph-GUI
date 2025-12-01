@@ -266,6 +266,8 @@ export class ConversionManager {
                     DEVSMap[modelName + '_atomic.json'][modelName]['s'][key] = value['data_type'];
 
                 });
+                // include sets
+                DEVSMap[modelName + '_atomic.json']['include_sets'] = userObjects[i].json.include_sets;
 
                 // Update s values from {name: {data_type: type, init_state: value}}
 
@@ -279,11 +281,11 @@ export class ConversionManager {
 
                 DEVSMap[coupledModelName + '_coupled.json'] = {
                     ['' + coupledModelName]: userObjects[i].json.model,
-                    'include_sets': [userObjects[i].include_sets],
+                    'include_sets': userObjects[i].json.include_sets,
                 };
 
 
-                
+
 
             } else {
                 console.log("Invalid elementType: " + userObjects[i].elementType);
