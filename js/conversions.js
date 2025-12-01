@@ -187,6 +187,56 @@ export class ConversionManager {
     }
 
 
+    getInitStates() {
+        const topModelId = this.getTopModel();    // e.g., "Counter_System"
+        const userObjects = this.getUserObjects();
+
+        const result = {};
+        result[topModelId.toLowerCase()] = {};
+
+        // 1. Find top level coupled model
+        const topModelObj = userObjects.find(
+            u => u.elementType === "coupledModel" &&
+                u.unique_id === topModelId
+        );
+
+        if (!topModelObj) {
+            console.error("Top model not found:", topModelId);
+            return result;
+        }
+
+        const componentsMap = topModelObj.json.model.components;
+        // componentsMap = { "Counter": "Counter_Model", ... }
+
+        // 2. Iterate each component
+        for (const [modelName, uniqueId] of Object.entries(componentsMap)) {
+
+            // Find corresponding atomic model by unique_id
+            const atomic = userObjects.find(
+                u => u.elementType === "atomicModel" && u.unique_id === uniqueId
+            );
+
+            if (!atomic) {
+                console.warn("No atomic model found for unique_id:", uniqueId);
+                continue;
+            }
+
+            const stateVars = atomic.json.model.s; // contains sigma, count, etc.
+
+            // Build cleaned state dict
+            const cleanedState = {};
+            for (const [stateName, stateObj] of Object.entries(stateVars)) {
+                cleanedState[stateName] = stateObj.init_state;
+            }
+
+            // Add to result under the unique_id (lowercased)
+            result[topModelId.toLowerCase()][uniqueId.toLowerCase()] = cleanedState;
+        }
+
+        return result;
+    }
+
+
 
     getSimulationTime() {
         let inputValue = parseFloat(document.getElementById("previewNumberInput").value);
@@ -215,6 +265,7 @@ export class ConversionManager {
 
         let DEVSMap = {};
 
+        // Create a simple experiment.json (no experimental frames yet)
         DEVSMap[top_model_id + '_experiment.json'] = {
             'model_under_test': {
                 'model': top_model_id + '_coupled.json',
@@ -227,56 +278,44 @@ export class ConversionManager {
             'time_span': time_span
         }
 
-
-        // TODO a function here to build up the entire hierarchy based on the graph
-
-
+        // Create init_states.json
         DEVSMap[top_model_id + '_init_state.json'] = {
-            'init_states': {
-                top_model_id: {}
-            }
+            'init_states': this.getInitStates()
         }
 
 
+        // Create all of the XYZ_atomic.json
         for (let i = 0; i < userObjects.length; i++) {
             if (userObjects[i].elementType === "atomicModel") {
                 console.log("atomic");
 
                 let modelName = userObjects[i].model_name.toLowerCase();
 
-                // Values for model_atomic.json
                 DEVSMap[modelName + '_atomic.json'] = {
                     ['' + modelName]: userObjects[i].json.model,
                     'include_sets': [userObjects[i].include_sets],
                     'parameters': userObjects[i].parameters
                 }
 
-                // console.log(DEVSMap[modelName + '_atomic.json']);
-
                 // iterate through state variables
                 Object.entries(DEVSMap[modelName + '_atomic.json'][modelName]['s']).forEach(([key, value]) => {
-                    console.log(key, value);
-
-                    // TODO Store data for init_state file
-                    console.log(modelName);
-                    console.log(key);
-                    console.log(value['init_state']);
 
                     // Then update the format to match DEVSMap {name: type}
                     DEVSMap[modelName + '_atomic.json'][modelName]['s'][key] = value['data_type'];
 
                 });
+
                 // include sets
                 DEVSMap[modelName + '_atomic.json']['include_sets'] = userObjects[i].json.include_sets;
 
-                // Update s values from {name: {data_type: type, init_state: value}}
+                // parameters
+                DEVSMap[modelName + '_atomic.json']['parameters'] = userObjects[i].json.parameters;
 
-
-                // Values for init_states.json
-
+                
             } else if (userObjects[i].elementType === "coupledModel") {
                 console.log("coupled");
 
+                // Create all of the XYZ_coupled.json
                 let coupledModelName = userObjects[i].model_name.toLowerCase();
 
                 DEVSMap[coupledModelName + '_coupled.json'] = {
@@ -284,29 +323,15 @@ export class ConversionManager {
                     'include_sets': userObjects[i].json.include_sets,
                 };
 
-
-
-
             } else {
                 console.log("Invalid elementType: " + userObjects[i].elementType);
             }
 
-
-
-
-
             console.log(userObjects[i]);
         }
 
-
         console.log(DEVSMap);
     }
-
-
-
-
-
-
 
 
     previewCadmiumCode() {
