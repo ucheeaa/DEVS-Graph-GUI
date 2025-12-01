@@ -188,7 +188,7 @@ export class ConversionManager {
 
 
     getInitStates() {
-        const topModelId = this.getTopModel();    // e.g., "Counter_System"
+        const topModelId = this.getTopModel();
         const userObjects = this.getUserObjects();
 
         const result = {};
@@ -237,7 +237,6 @@ export class ConversionManager {
     }
 
 
-
     getSimulationTime() {
         let inputValue = parseFloat(document.getElementById("previewNumberInput").value);
         if (isNaN(inputValue)) {
@@ -282,7 +281,6 @@ export class ConversionManager {
         DEVSMap[top_model_id + '_init_state.json'] = {
             'init_states': this.getInitStates()
         }
-
 
         // Create all of the XYZ_atomic.json
         for (let i = 0; i < userObjects.length; i++) {
