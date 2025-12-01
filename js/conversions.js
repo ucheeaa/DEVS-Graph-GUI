@@ -275,9 +275,15 @@ export class ConversionManager {
             } else if (userObjects[i].elementType === "coupledModel") {
                 console.log("coupled");
 
+                let coupledModelName = userObjects[i].model_name.toLowerCase();
+
+                DEVSMap[coupledModelName + '_coupled.json'] = {
+                    ['' + coupledModelName]: userObjects[i].json.model,
+                    'include_sets': [userObjects[i].include_sets],
+                };
 
 
-
+                
 
             } else {
                 console.log("Invalid elementType: " + userObjects[i].elementType);
