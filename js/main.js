@@ -6,6 +6,7 @@ import { exportGraphImage } from './image-utils.js';
 
 import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
+import { setupExperimentModal } from "./experiment-design.js";
 
 
 function main(container) {
@@ -1402,6 +1403,7 @@ function main(container) {
 
 // Wait for DOM to be ready before initializing
 document.addEventListener('DOMContentLoaded', () => {
+    setupExperimentModal(); // Setup experiment modal functionality
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main
 });
