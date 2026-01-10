@@ -1406,9 +1406,50 @@ function main(container) {
     return graph;
 }
 
+    function setupRightPaletteResizer() {
+        const rightPalette = document.getElementById("rightPalette");
+        const resizer = document.getElementById("rightResizer");
+
+        // Safety check (prevents crashes)
+        if (!rightPalette || !resizer) {
+            console.warn("Right palette resizer not found");
+            return;
+        }
+
+        let dragging = false;
+
+        const MIN = 260;
+        const MAX = 650;
+
+        resizer.addEventListener("mousedown", (e) => {
+            dragging = true;
+            document.body.style.cursor = "col-resize";
+            document.body.style.userSelect = "none";
+            e.preventDefault();
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (!dragging) return;
+
+            const newWidth = window.innerWidth - e.clientX;
+            const clamped = Math.max(MIN, Math.min(MAX, newWidth));
+
+            rightPalette.style.width = clamped + "px";
+        });
+
+        document.addEventListener("mouseup", () => {
+            if (!dragging) return;
+
+            dragging = false;
+            document.body.style.cursor = "";
+            document.body.style.userSelect = "";
+        });
+    }
+
 // Wait for DOM to be ready before initializing
 document.addEventListener('DOMContentLoaded', () => {
-    setupExperimentModal(); // Setup experiment modal functionality
+    setupExperimentModal();
+    setupRightPaletteResizer();
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main
 });
