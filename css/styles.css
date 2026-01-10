@@ -153,7 +153,8 @@ body {
 #content {
     display: flex;
     flex: 1 1 auto;
-    overflow: hidden;
+    min-width: none;
+    
 }
 
 /* ===== Left palette ===== */
@@ -228,7 +229,11 @@ body {
 
 /* ===== Right palette ===== */
 #rightPalette {
+    
     width: var(--right-palette-width);
+    min-width: 260px;
+    max-width: 650px;
+
     background-color: #f5f5f5;
     border-left: 1px solid #ccc;
     padding: 10px;
@@ -236,8 +241,12 @@ body {
 
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
+   /* overflow-y: auto; */
     height: 100%;
+
+    resize: horizontal; 
+    overflow: auto;
+    flex: 0 0 auto;
 }
 
 /* Ensure the content inside stretches */
@@ -337,12 +346,14 @@ body {
 
 /* ===== Central area: vertical flex for graph + bottom palette ===== */
 #centralArea {
-    flex: 1;
+    /* flex: 1; */
+    flex: 1 1 auto;
     /* fill horizontal space between side palettes */
     display: flex;
     flex-direction: column;
     /* graph on top, bottom palette below */
     overflow: hidden;
+    min-width: 0;
 }
 
 /* ===== Graph container ===== */

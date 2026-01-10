@@ -251,6 +251,37 @@
                     <select id="portTo"></select>
                     <button id="addCouplingBtn">Add Coupling</button>
                 </div>
+
+                <h3 id="experimentHeader" class="hidden">Experiment Design</h3>
+
+                <div id="experimentContent" class="hidden">
+                    <label>Experiment Name</label>
+                    <input id="expName" type="text" placeholder="counter_start0_inc" />
+
+                    <label>MUT Model</label>
+                    <select id="mutModelSelect"></select>
+
+                    <label>MUT Initial State</label>
+                    <select id="mutInitSelect"></select>
+
+                    <label>EF Model</label>
+                    <select id="efModelSelect"></select>
+
+                    <label>EF Initial State</label>
+                    <select id="efInitSelect"></select>
+
+                    <label>Time Span</label>
+                    <input id="timeSpanInput" type="number" step="any" value="50.0" />
+
+                    <div class="modal-actions">
+                        <button id="generateExperimentJsonBtn">Generate experiment.json</button>
+                        <button id="runExperimentBtn">Run</button>
+                    </div>
+
+                    <label>Output</label>
+                    <pre id="experimentOutput" class="output-box"></pre>
+                </div>
+
             </div>
         </div>
     </div>
@@ -265,7 +296,8 @@
         </div>
     </div>
 
-        <!-- Experiment Modal -->
+    <!-- 
+        
     <div id="experimentModal" class="ef-modal hidden">
     <div class="ef-modal-content">
         <div class="ef-modal-header">
@@ -302,7 +334,7 @@
         </div>
     </div>
     </div>
-
+-->
     <!-- Load your main JS logic -->
     <script type="module" src="./js/main.js"></script>
 
