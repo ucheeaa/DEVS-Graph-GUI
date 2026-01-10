@@ -50,6 +50,11 @@ function main(container) {
     ///////// Mouse Wheel Zoom
     /////////////////////////////////////////////////////////////////////////////
     mxEvent.addMouseWheelListener(function (evt, up) {
+        const gc = document.getElementById("graphContainer");
+        const target = evt.target;
+
+        if (!gc || !target || !target.closest("#graphContainer ")) return;
+
         if (up) {
             graph.zoomIn();
         } else {
