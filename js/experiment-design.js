@@ -1,3 +1,5 @@
+import { fetchModels, fetchInits, fillSelect } from "./experiment-data.js";
+
 export function setupExperimentSidebar(graph) {
   // buttons
   const openBtn  = document.getElementById("previewDesignExperimentBtn");
@@ -47,14 +49,36 @@ export function setupExperimentSidebar(graph) {
       }
     }
 
+    async function refreshExperimentDropdowns() {
+      try {
+        const [allModels, inits] = await Promise.all([
+          fetchModels(),
+          fetchInits()
+        ]);
+
+        fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
+        fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
+        fillSelect(mutInitSelect, inits, { placeholder: "Select MUT init..." });
+        fillSelect(efInitSelect, inits, { placeholder: "Select EF init..." });
+
+      } catch (e) {
+        console.error("Failed to load experiment dropdowns:", e);
+        const out = document.getElementById("experimentOutput");
+        if (out) out.textContent = `Error loading experiment data:\n${String(e)}`;
+      }
+    }
+
     // when entering experiment tab, refresh dropdowns
     if (!isProps) {
       // entering Experiment tab -> clear current graph selection
       // so next click on a model triggers a CHANGE event.
       graph.clearSelection();
+      fillSelect(mutModelSelect, [], { placeholder: "Loading MUT models..." });
+      fillSelect(efModelSelect, [], { placeholder: "Loading EF models..." });
+      fillSelect(mutInitSelect, [], { placeholder: "Loading init states..." });
+      fillSelect(efInitSelect, [], { placeholder: "Loading init states..." });
 
-      populateModelDropdowns(graph, mutModelSelect, efModelSelect);
-      populateInitDropdowns(mutInitSelect, efInitSelect);
+      refreshExperimentDropdowns();
     }
   }
 
