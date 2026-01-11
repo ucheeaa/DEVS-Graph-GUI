@@ -306,6 +306,23 @@ body {
     border-radius: 4px;
 }
 
+#experimentContent label { display:block; margin-top: 10px; font-weight: 600; }
+
+#experimentContent input,
+#experimentContent select {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+#experimentContent .modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
 /* #addCouplingSection {
     margin-top: 20px;
     padding: 15px;
@@ -463,4 +480,49 @@ body {
 
 .ef-modal.hidden {
   display: none;
+}
+
+.right-panel-header{
+  background: #e6e6e6;
+  border-bottom: 1px solid #bdbdbd;
+  padding: 6px 8px;
+  box-sizing:border-box;
+}
+
+.right-panel-body{
+  flex:1;
+  min-height:0;        /* critical for scroll inside flex */
+  overflow:auto;       /* only ONE scrollbar: here */
+  padding:8px;
+  box-sizing:border-box;
+}
+/* tabs */
+.tab-pane{ display:none; }
+.tab-pane.active{ display:block; }
+.tab-btn.active { font-weight: 700; }
+
+.tab-header-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
+
+.x-btn{
+  border:1px solid #bbb;
+  background:#f5f5f5;
+  cursor:pointer;
+  padding:2px 8px;
+  border-radius:6px;
+}
+
+#propertiesTab, #experimentTab{
+  flex:1;
+  min-height:0;
+  overflow:auto;
+}
+
+#selectACellIndicator{
+  margin-top: 6px;
+  font-style: italic;
 }

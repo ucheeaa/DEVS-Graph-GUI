@@ -6,7 +6,7 @@ import { exportGraphImage } from './image-utils.js';
 
 import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
-import { setupExperimentModal } from "./experiment-design.js";
+import { setupExperimentSidebar } from "./experiment-design.js";
 
 
 function main(container) {
@@ -1390,6 +1390,12 @@ function main(container) {
     }
 
     graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
+        const cell = graph.getSelectionCell();
+
+        // Auto-switch to Properties tab when a cell is selected
+        if (cell && graph.getModel().isVertex(cell)) {
+        window.setRightTab?.("properties");
+        }
         populateRightPalette();
     });
 
@@ -1448,8 +1454,9 @@ function main(container) {
 
 // Wait for DOM to be ready before initializing
 document.addEventListener('DOMContentLoaded', () => {
-    setupExperimentModal();
+    
     setupRightPaletteResizer();
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main
+    setupExperimentSidebar(graph);
 });

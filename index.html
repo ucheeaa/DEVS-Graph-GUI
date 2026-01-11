@@ -192,9 +192,7 @@
     </div>
 
 
-
     <div id="toolbar"></div>
-
 
     <div id="content">
         <div id="leftPalette">
@@ -218,76 +216,96 @@
         <div id="rightResizer" title="Drag to resize"></div>
 
         <div id="rightPalette">
-            <div id="rightPaletteContent">
-                <div id="selectACellIndicator"></div>
-                <h3 id="modelNameIDHeader" class="hidden">Model Info</h3>
-                <div id="modelNameIDContent" class="hidden"></div>
-                <h3 id="propertiesHeader" class="hidden">State Variables</h3>
-                <div id="propertiesContent" class="hidden"></div>
-                <h3 id="inputPortsHeader" class="hidden">Input Ports</h3>
-                <div id="inputPortsContent" class="hidden"></div>
-                <h3 id="outputPortsHeader" class="hidden">Output Ports</h3>
-                <div id="outputPortsContent" class="hidden"></div>
-                <h3 id="addNewPortHeader" class="hidden">Add New Port</h3>
-                <div id="addNewPortContent" class="hidden"></div>
-                <h3 id="externalInputCouplingsHeader" class="hidden">External Input Couplings</h3>
-                <div id="externalInputCouplingsContent" class="hidden"></div>
-                <h3 id="externalOutputCouplingsHeader" class="hidden">External Output Couplings</h3>
-                <div id="externalOutputCouplingsContent" class="hidden"></div>
-                <h3 id="internalCouplingsHeader" class="hidden">Internal Couplings</h3>
-                <div id="internalCouplingsContent" class="hidden"></div>
-                <div id="addCouplingSection" class="coupling-add-container hidden">
-                    <h3>Add Coupling</h3>
-                    <label>Coupling Type</label>
-                    <select id="couplingType">
-                        <option value="EIC">EIC</option>
-                        <option value="IC">IC</option>
-                        <option value="EOC">EOC</option>
-                    </select>
-                    <label>Component From</label>
-                    <select id="componentFrom"></select>
-                    <label>Port From</label>
-                    <select id="portFrom"></select>
-                    <label>Component To</label>
-                    <select id="componentTo"></select>
-                    <label>Port To</label>
-                    <select id="portTo"></select>
-                    <button id="addCouplingBtn">Add Coupling</button>
+            <!-- fixed header -->
+            <div id="rightPanelHeader" class="right-panel-header">
+                <div id="rightTabs" class="right-tabs">
+                <button id="tabPropertiesBtn" class="tab-btn active" type="button">Properties</button>
+                <button id="tabExperimentBtn" class="tab-btn" type="button">Experiment</button>
                 </div>
+            </div>
 
-                <h3 id="experimentHeader" class="hidden">Experiment Design</h3>
+            <!-- scrollable body -->
+            <div id="rightPanelBody" class="right-panel-body">
 
-                <div id="experimentContent" class="hidden">
-                    <label>Experiment Name</label>
-                    <input id="expName" type="text" placeholder="counter_start0_inc" />
-
-                    <label>MUT Model</label>
-                    <select id="mutModelSelect"></select>
-
-                    <label>MUT Initial State</label>
-                    <select id="mutInitSelect"></select>
-
-                    <label>EF Model</label>
-                    <select id="efModelSelect"></select>
-
-                    <label>EF Initial State</label>
-                    <select id="efInitSelect"></select>
-
-                    <label>Time Span</label>
-                    <input id="timeSpanInput" type="number" step="any" value="50.0" />
-
-                    <div class="modal-actions">
-                        <button id="generateExperimentJsonBtn">Generate experiment.json</button>
-                        <button id="runExperimentBtn">Run</button>
+                <div id="propertiesTab" class="tab-pane active">
+                    <div id="selectACellIndicator"></div>
+                    <div id="rightPaletteContent">
+                        <h3 id="modelNameIDHeader" class="hidden">Model Info</h3>
+                        <div id="modelNameIDContent" class="hidden"></div>
+                        <h3 id="propertiesHeader" class="hidden">State Variables</h3>
+                        <div id="propertiesContent" class="hidden"></div>
+                        <h3 id="inputPortsHeader" class="hidden">Input Ports</h3>
+                        <div id="inputPortsContent" class="hidden"></div>
+                        <h3 id="outputPortsHeader" class="hidden">Output Ports</h3>
+                        <div id="outputPortsContent" class="hidden"></div>
+                        <h3 id="addNewPortHeader" class="hidden">Add New Port</h3>
+                        <div id="addNewPortContent" class="hidden"></div>
+                        <h3 id="externalInputCouplingsHeader" class="hidden">External Input Couplings</h3>
+                        <div id="externalInputCouplingsContent" class="hidden"></div>
+                        <h3 id="externalOutputCouplingsHeader" class="hidden">External Output Couplings</h3>
+                        <div id="externalOutputCouplingsContent" class="hidden"></div>
+                        <h3 id="internalCouplingsHeader" class="hidden">Internal Couplings</h3>
+                        <div id="internalCouplingsContent" class="hidden"></div>
+                        <div id="addCouplingSection" class="coupling-add-container hidden">
+                            <h3>Add Coupling</h3>
+                            <label>Coupling Type</label>
+                            <select id="couplingType">
+                                <option value="EIC">EIC</option>
+                                <option value="IC">IC</option>
+                                <option value="EOC">EOC</option>
+                            </select>
+                            <label>Component From</label>
+                            <select id="componentFrom"></select>
+                            <label>Port From</label>
+                            <select id="portFrom"></select>
+                            <label>Component To</label>
+                            <select id="componentTo"></select>
+                            <label>Port To</label>
+                            <select id="portTo"></select>
+                            <button id="addCouplingBtn">Add Coupling</button>
+                        </div>
                     </div>
-
-                    <label>Output</label>
-                    <pre id="experimentOutput" class="output-box"></pre>
                 </div>
 
+                <!-- Experiment panel in RIGHT SIDEBAR -->
+                <div id="experimentTab" class="tab-pane">
+                    <div class="tab-header-row">
+                        <h3 id="experimentHeader" > Experiment Design </h3>
+                        <button id="closeExperimentPanelBtn" style="float:right; cursor:pointer;"title="Close"> ✕ </button>
+                       
+                    </div>
+                    <div id="experimentContent">
+                        <label>Experiment Name</label>
+                        <input id="expName" type="text" placeholder="counter_start0_inc" />
+
+                        <label>MUT Model</label>
+                        <select id="mutModelSelect"></select>
+
+                        <label>MUT Initial State</label>
+                        <select id="mutInitSelect"></select>
+
+                        <label>EF Model</label>
+                        <select id="efModelSelect"></select>
+
+                        <label>EF Initial State</label>
+                        <select id="efInitSelect"></select>
+
+                        <label>Time Span</label>
+                        <input id="timeSpanInput" type="number" step="any" value="50.0" />
+
+                        <div class="modal-actions">
+                            <button id="generateExperimentJsonBtn">Generate experiment.json</button>
+                            <button id="runExperimentBtn">Run</button>
+                        </div>
+
+                        <label>Output</label>
+                        <pre id="experimentOutput" class="output-box"></pre>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
     <div id="footer">
         <div class="right">
             <button id="previewDesignExperimentBtn" class="debug-btn">Design an Experiment</button>
@@ -300,44 +318,7 @@
     </div>
 
     <!-- 
-        
-    <div id="experimentModal" class="ef-modal hidden">
-    <div class="ef-modal-content">
-        <div class="ef-modal-header">
-        <h3>Experiment Design</h3>
-        <button id="closeExperimentModalBtn" class="ef-modal-close">✕</button>
-        </div>
 
-        <div class="ef-modal-body">
-        <label>Experiment name</label>
-        <input id="expName" type="text" placeholder="counter_start0_inc" />
-
-        <label>MUT model</label>
-        <select id="mutModelSelect"></select>
-
-        <label>MUT init</label>
-        <select id="mutInitSelect"></select>
-
-        <label>EF model</label>
-        <select id="efModelSelect"></select>
-
-        <label>EF init</label>
-        <select id="efInitSelect"></select>
-
-        <label>Time span</label>
-        <input id="timeSpanInput" type="number" step="any" value="50.0" />
-
-        <div class="ef-modal-actions">
-            <button id="generateExperimentJsonBtn">Generate experiment.json</button>
-            <button id="runExperimentBtn">Run</button>
-        </div>
-
-        <label>Output</label>
-        <pre id="experimentOutput" class="output-box"></pre>
-        </div>
-    </div>
-    </div>
--->
     <!-- Load your main JS logic -->
     <script type="module" src="./js/main.js"></script>
 
