@@ -722,6 +722,99 @@ function main(container) {
     }
 
 
+    function renderDeltaInt(cell) {
+    if (!cell || !cell.userObject || !cell.userObject.json?.model) return;
+
+    const headerEl = document.getElementById("deltaIntHeader");
+    const container = document.getElementById("deltaIntContent");
+    if (!headerEl || !container) return;
+
+    headerEl.classList.remove("hidden");
+    container.classList.remove("hidden");
+    container.innerHTML = "";
+
+    const deltaInt = cell.userObject.json.model.delta_int || {};
+
+    // Separate "otherwise" from other conditions
+    const otherwiseUpdates = deltaInt["otherwise"];
+    const otherEntries = Object.entries(deltaInt).filter(([key]) => key !== "otherwise");
+
+    // Render other conditions first
+    otherEntries.forEach(([condition, updates]) => renderCondition(condition, updates, deltaInt));
+
+    // Render "otherwise" last
+    if (otherwiseUpdates) renderCondition("otherwise", otherwiseUpdates, deltaInt, true);
+
+    // Add new condition button
+    const addBtn = document.createElement("button");
+    addBtn.textContent = "Add New delta_int Condition";
+    addBtn.addEventListener("click", () => {
+        let newCond = "new_condition";
+        let counter = 1;
+        while (deltaInt[newCond]) newCond = `new_condition_${counter++}`;
+        deltaInt[newCond] = {};
+        renderDeltaInt(cell);
+    });
+    container.appendChild(addBtn);
+
+    // --- Helper function ---
+    function renderCondition(condition, updates, deltaIntObj, isOtherwise = false) {
+        const wrapper = document.createElement("div");
+
+        // Condition input
+        const condInput = document.createElement("input");
+        condInput.type = "text";
+        condInput.value = condition;
+        condInput.style.width = "80%"; // leave space for delete button
+        if (isOtherwise) condInput.disabled = true;
+
+        condInput.addEventListener("input", () => {
+            const newCond = condInput.value.trim();
+            if (!newCond || newCond === condition) return;
+            if (deltaIntObj[newCond]) return;
+
+            deltaIntObj[newCond] = updates;
+            delete deltaIntObj[condition];
+            renderDeltaInt(cell);
+        });
+
+        wrapper.appendChild(condInput);
+
+        // Delete button (skip for otherwise)
+        if (!isOtherwise) {
+            const delBtn = document.createElement("button");
+            delBtn.textContent = "-";
+            delBtn.title = "Delete this condition";
+            delBtn.addEventListener("click", () => {
+                delete deltaIntObj[condition];
+                renderDeltaInt(cell);
+            });
+            wrapper.appendChild(delBtn);
+        }
+
+        // Textarea for updates
+        const textArea = document.createElement("textarea");
+        textArea.value = JSON.stringify(updates, null, 2);
+        textArea.rows = 3;
+        textArea.style.width = "100%";
+
+        textArea.addEventListener("input", () => {
+            try {
+                deltaIntObj[condInput.value] = JSON.parse(textArea.value);
+            } catch (e) {}
+        });
+
+        wrapper.appendChild(textArea);
+        container.appendChild(wrapper);
+    }
+}
+
+
+
+
+
+
+
     function renderCouplings(parentCell) {
         if (!parentCell) return;
 
@@ -1384,6 +1477,8 @@ function main(container) {
         const internalCouplingsHeader = document.getElementById("internalCouplingsHeader");
         const internalCouplingsContent = document.getElementById("internalCouplingsContent");
         const addCouplingSection = document.getElementById("addCouplingSection");
+        const deltaIntHeader = document.getElementById("deltaIntHeader");
+        const deltaIntContent = document.getElementById("deltaIntContent");
 
 
         // Hide all sections initially
@@ -1396,7 +1491,8 @@ function main(container) {
             externalInputCouplingsHeader, externalInputCouplingsContent,
             externalOutputCouplingsHeader, externalOutputCouplingsContent,
             internalCouplingsHeader, internalCouplingsContent,
-            addCouplingSection].forEach(el => el.classList.add("hidden"));
+            addCouplingSection,
+            deltaIntHeader, deltaIntContent].forEach(el => el.classList.add("hidden"));
 
 
         // Case 1: no cell or multiple cells selected
@@ -1414,6 +1510,7 @@ function main(container) {
             renderModelAndUniqueID(cell);
             renderStateVariables(cell);
             renderPorts(cell);
+            renderDeltaInt(cell);
 
             console.log("Atomic model selected");
 
