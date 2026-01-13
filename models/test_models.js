@@ -100,11 +100,39 @@ const generalItems = [
             increment: { data_type: 'int', init_state: '1' },
             countUp: { data_type: 'bool', init_state: 'true' },
           },
-          delta_int: {},
-          delta_ext: {},
+          delta_int: {
+            "countUp == true": {
+              "count": "count + increment",
+              "sigma": "inf"
+            },
+            "countUp == false": {
+              "count": "count - increment",
+              "sigma": "inf"
+            },
+            "otherwise": {}
+          },
+          delta_ext: {
+            "increment_in.bagSize() != 0 && direction_in.bagSize() == 0": {
+              "increment": "increment_in.bag(-1)",
+              "sigma": "0.1"
+            },
+            "direction_in.bagSize() != 0 && increment_in.bagSize() == 0": {
+              "countUp": "direction_in.bag(-1)",
+              "sigma": "0.1"
+            },
+            "otherwise": {
+              "increment": "increment_in.bag(-1)",
+              "countUp": "direction_in.bag(-1)",
+              "sigma": "0.1"
+            }
+          },
           delta_con: {},
-          lambda: {},
-          ta: {}
+          lambda: {
+            "otherwise": {
+              "count_out": "count"
+            }
+          },
+          ta: { "otherwise": "sigma" }
         },
         include_sets: ["default_sets.json"],
         parameters: {}
@@ -132,11 +160,23 @@ const generalItems = [
             sigma: { data_type: 'double', init_state: '3.0' },
             nextInt: { data_type: 'int', init_state: '1' },
           },
-          delta_int: {},
-          delta_ext: {},
+          delta_int: {
+            "otherwise": {
+              "nextInt": "rand() % 5 + 1"
+            }
+          },
+          delta_ext: {
+            "otherwise": {}
+          },
           delta_con: {},
-          lambda: {},
-          ta: {}
+          lambda: {
+            "otherwise": {
+              "int_out": "nextInt"
+            }
+          },
+          ta: {
+            "otherwise": "sigma"
+          }
         },
         include_sets: ["default_sets.json"],
         parameters: {}
@@ -164,11 +204,19 @@ const generalItems = [
             sigma: { data_type: 'double', init_state: '13.0' },
             nextBool: { data_type: 'bool', init_state: 'false' },
           },
-          delta_int: {},
-          delta_ext: {},
+          delta_int: {
+            "otherwise": {
+              "nextBool": "!nextBool"
+            }
+          },
+          delta_ext: { "otherwise": {} },
           delta_con: {},
-          lambda: {},
-          ta: {}
+          lambda: {
+            "otherwise": {
+              "bool_out": "nextBool"
+            }
+          },
+          ta: { "otherwise": "sigma" }
         },
         include_sets: ["default_sets.json"],
         parameters: {}
