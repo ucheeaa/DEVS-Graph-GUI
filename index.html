@@ -290,6 +290,33 @@
                         <label>EF Initial State</label>
                         <select id="efInitSelect"></select>
 
+                        <!-- ===================== CPIC ===================== -->
+                        <div class="coupling-block">
+                            <div class="coupling-header">
+                                <label class="coupling-title">CPIC (EF output → MUT input)</label>
+                                <button id="addCpicBtn" type="button" class="mini-btn">+ Add</button>
+                            </div>
+
+                            <div id="cpicList" class="coupling-list">
+                                <!-- rows inserted by JS -->
+                                <div class="coupling-empty" id="cpicEmpty">No CPIC couplings yet.</div>
+                            </div>
+                        </div>
+
+                        <!-- ===================== POCC ===================== -->
+                        <div class="coupling-block">
+                            <div class="coupling-header">
+                                <label class="coupling-title">POCC (MUT output → EF input)</label>
+                                <button id="addPoccBtn" type="button" class="mini-btn">+ Add</button>
+                            </div>
+
+                            <div id="poccList" class="coupling-list">
+                                <!-- rows inserted by JS -->
+                                <div class="coupling-empty" id="poccEmpty">No POCC couplings yet.</div>
+                            </div>
+                        </div>
+
+
                         <label>Time Span</label>
                         <input id="timeSpanInput" type="number" step="any" value="50.0" />
 

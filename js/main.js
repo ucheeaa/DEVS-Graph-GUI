@@ -1452,6 +1452,7 @@ function main(container) {
         });
     }
 
+
 // Wait for DOM to be ready before initializing
 document.addEventListener('DOMContentLoaded', () => {
     

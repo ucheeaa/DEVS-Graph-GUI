@@ -1,4 +1,7 @@
+const API_BASE = "http://localhost:3001";
+
 import { fetchModels, fetchInits, fillSelect } from "./experiment-data.js";
+import { generateExperimentJson } from "./experiment-actions.js";
 
 export function setupExperimentSidebar(graph) {
   // buttons
@@ -7,6 +10,10 @@ export function setupExperimentSidebar(graph) {
 
   const propsBtn = document.getElementById("tabPropertiesBtn");
   const expBtn   = document.getElementById("tabExperimentBtn");
+
+  const genExpJsonBtn = document.getElementById("generateExperimentJsonBtn");
+  const runExpBtn  = document.getElementById("runExperimentBtn");
+  const out = document.getElementById("experimentOutput");
 
   // panes
   const propsTab = document.getElementById("propertiesTab");
@@ -17,6 +24,9 @@ export function setupExperimentSidebar(graph) {
   const efModelSelect  = document.getElementById("efModelSelect");
   const mutInitSelect  = document.getElementById("mutInitSelect");
   const efInitSelect   = document.getElementById("efInitSelect");
+
+  const expNameInput = document.getElementById("expName");
+  const timeSpanInput = document.getElementById("timeSpanInput");
 
   // indicator should live ONLY in properties tab
   const selectIndicator = document.getElementById("selectACellIndicator");
@@ -63,7 +73,6 @@ export function setupExperimentSidebar(graph) {
 
       } catch (e) {
         console.error("Failed to load experiment dropdowns:", e);
-        const out = document.getElementById("experimentOutput");
         if (out) out.textContent = `Error loading experiment data:\n${String(e)}`;
       }
     }
@@ -96,4 +105,20 @@ export function setupExperimentSidebar(graph) {
 
   // default
   activateTab("properties");
+
+  if (genExpJsonBtn) {
+    genExpJsonBtn.addEventListener("click", () => generateExperimentJson({
+      expNameInput, 
+      mutModelSelect, 
+      efModelSelect, 
+      mutInitSelect, 
+      efInitSelect, 
+      timeSpanInput, 
+      out}));
+  }
+
+  if (runExpBtn) {
+    runExpBtn.addEventListener("click", () => runExperiment());
+  }
+
 }

@@ -41,3 +41,4 @@ export function fillSelect(select, items, { placeholder } = {}) {
     select.appendChild(opt);
   });
 }
+
