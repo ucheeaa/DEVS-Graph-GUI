@@ -612,7 +612,60 @@ function main(container) {
                 if (data_type === "int" || data_type === "double") {
                     inputElem = document.createElement("input");
                     inputElem.type = "number";
-                    inputElem.value = parseFloat(varObj.init_state) || 0;
+
+                    const isSigma = varName === "sigma" && data_type === "double";
+                    const isInf = varObj.init_state === "inf";
+
+                    // Initialize numeric value
+                    if (isInf) {
+                        inputElem.value = 0;
+                    } else {
+                        inputElem.value = parseFloat(varObj.init_state) || 0;
+                        varObj._last_numeric_value = inputElem.value;
+                    }
+
+                    inputElem.disabled = isInf;
+
+                    inputElem.addEventListener("input", () => {
+                        let newValue = data_type === "int"
+                            ? parseInt(inputElem.value) || 0
+                            : parseFloat(inputElem.value) || 0.0;
+
+                        varObj._last_numeric_value = newValue;
+                        varObj.init_state = newValue;
+                        console.log(`Updated ${varName} ->`, newValue);
+                    });
+
+                    // --- Wrap number input and checkbox in a row ---
+                    const inputRow = document.createElement("div");
+                    inputRow.appendChild(inputElem);
+
+                    // Sigma checkbox
+                    if (isSigma) {
+                        const infCheckbox = document.createElement("input");
+                        infCheckbox.type = "checkbox";
+                        infCheckbox.checked = isInf;
+
+                        infCheckbox.addEventListener("change", () => {
+                            if (infCheckbox.checked) {
+                                varObj._last_numeric_value = varObj._last_numeric_value ?? inputElem.value ?? 0;
+                                varObj.init_state = "inf";
+                                inputElem.disabled = true;
+                                inputElem.value = 0;
+                            } else {
+                                const restored = varObj._last_numeric_value ?? 0;
+                                varObj.init_state = restored;
+                                inputElem.disabled = false;
+                                inputElem.value = restored;
+                            }
+                            console.log(`Sigma set to`, varObj.init_state);
+                        });
+
+                        inputRow.appendChild(infCheckbox);
+                        inputRow.appendChild(document.createTextNode("inf"));
+                    }
+
+                    valueInput.appendChild(inputRow);
                 } else if (data_type === "bool") {
                     inputElem = document.createElement("select");
                     ["true", "false"].forEach(v => {
@@ -622,26 +675,29 @@ function main(container) {
                         inputElem.appendChild(option);
                     });
                     inputElem.value = String(varObj.init_state).toLowerCase() === "true" ? "true" : "false";
+
+                    inputElem.addEventListener("input", () => {
+                        varObj.init_state = inputElem.value === "true";
+                        console.log(`Updated ${varName} ->`, varObj.init_state);
+                    });
+
+                    valueInput.appendChild(inputElem);
                 } else { // string or custom
                     inputElem = document.createElement("input");
                     inputElem.type = "text";
                     inputElem.value = varObj.init_state || "";
+
+                    inputElem.addEventListener("input", () => {
+                        varObj.init_state = inputElem.value;
+                        console.log(`Updated ${varName} ->`, varObj.init_state);
+                    });
+
+                    valueInput.appendChild(inputElem);
                 }
 
-                inputElem.addEventListener("input", () => {
-                    let newValue = inputElem.value;
-
-                    if (data_type === "int") newValue = parseInt(newValue) || 0;
-                    else if (data_type === "double") newValue = parseFloat(newValue) || 0.0;
-                    else if (data_type === "bool") newValue = (newValue === "true");
-
-                    varObj.init_state = newValue;
-                    console.log(`Updated ${varName} ->`, newValue);
-                });
-
-                valueInput.appendChild(inputElem);
                 row.appendChild(valueInput);
             }
+
 
             renderValueInput();
             container.appendChild(row);
