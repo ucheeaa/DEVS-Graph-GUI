@@ -648,18 +648,17 @@ function main(container) {
 
                         infCheckbox.addEventListener("change", () => {
                             if (infCheckbox.checked) {
-                                varObj._last_numeric_value = varObj._last_numeric_value ?? inputElem.value ?? 0;
-                                varObj.init_state = "inf";
+                                varObj.init_state = "inf"; // update the user object
                                 inputElem.disabled = true;
-                                inputElem.value = 0;
                             } else {
-                                const restored = varObj._last_numeric_value ?? 0;
+                                const restored = (varObj._last_numeric_value ?? parseFloat(inputElem.value)) || 0;
                                 varObj.init_state = restored;
                                 inputElem.disabled = false;
-                                inputElem.value = restored;
                             }
                             console.log(`Sigma set to`, varObj.init_state);
                         });
+
+
 
                         inputRow.appendChild(infCheckbox);
                         inputRow.appendChild(document.createTextNode("inf"));
