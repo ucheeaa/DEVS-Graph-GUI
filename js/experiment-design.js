@@ -1,7 +1,7 @@
 const API_BASE = "http://localhost:3001";
 
 import { fetchModels, fetchInits, fillSelect } from "./experiment-data.js";
-import { generateExperimentJson } from "./experiment-actions.js";
+import { generateExperimentJson, initCouplingButtons } from "./experiment-actions.js";
 
 export function setupExperimentSidebar(graph) {
   // buttons
@@ -102,6 +102,8 @@ export function setupExperimentSidebar(graph) {
 
   // close returns you to properties tab
   if (closeBtn) closeBtn.addEventListener("click", () => activateTab("properties"));
+
+  initCouplingButtons();
 
   // default
   activateTab("properties");
