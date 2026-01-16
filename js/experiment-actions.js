@@ -30,7 +30,7 @@ export async function generateExperimentJson({ expNameInput, mutModelSelect, efM
         return;
         }
 
-        if (out) out.textContent = "Generating experiment.json...";
+        if (out) out.textContent = "Running experiment setup ...";
 
         const cpic = readCouplingRows("cpicList"); // EF output -> MUT input
         const pocc = readCouplingRows("poccList"); // MUT output -> EF input
