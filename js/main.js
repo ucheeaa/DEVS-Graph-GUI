@@ -930,6 +930,216 @@ function main(container) {
     }
 
 
+    function renderOutputFunction(cell) {
+        if (!cell || !cell.userObject || !cell.userObject.json?.model) return;
+
+        const headerEl = document.getElementById("outputFunctionHeader");
+        const container = document.getElementById("outputFunctionContent");
+        if (!headerEl || !container) return;
+
+        headerEl.classList.remove("hidden");
+        container.classList.remove("hidden");
+        container.innerHTML = "";
+
+        const lambda = cell.userObject.json.model.lambda || {};
+
+        // Separate "otherwise" from other conditions
+        const otherwiseUpdates = lambda["otherwise"];
+        const otherEntries = Object.entries(lambda).filter(([key]) => key !== "otherwise");
+
+        // Render other conditions first
+        otherEntries.forEach(([condition, updates]) =>
+            renderCondition(condition, updates, lambda)
+        );
+
+        // Render "otherwise" last
+        if (otherwiseUpdates) renderCondition("otherwise", otherwiseUpdates, lambda, true);
+
+        // Add new condition button
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Add New Output Function Condition";
+        addBtn.addEventListener("click", () => {
+            let newCond = "new_condition";
+            let counter = 1;
+            while (lambda[newCond]) newCond = `new_condition_${counter++}`;
+            lambda[newCond] = {};
+            renderOutputFunction(cell);
+        });
+        container.appendChild(addBtn);
+
+        // --- Helper function ---
+        function renderCondition(condition, updates, lambdaObj, isOtherwise = false) {
+            const wrapper = document.createElement("div");
+
+            // Condition input
+            const condInput = document.createElement("input");
+            condInput.type = "text";
+            condInput.value = condition;
+            condInput.style.width = "80%";
+            if (isOtherwise) condInput.disabled = true;
+
+            condInput.addEventListener("input", () => {
+                const newCond = condInput.value.trim();
+                if (!newCond || newCond === condition) return;
+                if (lambdaObj[newCond]) return;
+
+                lambdaObj[newCond] = updates;
+                delete lambdaObj[condition];
+                renderOutputFunction(cell);
+            });
+
+            wrapper.appendChild(condInput);
+
+            // Delete button (skip for otherwise)
+            if (!isOtherwise) {
+                const delBtn = document.createElement("button");
+                delBtn.textContent = "-";
+                delBtn.title = "Delete this condition";
+                delBtn.addEventListener("click", () => {
+                    delete lambdaObj[condition];
+                    renderOutputFunction(cell);
+                });
+                wrapper.appendChild(delBtn);
+            }
+
+            // Textarea for updates (without outer braces and without leading whitespace)
+            const textArea = document.createElement("textarea");
+
+            let innerText = JSON.stringify(updates, null, 2);
+
+            // remove outer { }
+            innerText = innerText.replace(/^\{\s*|\s*\}$/g, "");
+
+            // remove leading whitespace from each line
+            innerText = innerText
+                .split("\n")
+                .map(line => line.trimStart())
+                .join("\n");
+
+            textArea.value = innerText.trim();
+            textArea.rows = 3;
+            textArea.style.width = "100%";
+
+            textArea.addEventListener("input", () => {
+                try {
+                    const wrappedJSON = `{${textArea.value.trim()}}`;
+                    lambdaObj[condInput.value] = JSON.parse(wrappedJSON);
+                } catch (e) {
+                    // ignore invalid JSON while typing
+                }
+            });
+
+            wrapper.appendChild(textArea);
+            container.appendChild(wrapper);
+        }
+    }
+
+
+    function renderTimeAdvanceFunction(cell) {
+        if (!cell || !cell.userObject || !cell.userObject.json?.model) return;
+
+        const headerEl = document.getElementById("timeAdvanceFunctionHeader");
+        const container = document.getElementById("timeAdvanceFunctionContent");
+        if (!headerEl || !container) return;
+
+        headerEl.classList.remove("hidden");
+        container.classList.remove("hidden");
+        container.innerHTML = "";
+
+        const ta = cell.userObject.json.model.ta || {};
+
+        // Separate "otherwise" from other conditions
+        const otherwiseUpdates = ta["otherwise"];
+        const otherEntries = Object.entries(ta).filter(([key]) => key !== "otherwise");
+
+        // Render other conditions first
+        otherEntries.forEach(([condition, updates]) =>
+            renderCondition(condition, updates, ta)
+        );
+
+        // Render "otherwise" last
+        if (otherwiseUpdates) renderCondition("otherwise", otherwiseUpdates, ta, true);
+
+        // Add new condition button
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Add New Time Advance Condition";
+        addBtn.addEventListener("click", () => {
+            let newCond = "new_condition";
+            let counter = 1;
+            while (ta[newCond]) newCond = `new_condition_${counter++}`;
+            ta[newCond] = {};
+            renderTimeAdvanceFunction(cell);
+        });
+        container.appendChild(addBtn);
+
+        // --- Helper function ---
+        function renderCondition(condition, updates, taObj, isOtherwise = false) {
+            const wrapper = document.createElement("div");
+
+            // Condition input
+            const condInput = document.createElement("input");
+            condInput.type = "text";
+            condInput.value = condition;
+            condInput.style.width = "80%";
+            if (isOtherwise) condInput.disabled = true;
+
+            condInput.addEventListener("input", () => {
+                const newCond = condInput.value.trim();
+                if (!newCond || newCond === condition) return;
+                if (taObj[newCond]) return;
+
+                taObj[newCond] = updates;
+                delete taObj[condition];
+                renderTimeAdvanceFunction(cell);
+            });
+
+            wrapper.appendChild(condInput);
+
+            // Delete button (skip for otherwise)
+            if (!isOtherwise) {
+                const delBtn = document.createElement("button");
+                delBtn.textContent = "-";
+                delBtn.title = "Delete this condition";
+                delBtn.addEventListener("click", () => {
+                    delete taObj[condition];
+                    renderTimeAdvanceFunction(cell);
+                });
+                wrapper.appendChild(delBtn);
+            }
+
+            // Textarea for updates (without outer braces and without leading whitespace)
+            const textArea = document.createElement("textarea");
+
+            let innerText = JSON.stringify(updates, null, 2);
+
+            // remove outer { }
+            innerText = innerText.replace(/^\{\s*|\s*\}$/g, "");
+
+            // remove leading whitespace from each line
+            innerText = innerText
+                .split("\n")
+                .map(line => line.trimStart())
+                .join("\n");
+
+            textArea.value = innerText.trim();
+            textArea.rows = 3;
+            textArea.style.width = "100%";
+
+            textArea.addEventListener("input", () => {
+                try {
+                    const wrappedJSON = `{${textArea.value.trim()}}`;
+                    taObj[condInput.value] = JSON.parse(wrappedJSON);
+                } catch (e) {
+                    // ignore invalid JSON while typing
+                }
+            });
+
+            wrapper.appendChild(textArea);
+            container.appendChild(wrapper);
+        }
+    }
+
+
 
 
 
@@ -1642,6 +1852,8 @@ function main(container) {
             renderPorts(cell);
             renderDeltaInt(cell);
             renderDeltaExt(cell);
+            renderOutputFunction(cell);
+            renderTimeAdvanceFunction(cell);
 
             console.log("Atomic model selected");
 
