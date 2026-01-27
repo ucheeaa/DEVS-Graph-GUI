@@ -825,6 +825,109 @@ function main(container) {
     }
 
 
+    function renderDeltaExt(cell) {
+        if (!cell || !cell.userObject || !cell.userObject.json?.model) return;
+
+        const headerEl = document.getElementById("deltaExtHeader");
+        const container = document.getElementById("deltaExtContent");
+        if (!headerEl || !container) return;
+
+        headerEl.classList.remove("hidden");
+        container.classList.remove("hidden");
+        container.innerHTML = "";
+
+        const deltaExt = cell.userObject.json.model.delta_ext || {};
+
+        // Separate "otherwise" from other conditions
+        const otherwiseUpdates = deltaExt["otherwise"];
+        const otherEntries = Object.entries(deltaExt).filter(([key]) => key !== "otherwise");
+
+        // Render other conditions first
+        otherEntries.forEach(([condition, updates]) =>
+            renderCondition(condition, updates, deltaExt)
+        );
+
+        // Render "otherwise" last
+        if (otherwiseUpdates) renderCondition("otherwise", otherwiseUpdates, deltaExt, true);
+
+        // Add new condition button
+        const addBtn = document.createElement("button");
+        addBtn.textContent = "Add New delta_ext Condition";
+        addBtn.addEventListener("click", () => {
+            let newCond = "new_condition";
+            let counter = 1;
+            while (deltaExt[newCond]) newCond = `new_condition_${counter++}`;
+            deltaExt[newCond] = {};
+            renderDeltaExt(cell);
+        });
+        container.appendChild(addBtn);
+
+        // --- Helper function ---
+        function renderCondition(condition, updates, deltaExtObj, isOtherwise = false) {
+            const wrapper = document.createElement("div");
+
+            // Condition input
+            const condInput = document.createElement("input");
+            condInput.type = "text";
+            condInput.value = condition;
+            condInput.style.width = "80%";
+            if (isOtherwise) condInput.disabled = true;
+
+            condInput.addEventListener("input", () => {
+                const newCond = condInput.value.trim();
+                if (!newCond || newCond === condition) return;
+                if (deltaExtObj[newCond]) return;
+
+                deltaExtObj[newCond] = updates;
+                delete deltaExtObj[condition];
+                renderDeltaExt(cell);
+            });
+
+            wrapper.appendChild(condInput);
+
+            // Delete button (skip for otherwise)
+            if (!isOtherwise) {
+                const delBtn = document.createElement("button");
+                delBtn.textContent = "-";
+                delBtn.title = "Delete this condition";
+                delBtn.addEventListener("click", () => {
+                    delete deltaExtObj[condition];
+                    renderDeltaExt(cell);
+                });
+                wrapper.appendChild(delBtn);
+            }
+
+            // Textarea for updates (without outer braces and without leading whitespace)
+            const textArea = document.createElement("textarea");
+
+            let innerText = JSON.stringify(updates, null, 2);
+
+            // remove outer { }
+            innerText = innerText.replace(/^\{\s*|\s*\}$/g, "");
+
+            // remove leading whitespace from each line
+            innerText = innerText
+                .split("\n")
+                .map(line => line.trimStart())
+                .join("\n");
+
+            textArea.value = innerText.trim();
+            textArea.rows = 3;
+            textArea.style.width = "100%";
+
+            textArea.addEventListener("input", () => {
+                try {
+                    const wrappedJSON = `{${textArea.value.trim()}}`;
+                    deltaExtObj[condInput.value] = JSON.parse(wrappedJSON);
+                } catch (e) {
+                    // ignore invalid JSON while typing
+                }
+            });
+
+            wrapper.appendChild(textArea);
+            container.appendChild(wrapper);
+        }
+    }
 
 
 
@@ -1496,6 +1599,12 @@ function main(container) {
         const addCouplingSection = document.getElementById("addCouplingSection");
         const deltaIntHeader = document.getElementById("deltaIntHeader");
         const deltaIntContent = document.getElementById("deltaIntContent");
+        const deltaExtHeader = document.getElementById("deltaExtHeader");
+        const deltaExtContent = document.getElementById("deltaExtContent");
+        const outputFunctionHeader = document.getElementById("outputFunctionHeader");
+        const outputFunctionContent = document.getElementById("outputFunctionContent");
+        const timeAdvanceFunctionHeader = document.getElementById("timeAdvanceFunctionHeader");
+        const timeAdvanceFunctionContent = document.getElementById("timeAdvanceFunctionContent");
 
 
         // Hide all sections initially
@@ -1509,7 +1618,11 @@ function main(container) {
             externalOutputCouplingsHeader, externalOutputCouplingsContent,
             internalCouplingsHeader, internalCouplingsContent,
             addCouplingSection,
-            deltaIntHeader, deltaIntContent].forEach(el => el.classList.add("hidden"));
+            deltaIntHeader, deltaIntContent,
+            deltaExtHeader, deltaExtContent,
+            outputFunctionHeader, outputFunctionContent,
+            timeAdvanceFunctionHeader, timeAdvanceFunctionContent
+        ].forEach(el => el.classList.add("hidden"));
 
 
         // Case 1: no cell or multiple cells selected
@@ -1528,6 +1641,7 @@ function main(container) {
             renderStateVariables(cell);
             renderPorts(cell);
             renderDeltaInt(cell);
+            renderDeltaExt(cell);
 
             console.log("Atomic model selected");
 
