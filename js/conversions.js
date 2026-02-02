@@ -249,7 +249,7 @@ export class ConversionManager {
     }
 
 
-    previewDEVSMap() {
+    getDEVSMap() {
         // Get required values for generating DEVSMap
         let time_span = this.getSimulationTime();
         console.log("time_span = " + time_span);
@@ -309,7 +309,7 @@ export class ConversionManager {
                 // parameters
                 DEVSMap[modelName + '_atomic.json']['parameters'] = userObjects[i].json.parameters;
 
-                
+
             } else if (userObjects[i].elementType === "coupledModel") {
                 console.log("coupled");
 
@@ -327,8 +327,12 @@ export class ConversionManager {
 
             console.log(userObjects[i]);
         }
+        return DEVSMap;
+    }
 
-        console.log(DEVSMap);
+
+    previewDEVSMap() {
+        console.log(this.getDEVSMap());
     }
 
 
@@ -340,5 +344,34 @@ export class ConversionManager {
         alert("Preview Trace: Not implemented yet");
     }
 
+
+    viewTrace() {
+        const DEVSMap = this.getDEVSMap();
+        console.log(DEVSMap);
+
+        const url_code = "https://devssim.carleton.ca/generate-code"; // API endpoint to generate code
+
+        fetch(url_code, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(DEVSMap)
+        })
+            .then(async response => {
+        const contentType = response.headers.get("content-type");
+
+        if (contentType && contentType.includes("application/json")) {
+          // If response is JSON
+          return response.json();
+        } else {
+          // Otherwise treat it as plain text
+          return response.text();
+        }
+      });
+
+
+
+    }
 
 }
