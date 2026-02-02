@@ -274,7 +274,7 @@ export class ConversionManager {
             'experimental_frame': {},
             'cpic': {},
             'pocc': {},
-            'time_span': time_span
+            'time_span': String(time_span)
         }
 
         // Create init_states.json
