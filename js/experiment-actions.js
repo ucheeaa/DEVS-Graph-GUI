@@ -55,7 +55,7 @@ export async function generateExperimentJson({ expNameInput, mutModelSelect, efM
         const experiment = data.experiment ?? data;
 
         const safeName = safeFilename(expName);
-        const filename = `${safeName}.json`;
+        const filename = `${safeName}_experiment.json`;
 
         if (out) out.textContent = JSON.stringify(experiment, null, 2);
         downloadJson(filename, experiment);
