@@ -340,38 +340,98 @@ export class ConversionManager {
         alert("Preview Cadmium Code: Not implemented yet");
     }
 
+
     previewTrace() {
         alert("Preview Trace: Not implemented yet");
     }
 
 
-    viewTrace() {
+    async viewTrace() {
+        const log_DEVSMap = true;
+        const log_code = true;
+        const log_csv = true;
+
         const DEVSMap = this.getDEVSMap();
-        console.log(DEVSMap);
 
-        const url_code = "https://devssim.carleton.ca/generate-code"; // API endpoint to generate code
-
-        fetch(url_code, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(DEVSMap)
-        })
-            .then(async response => {
-        const contentType = response.headers.get("content-type");
-
-        if (contentType && contentType.includes("application/json")) {
-          // If response is JSON
-          return response.json();
-        } else {
-          // Otherwise treat it as plain text
-          return response.text();
+        if (log_DEVSMap) {
+            console.log("DEVSMap:", DEVSMap);
         }
-      });
 
+        // HTTP Calls 
+        const codeResult = await this.generateCode(DEVSMap, log_code);
+
+        console.log("Sending to generateCSV:", codeResult);
+
+        const csvResult = await this.generateCSV(codeResult, log_csv);
 
 
     }
+
+
+    async generateCode(DEVSMap, log_code = true) {
+        const url_code = "https://devssim.carleton.ca/generate-code";
+
+        try {
+            const response = await fetch(url_code, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", },
+                body: JSON.stringify(DEVSMap)
+            });
+
+            const contentType = response.headers.get("content-type");
+            let data;
+
+            if (contentType && contentType.includes("application/json")) {
+                data = await response.json();
+            } else {
+                data = await response.text();
+            }
+
+            if (log_code) {
+                console.log("Server response:", data);
+            }
+
+            return data;
+
+        } catch (error) {
+            if (log_code) {
+                console.error("Error generating code:", error);
+            }
+        }
+    }
+
+
+    async generateCSV(codeData, log_csv = true) {
+        const url_csv = "https://devssim.carleton.ca/generate-csv";
+
+        try {
+            const response = await fetch(url_csv, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(codeData)
+            });
+
+            const contentType = response.headers.get("content-type");
+            let data;
+
+            if (contentType && contentType.includes("application/json")) {
+                data = await response.json();   // parse JSON response
+            } else {
+                data = await response.text();   // parse plain text
+            }
+
+            if (log_csv) {
+                console.log("CSV generation response:", data);
+            }
+
+            return data;
+
+        } catch (error) {
+            if (log_csv) {
+                console.error("Error generating CSV:", error);
+            }
+        }
+    }
+
 
 }
