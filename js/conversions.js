@@ -360,8 +360,6 @@ export class ConversionManager {
         // HTTP Calls 
         const codeResult = await this.generateCode(DEVSMap, log_code);
 
-        console.log("Sending to generateCSV:", codeResult);
-
         const csvResult = await this.generateCSV(codeResult, log_csv);
 
 
