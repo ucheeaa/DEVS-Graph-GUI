@@ -362,7 +362,6 @@ export class ConversionManager {
 
         const csvResult = await this.generateCSV(codeResult, log_csv);
 
-
     }
 
 
