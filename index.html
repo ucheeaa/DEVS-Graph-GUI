@@ -193,9 +193,7 @@
     </div>
 
 
-
     <div id="toolbar"></div>
-
 
     <div id="content">
         <div id="leftPalette">
@@ -215,42 +213,120 @@
             <div id="graphContainer"></div>
             <!-- <div id="bottomPalette">Bottom Palette</div> -->
         </div>
+
+        <div id="rightResizer" title="Drag to resize"></div>
+
         <div id="rightPalette">
-            <div id="rightPaletteContent">
-                <div id="selectACellIndicator"></div>
-                <h3 id="modelNameIDHeader" class="hidden">Model Info</h3>
-                <div id="modelNameIDContent" class="hidden"></div>
-                <h3 id="propertiesHeader" class="hidden">State Variables</h3>
-                <div id="propertiesContent" class="hidden"></div>
-                <h3 id="inputPortsHeader" class="hidden">Input Ports</h3>
-                <div id="inputPortsContent" class="hidden"></div>
-                <h3 id="outputPortsHeader" class="hidden">Output Ports</h3>
-                <div id="outputPortsContent" class="hidden"></div>
-                <h3 id="addNewPortHeader" class="hidden">Add New Port</h3>
-                <div id="addNewPortContent" class="hidden"></div>
-                <h3 id="externalInputCouplingsHeader" class="hidden">External Input Couplings</h3>
-                <div id="externalInputCouplingsContent" class="hidden"></div>
-                <h3 id="externalOutputCouplingsHeader" class="hidden">External Output Couplings</h3>
-                <div id="externalOutputCouplingsContent" class="hidden"></div>
-                <h3 id="internalCouplingsHeader" class="hidden">Internal Couplings</h3>
-                <div id="internalCouplingsContent" class="hidden"></div>
-                <div id="addCouplingSection" class="coupling-add-container hidden">
-                    <h3>Add Coupling</h3>
-                    <label>Coupling Type</label>
-                    <select id="couplingType">
-                        <option value="EIC">EIC</option>
-                        <option value="IC">IC</option>
-                        <option value="EOC">EOC</option>
-                    </select>
-                    <label>Component From</label>
-                    <select id="componentFrom"></select>
-                    <label>Port From</label>
-                    <select id="portFrom"></select>
-                    <label>Component To</label>
-                    <select id="componentTo"></select>
-                    <label>Port To</label>
-                    <select id="portTo"></select>
-                    <button id="addCouplingBtn">Add Coupling</button>
+            <!-- fixed header -->
+            <div id="rightPanelHeader" class="right-panel-header">
+                <div id="rightTabs" class="right-tabs">
+                <button id="tabPropertiesBtn" class="tab-btn active" type="button">Properties</button>
+                <button id="tabExperimentBtn" class="tab-btn" type="button">Experiment</button>
+                </div>
+            </div>
+
+            <!-- scrollable body -->
+            <div id="rightPanelBody" class="right-panel-body">
+
+                <div id="propertiesTab" class="tab-pane active">
+                    <div id="selectACellIndicator"></div>
+                    <div id="rightPaletteContent">
+                        <h3 id="modelNameIDHeader" class="hidden">Model Info</h3>
+                        <div id="modelNameIDContent" class="hidden"></div>
+                        <h3 id="propertiesHeader" class="hidden">State Variables</h3>
+                        <div id="propertiesContent" class="hidden"></div>
+                        <h3 id="inputPortsHeader" class="hidden">Input Ports</h3>
+                        <div id="inputPortsContent" class="hidden"></div>
+                        <h3 id="outputPortsHeader" class="hidden">Output Ports</h3>
+                        <div id="outputPortsContent" class="hidden"></div>
+                        <h3 id="addNewPortHeader" class="hidden">Add New Port</h3>
+                        <div id="addNewPortContent" class="hidden"></div>
+                        <h3 id="externalInputCouplingsHeader" class="hidden">External Input Couplings</h3>
+                        <div id="externalInputCouplingsContent" class="hidden"></div>
+                        <h3 id="externalOutputCouplingsHeader" class="hidden">External Output Couplings</h3>
+                        <div id="externalOutputCouplingsContent" class="hidden"></div>
+                        <h3 id="internalCouplingsHeader" class="hidden">Internal Couplings</h3>
+                        <div id="internalCouplingsContent" class="hidden"></div>
+                        <div id="addCouplingSection" class="coupling-add-container hidden">
+                            <h3>Add Coupling</h3>
+                            <label>Coupling Type</label>
+                            <select id="couplingType">
+                                <option value="EIC">EIC</option>
+                                <option value="IC">IC</option>
+                                <option value="EOC">EOC</option>
+                            </select>
+                            <label>Component From</label>
+                            <select id="componentFrom"></select>
+                            <label>Port From</label>
+                            <select id="portFrom"></select>
+                            <label>Component To</label>
+                            <select id="componentTo"></select>
+                            <label>Port To</label>
+                            <select id="portTo"></select>
+                            <button id="addCouplingBtn">Add Coupling</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Experiment panel in RIGHT SIDEBAR -->
+                <div id="experimentTab" class="tab-pane">
+                    <div class="tab-header-row">
+                        <h3 id="experimentHeader" > Experiment Design </h3>
+                        <button id="closeExperimentPanelBtn" style="float:right; cursor:pointer;"title="Close"> ✕ </button>
+                       
+                    </div>
+                    <div id="experimentContent">
+                        <label>Experiment Name</label>
+                        <input id="expName" type="text" placeholder="counter_start0_inc" />
+
+                        <label>MUT Model</label>
+                        <select id="mutModelSelect"></select>
+
+                        <label>MUT Initial State</label>
+                        <select id="mutInitSelect"></select>
+
+                        <label>EF Model</label>
+                        <select id="efModelSelect"></select>
+
+                        <label>EF Initial State</label>
+                        <select id="efInitSelect"></select>
+
+                        <!-- ===================== CPIC ===================== -->
+                        <div class="coupling-block">
+                            <div class="coupling-header">
+                                <label class="coupling-title">CPIC (EF output → MUT input)</label>
+                                <button id="addCpicBtn" type="button" class="mini-btn">+ Add</button>
+                            </div>
+
+                            <div id="cpicList" class="coupling-list">
+                                <!-- rows inserted by JS -->
+                                <div class="coupling-empty" id="cpicEmpty">No CPIC couplings yet.</div>
+                            </div>
+                        </div>
+
+                        <!-- ===================== POCC ===================== -->
+                        <div class="coupling-block">
+                            <div class="coupling-header">
+                                <label class="coupling-title">POCC (MUT output → EF input)</label>
+                                <button id="addPoccBtn" type="button" class="mini-btn">+ Add</button>
+                            </div>
+
+                            <div id="poccList" class="coupling-list">
+                                <!-- rows inserted by JS -->
+                                <div class="coupling-empty" id="poccEmpty">No POCC couplings yet.</div>
+                            </div>
+                        </div>
+
+                        <label>Time Span</label>
+                        <input id="timeSpanInput" type="number" step="any" value="50.0" />
+
+                        <div class="modal-actions">
+                            <button id="generateExperimentJsonBtn">Run Experiment</button>
+                        </div>
+
+                        <label>Output</label>
+                        <pre id="experimentOutput" class="output-box"></pre>
+                    </div>
                 </div>
                 <h3 id="deltaIntHeader" class="hidden">Internal Transition Function</h3>
                 <div id="deltaIntContent" class="hidden"></div>
@@ -263,8 +339,10 @@
             </div>
         </div>
     </div>
+
     <div id="footer">
         <div class="right">
+            <button id="previewDesignExperimentBtn" class="debug-btn">Design an Experiment</button>
             <button id="previewGraphXMLBtn" class="debug-btn">Graph XML</button>
             <button id="previewUserObjectsBtn" class="debug-btn">JSON UserObjects</button>
             <button id="previewDEVSMapBtn" class="debug-btn">DEVSMap</button>
@@ -272,6 +350,8 @@
             <button id="previewTraceBtn" class="debug-btn">CSV</button>
         </div>
     </div>
+
+    <!-- 
 
     <!-- Load your main JS logic -->
     <script type="module" src="./js/main.js"></script>
