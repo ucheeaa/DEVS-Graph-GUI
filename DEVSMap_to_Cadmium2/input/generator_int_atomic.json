@@ -1,0 +1,32 @@
+{
+    "generator_int": {
+        "s": {
+            "nextInt": "int",
+            "sigma": "double"
+        },
+        "x": {},
+        "y": {
+            "int_out": "int"
+        },
+        "delta_int": {
+            "otherwise": {
+                "nextInt": "rand() % 5 + 1"
+            }
+        },
+        "delta_ext": {
+            "otherwise": {}
+        },
+        "lambda": {
+            "otherwise": {
+                "int_out": "nextInt"
+            }
+        },
+        "ta": {
+            "otherwise": "sigma"
+        }
+    },
+    "include_sets": [
+        "default_sets.json"
+    ],
+    "parameters": {}
+}

@@ -349,7 +349,7 @@ export class ConversionManager {
     async viewTrace() {
         const log_DEVSMap = true;
         const log_code = true;
-        const log_csv = true;
+        //const log_csv = true;
 
         const DEVSMap = this.getDEVSMap();
 
@@ -360,12 +360,12 @@ export class ConversionManager {
         // HTTP Calls 
         const codeResult = await this.generateCode(DEVSMap, log_code);
 
-        const csvResult = await this.generateCSV(codeResult, log_csv);
+        //const csvResult = await this.generateCSV(codeResult, log_csv);
 
     }
 
 
-    async generateCode(DEVSMap, log_code = true) {
+    async generateCodeOLD(DEVSMap, log_code = true) {
         const url_code = "https://devssim.carleton.ca/generate-code";
 
         try {
@@ -396,6 +396,32 @@ export class ConversionManager {
             }
         }
     }
+
+
+    async generateCode(DEVSMap, log_code = true) {
+
+        try {
+            const response = await fetch("http://localhost:8000/parse", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(DEVSMap)
+            });
+
+            const data = await response.json();
+
+            if (log_code) {
+                console.log("Response from parser:", data);
+            }
+
+            return data;  // optional: in case you want to use it elsewhere
+
+        } catch (error) {
+            console.error("Error sending data to parser:", error);
+        }
+    }
+
 
 
     async generateCSV(codeData, log_csv = true) {

@@ -1,0 +1,21 @@
+# Ignore the files that would be generated to the output folder when running the generator
+/output/main/main.cpp
+/output/main/include/*
+!/output/main/include/.gitkeep
+/output/build/
+/output/bin/
+
+# Ignore python-related files
+__pycache__/
+*.py[cod]
+
+# Ingore files related to executing Cadmium on embedded systems
+/output/.vscode
+/output/dependencies.lock
+/output/README.md
+/output/sdkconfig
+/output/main/CMakeCache.txt
+/output/main/idf_component.yml
+/output/main/CMakeFiles
+/output/build_esp.sh
+

@@ -1,0 +1,32 @@
+{
+    "generator_bool": {
+        "s": {
+            "nextBool": "bool",
+            "sigma": "double"
+        },
+        "x": {},
+        "y": {
+            "bool_out": "bool"
+        },
+        "delta_int": {
+            "otherwise": {
+                "nextBool": "!nextBool"
+            }
+        },
+        "delta_ext": {
+            "otherwise": {}
+        },
+        "lambda": {
+            "otherwise": {
+                "bool_out": "nextBool"
+            }
+        },
+        "ta": {
+            "otherwise": "sigma"
+        }
+    },
+    "include_sets": [
+        "default_sets.json"
+    ],
+    "parameters": {}
+}
