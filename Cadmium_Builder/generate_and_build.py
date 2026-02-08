@@ -1,45 +1,76 @@
 import json
 import subprocess
 import re
-
+import os
+import platform
 
 def build_cadmium(code):
-    print("BUILD_CADMIUM(CODE):")
-    dict = json.loads(code)
-    print("TYPE = " + str(type(dict)))
-    print(dict)
+    """
+    Build and run the Cadmium simulation.
+    Works on Windows (via WSL), Linux, and macOS.
+    """
 
-    code_directory = "./Cadmium_Builder/cadmium_project/main/"
+    # Parse JSON input
+    files_dict = json.loads(code)
+    print("TYPE =", type(files_dict))
+    print(files_dict)
 
-    for key, value in dict.items():
+    # Base directories
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "cadmium_project"))
+    main_dir = os.path.join(BASE_DIR, "main")
+
+    # Write all C++ files
+    for key, value in files_dict.items():
         if key == "main.cpp":
-            file_name = key
+            file_path = os.path.join(main_dir, key)
         else:
-            file_name = "include/" + key
+            file_path = os.path.join(main_dir, "include", key)
 
-        # Open the file in write mode and write some text
-        with open(code_directory + file_name, "w") as file:
-            file.write(value)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, "w") as f:
+            f.write(value)
 
-    command = "source build_sim.sh && ./bin/Executable1"  # 'env' lists environment variables
+    # Build and run commands
+    build_cmd = "source build_sim.sh"
+    run_cmd = "./bin/Executable1"
 
-    result = subprocess.run(command, cwd="./Cadmium_Builder/cadmium_project", shell=True, capture_output=True, text=True, executable="/bin/bash")
+    system = platform.system()
 
+    if system == "Windows":
+        # Run via WSL
+        full_cmd = f"{build_cmd} && {run_cmd}"
+        result = subprocess.run(
+            ["wsl", "bash", "-c", full_cmd],
+            cwd=BASE_DIR,
+            capture_output=True,
+            text=True
+        )
+    else:
+        # Linux / macOS
+        full_cmd = f"{build_cmd} && {run_cmd}"
+        result = subprocess.run(
+            full_cmd,
+            cwd=BASE_DIR,
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+
+    # Clean output
     output = result.stdout
+    errors = result.stderr
 
-    # remove colours from the output
     regex = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
     output = regex.sub('', output)
 
-    # # remove the output lines related to compilation and building
     prefixes = ["--", "[", "Compilation"]
     output = "\n".join(
         line for line in output.splitlines()
         if not any(line.startswith(p) for p in prefixes)
     )
-    
+
+    # Log
     print("Output:\n", output)
-    print("Errors:\n", result.stderr)
+    print("Errors:\n", errors)
 
     return "sep=;\n" + output
-

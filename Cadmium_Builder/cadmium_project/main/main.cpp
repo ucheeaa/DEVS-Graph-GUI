@@ -23,7 +23,7 @@ extern "C" {
 
 		rootCoordinator.start();
 
-		rootCoordinator.simulate(50);
+		rootCoordinator.simulate(30);
 
 		rootCoordinator.stop();
 

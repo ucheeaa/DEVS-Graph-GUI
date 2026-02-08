@@ -18,8 +18,15 @@ else()
     # Regular CMake project setup for non-ESP32
     add_executable(Executable1 main.cpp)
 
-    # Add required libraries and include directories
-    target_include_directories(Executable1 PRIVATE "." "include" $ENV{CADMIUM})
+    # Base path of the project
+    set(PROJECT_ROOT ${CMAKE_SOURCE_DIR})
+
+    # Add include directories for Cadmium headers
+    target_include_directories(Executable1 PRIVATE
+        ${PROJECT_ROOT}               # root of cadmium_project
+        ${PROJECT_ROOT}/cadmium       # cadmium folder with headers
+        ${PROJECT_ROOT}/include       # your local include folder
+    )
 
     # Non-ESP32 specific compile options
     target_compile_options(Executable1 PUBLIC -std=gnu++2b)
