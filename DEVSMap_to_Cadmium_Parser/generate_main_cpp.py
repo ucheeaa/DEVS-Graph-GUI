@@ -1,6 +1,6 @@
 # TODO top of the file comments
 
-from generate_simple_statements import *
+from .generate_simple_statements import *
 
 
 def generate_main_cpp(top_model_name, simulation_time):

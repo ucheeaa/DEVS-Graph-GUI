@@ -349,7 +349,7 @@ export class ConversionManager {
     async viewTrace() {
         const log_DEVSMap = true;
         const log_code = true;
-        //const log_csv = true;
+        const log_csv = true;
 
         const DEVSMap = this.getDEVSMap();
 
@@ -360,7 +360,7 @@ export class ConversionManager {
         // HTTP Calls 
         const codeResult = await this.generateCode(DEVSMap, log_code);
 
-        //const csvResult = await this.generateCSV(codeResult, log_csv);
+        const csvResult = await this.generateCSV(codeResult, log_csv);
 
     }
 
@@ -423,8 +423,34 @@ export class ConversionManager {
     }
 
 
+    async generateCSV(CODE, log_csv = true) {
 
-    async generateCSV(codeData, log_csv = true) {
+        try {
+            const response = await fetch("http://localhost:8001/simulation-output", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(CODE)
+            });
+
+            const data = await response.json();
+
+            if (log_csv) {
+                console.log("Response from Cadmium Builder:", data);
+            }
+
+            return data;  // optional: in case you want to use it elsewhere
+
+        } catch (error) {
+            console.error("Error sending data to Cadmium Builder:", error);
+        }
+
+    }
+
+
+    // TODO change the name of this to generateSimulationOutput
+    async generateCSVOLD(codeData, log_csv = true) {
         const url_csv = "https://devssim.carleton.ca/generate-csv";
 
         try {

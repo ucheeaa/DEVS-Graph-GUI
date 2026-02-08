@@ -1,11 +1,11 @@
-from .DEVSMap_parser import generate_code
+from .generate_and_build import build_cadmium
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 ALLOWED_ORIGIN = "http://127.0.0.1:5500"  # only allow this origin
 
-class ParserHandler(BaseHTTPRequestHandler):
+class CadmiumHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self):
         origin = self.headers.get("Origin")
@@ -25,27 +25,22 @@ class ParserHandler(BaseHTTPRequestHandler):
             self.end_headers()
             return
 
-        if self.path == "/parse":
+        if self.path == "/simulation-output":
             content_length = int(self.headers["Content-Length"])
             body = self.rfile.read(content_length)
             data = json.loads(body.decode("utf-8"))
 
-            # parser logic
-            
-            #text = data.get("text", "")
-            #result = text.upper()  # example parser
-
             #Test received data in console
             print("DATA === ", data)
             # Invoke the parser
-            cadmiumCode = generate_code(data)
+            simulation_output = build_cadmium(data)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Access-Control-Allow-Origin", ALLOWED_ORIGIN)  # only allowed origin
             self.end_headers()
-            self.wfile.write(json.dumps(cadmiumCode).encode("utf-8"))
+            self.wfile.write(json.dumps(simulation_output).encode("utf-8"))
 
-server = HTTPServer(("localhost", 8000), ParserHandler)
-print("Server running on http://localhost:8000")
+server = HTTPServer(("localhost", 8001), CadmiumHandler)
+print("Server running on http://localhost:8001")
 server.serve_forever()

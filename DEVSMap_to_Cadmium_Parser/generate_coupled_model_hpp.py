@@ -1,6 +1,6 @@
 # TODO module comments
 
-from generate_simple_statements import generate_file_definition, cadmium_namespace
+from .generate_simple_statements import generate_file_definition, cadmium_namespace
 
 
 def generate_coupled_models(directory_cpp_code, data):

@@ -3,11 +3,11 @@ DEVSMap Parser
 '''
 
 import json
-from parser_reading_files import *
-from generate_main_cpp import *
-from generate_coupled_model_hpp import *
-from generate_atomic_model_hpp import *
-from generate_simple_statements import *
+from .parser_reading_files import *
+from .generate_main_cpp import *
+from .generate_coupled_model_hpp import *
+from .generate_atomic_model_hpp import *
+from .generate_simple_statements import *
 
 def clean_control_chars(s: str) -> str:
     """

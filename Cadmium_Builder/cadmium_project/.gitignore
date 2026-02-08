@@ -1,0 +1,7 @@
+components/
+build/
+debug/
+sdkconfig.*
+managed_components
+bin
+*.csv

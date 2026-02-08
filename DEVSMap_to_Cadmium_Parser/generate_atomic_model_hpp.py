@@ -1,7 +1,7 @@
 # TODO module comments
 
-from generate_simple_statements import *
-from helper import *
+from .generate_simple_statements import *
+from .helper import *
 import re
 
 
