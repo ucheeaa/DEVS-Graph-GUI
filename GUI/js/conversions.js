@@ -335,8 +335,19 @@ export class ConversionManager {
     }
 
 
-    previewCadmiumCode() {
-        alert("Preview Cadmium Code: Not implemented yet");
+    async previewCadmiumCode() {
+        const log_DEVSMap = false;
+        const log_code = true;
+
+        const DEVSMap = this.getDEVSMap();
+
+        if (log_DEVSMap) {
+            console.log("DEVSMap:", DEVSMap);
+        }
+
+        // HTTP Calls 
+        const codeResult = await this.generateCode(DEVSMap, log_code);
+        console.log(codeResult);
     }
 
 
