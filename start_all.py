@@ -10,7 +10,7 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 processes = []
 
 # -----------------------------
-# Start Python server 1
+# Start Python server 1 (Parser)
 # -----------------------------
 server1_module = "DEVSMap_to_Cadmium_Parser.server"
 processes.append(subprocess.Popen(
@@ -19,7 +19,7 @@ processes.append(subprocess.Popen(
 ))
 
 # -----------------------------
-# Start Python server 2
+# Start Python server 2 (Cadmium_Builder)
 # -----------------------------
 server2_module = "Cadmium_Builder.server"
 processes.append(subprocess.Popen(
@@ -28,23 +28,24 @@ processes.append(subprocess.Popen(
 ))
 
 # -----------------------------
-# Optional: start GUI servers
-# Uncomment if needed
+# Start GUI server (Python HTTP server)
 # -----------------------------
-# gui1_dir = os.path.join(REPO_ROOT, "gui1")
-# processes.append(subprocess.Popen(
-#     [sys.executable, "-m", "http.server", "5500"],
-#     cwd=gui1_dir
-# ))
+gui_dir = os.path.join(REPO_ROOT, "GUI")  # your GUI folder
+gui_port = "5500"
 
-# gui2_dir = os.path.join(REPO_ROOT, "gui2")
-# processes.append(subprocess.Popen(
-#     [sys.executable, "-m", "http.server", "5501"],
-#     cwd=gui2_dir
-# ))
+processes.append(subprocess.Popen(
+    [sys.executable, "-m", "http.server", gui_port],
+    cwd=gui_dir
+))
 
-print("All servers started.")
-print("Press Ctrl+C to stop them.")
+# -----------------------------
+# Print info
+# -----------------------------
+print("All servers started:")
+print(f"- Parser server running")
+print(f"- Cadmium_Builder server running")
+print(f"- GUI server running at http://localhost:{gui_port}")
+print("Press Ctrl+C to stop all servers.")
 
 # -----------------------------
 # Wait for processes / handle Ctrl+C
