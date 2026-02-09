@@ -351,14 +351,9 @@ export class ConversionManager {
     }
 
 
-    previewTrace() {
-        alert("Preview Trace: Not implemented yet");
-    }
-
-
-    async viewTrace() {
-        const log_DEVSMap = true;
-        const log_code = true;
+    async previewTrace() {
+        const log_DEVSMap = false;
+        const log_code = false;
         const log_csv = true;
 
         const DEVSMap = this.getDEVSMap();
@@ -371,6 +366,29 @@ export class ConversionManager {
         const codeResult = await this.generateCode(DEVSMap, log_code);
 
         const csvResult = await this.generateCSV(codeResult, log_csv);
+    }
+
+
+    async viewTrace() {
+        const log_DEVSMap = true;
+        const log_code = true;
+        const log_csv = true;
+
+        // DEVSMap
+        const DEVSMap = this.getDEVSMap();
+
+        if (log_DEVSMap) {
+            console.log("DEVSMap:", DEVSMap);
+        }
+
+        // Cadmium Code
+        const codeResult = await this.generateCode(DEVSMap, log_code);
+
+        // Simulation Output
+        const csvResult = await this.generateCSV(codeResult, log_csv);
+
+        // Trace Viewer
+        // TODO
 
     }
 
