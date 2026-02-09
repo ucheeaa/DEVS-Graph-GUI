@@ -240,7 +240,6 @@ export class ConversionManager {
     getSimulationTime() {
         let inputValue = parseFloat(document.getElementById("previewNumberInput").value);
         if (isNaN(inputValue)) {
-            console.log("Number input is empty or invalid.");
             inputValue = 50.0; // Use 50.0 as default during development if not invalid/unspecified
         }
         // console.log("Generating DEVSMap with simulation time:", inputValue);
@@ -252,10 +251,10 @@ export class ConversionManager {
     getDEVSMap() {
         // Get required values for generating DEVSMap
         let time_span = this.getSimulationTime();
-        console.log("time_span = " + time_span);
+        //console.log("time_span = " + time_span);
 
         let top_model_id = this.getTopModel();
-        console.log("top_model_id = " + top_model_id);
+        //console.log("top_model_id = " + top_model_id);
 
         // Additional values may need to be added/obtained here as the functionality is extended
 
@@ -285,7 +284,7 @@ export class ConversionManager {
         // Create all of the XYZ_atomic.json
         for (let i = 0; i < userObjects.length; i++) {
             if (userObjects[i].elementType === "atomicModel") {
-                console.log("atomic");
+                //console.log("atomic");
 
                 let modelName = userObjects[i].model_name.toLowerCase();
 
@@ -311,7 +310,7 @@ export class ConversionManager {
 
 
             } else if (userObjects[i].elementType === "coupledModel") {
-                console.log("coupled");
+                //console.log("coupled");
 
                 // Create all of the XYZ_coupled.json
                 let coupledModelName = userObjects[i].model_name.toLowerCase();
@@ -322,10 +321,10 @@ export class ConversionManager {
                 };
 
             } else {
-                console.log("Invalid elementType: " + userObjects[i].elementType);
+                //console.log("Invalid elementType: " + userObjects[i].elementType);
             }
 
-            console.log(userObjects[i]);
+            //console.log(userObjects[i]);
         }
         return DEVSMap;
     }
