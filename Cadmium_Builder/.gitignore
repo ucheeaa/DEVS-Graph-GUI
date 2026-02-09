@@ -1,0 +1,8 @@
+# Ignore Python bytecode
+__pycache__/
+
+# Ignore C++ includes that are local/generated
+cadmium_project/main/include/*.hpp
+
+# Ignore the main.cpp file if it’s generated
+cadmium_project/main/main.cpp
