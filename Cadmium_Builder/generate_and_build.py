@@ -1,8 +1,9 @@
 import json
 import subprocess
 import re
-import os
 import platform
+from pathlib import Path
+
 
 def build_cadmium(code):
     """
@@ -10,35 +11,65 @@ def build_cadmium(code):
     Works on Windows (via WSL), Linux, and macOS.
     """
 
-    # Parse JSON input
     files_dict = json.loads(code)
-    print("TYPE =", type(files_dict))
-    print(files_dict)
 
-    # Base directories
-    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "cadmium_project"))
-    main_dir = os.path.join(BASE_DIR, "main")
+    BASE_DIR = Path(__file__).resolve().parent / "cadmium_project"
+    main_dir = BASE_DIR / "main"
+    include_dir = main_dir / "include"
 
-    # Write all C++ files
+    print("BASE_DIR =", BASE_DIR)
+    print("main_dir =", main_dir)
+    print("include_dir =", include_dir)
+
+    # -----------------------------
+    # CLEAN OLD FILES
+    # -----------------------------
+
+    # Delete main.cpp
+    main_cpp = main_dir / "main.cpp"
+    if main_cpp.exists():
+        print("Deleting:", main_cpp)
+        main_cpp.unlink()
+    else:
+        print("main.cpp not found")
+
+    # Delete all .hpp files inside main/include recursively
+    if include_dir.exists():
+        for file in include_dir.rglob("*.hpp"):
+            try:
+                print("Deleting:", file)
+                file.unlink()
+            except Exception as e:
+                print("Failed to delete:", file, e)
+    else:
+        print("include_dir does not exist")
+
+    # -----------------------------
+    # WRITE NEW FILES
+    # -----------------------------
     for key, value in files_dict.items():
         if key == "main.cpp":
-            file_path = os.path.join(main_dir, key)
+            file_path = main_dir / key
         else:
-            file_path = os.path.join(main_dir, "include", key)
+            file_path = include_dir / key
 
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, "w") as f:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(value)
 
+        print("Wrote file:", file_path)
+
+    # -----------------------------
     # Build and run commands
+    # -----------------------------
     build_cmd = "source build_sim.sh"
     run_cmd = "./bin/Executable1"
+    full_cmd = f"{build_cmd} && {run_cmd}"
 
     system = platform.system()
 
     if system == "Windows":
-        # Run via WSL
-        full_cmd = f"{build_cmd} && {run_cmd}"
         result = subprocess.run(
             ["wsl", "bash", "-c", full_cmd],
             cwd=BASE_DIR,
@@ -46,8 +77,6 @@ def build_cadmium(code):
             text=True
         )
     else:
-        # Linux / macOS
-        full_cmd = f"{build_cmd} && {run_cmd}"
         result = subprocess.run(
             full_cmd,
             cwd=BASE_DIR,
@@ -56,10 +85,12 @@ def build_cadmium(code):
             text=True
         )
 
-    # Clean output
     output = result.stdout
     errors = result.stderr
 
+    # -----------------------------
+    # Clean output
+    # -----------------------------
     regex = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
     output = regex.sub('', output)
 
@@ -69,7 +100,6 @@ def build_cadmium(code):
         if not any(line.startswith(p) for p in prefixes)
     )
 
-    # Log
     print("Output:\n", output)
     print("Errors:\n", errors)
 
