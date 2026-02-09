@@ -80,11 +80,11 @@ const generalItems = [
 
 
   {
-    label: 'Counter_Model : Counter',
+    label: 'counter_model : counter',
     userObject: {
       elementType: 'atomicModel',
-      model_name: 'Counter',
-      unique_id: 'Counter_Model',
+      model_name: 'counter',
+      unique_id: 'counter_model',
       json: {
         model: {
           x: {
@@ -145,11 +145,11 @@ const generalItems = [
 
 
   {
-    label: 'Increment_Generator : Integer_Generator',
+    label: 'increment_generator : generator_int',
     userObject: {
       elementType: 'atomicModel',
-      model_name: 'Integer_Generator',
-      unique_id: 'Increment_Generator',
+      model_name: 'generator_int',
+      unique_id: 'increment_generator',
       json: {
         model: {
           x: {},
@@ -189,11 +189,11 @@ const generalItems = [
 
 
   {
-    label: 'Direction_Generator : Boolean_Generator',
+    label: 'direction_generator : generator_bool',
     userObject: {
       elementType: 'atomicModel',
-      model_name: 'Boolean_Generator',
-      unique_id: 'Direction_Generator',
+      model_name: 'generator_bool',
+      unique_id: 'direction_generator',
       json: {
         model: {
           x: {},

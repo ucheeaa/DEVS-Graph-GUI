@@ -110,13 +110,13 @@ def set_logger(type_of_logger):
 def run_simulation(simulation_time):
     '''
     Return the C++ code for Cadmium that starts the root coordinator, simulates for 
-    simulation_time seconds, and stops the root coordinator.
+    simulation_time seconds (forced to 1 decimal place), and stops the root coordinator.
 
     Args:
         simulation_time (str):   The number of seconds the simulation will run for.
     '''
     simulation_code = '\t\trootCoordinator.start();\n\n'
-    simulation_code += '\t\trootCoordinator.simulate(' + simulation_time + ');\n\n'
+    simulation_code += f'\t\trootCoordinator.simulate({float(simulation_time):.1f});\n\n'
     simulation_code += '\t\trootCoordinator.stop();\n\n'
     return simulation_code
 

@@ -241,7 +241,7 @@ export class ConversionManager {
         let inputValue = parseFloat(document.getElementById("previewNumberInput").value);
         if (isNaN(inputValue)) {
             console.log("Number input is empty or invalid.");
-            inputValue = 50.0; // Use 50 as default during development if not invalid/unspecified
+            inputValue = 50.0; // Use 50.0 as default during development if not invalid/unspecified
         }
         // console.log("Generating DEVSMap with simulation time:", inputValue);
 
