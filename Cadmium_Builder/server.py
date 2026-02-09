@@ -3,32 +3,38 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 import json
 
-ALLOWED_ORIGIN = "http://localhost:5500"  # your GUI origin
+ALLOWED_ORIGINS = {
+    "http://127.0.0.1:5500",
+    "http://localhost:5500"
+}
 
 
 class CadmiumHandler(BaseHTTPRequestHandler):
 
     # -----------------------------
+    # Common CORS headers
+    # -----------------------------
+    def _set_cors_headers(self):
+        origin = self.headers.get("Origin")
+        if origin in ALLOWED_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
+    # -----------------------------
     # Handle preflight OPTIONS
     # -----------------------------
     def do_OPTIONS(self):
-        origin = self.headers.get("Origin")
-        if origin == ALLOWED_ORIGIN:
-            self.send_response(200)
-            self.send_header("Access-Control-Allow-Origin", ALLOWED_ORIGIN)
-            self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
-            self.end_headers()
-        else:
-            self.send_response(403)
-            self.end_headers()
+        self.send_response(200)
+        self._set_cors_headers()
+        self.end_headers()
 
     # -----------------------------
     # Handle POST requests
     # -----------------------------
     def do_POST(self):
         origin = self.headers.get("Origin")
-        if origin != ALLOWED_ORIGIN:
+        if origin not in ALLOWED_ORIGINS:
             self.send_response(403)
             self.end_headers()
             return
@@ -42,16 +48,14 @@ class CadmiumHandler(BaseHTTPRequestHandler):
             print("Starting Cadmium build...")
 
             try:
-                # Blocking call to build_cadmium
                 simulation_output = build_cadmium(data)
             except Exception as e:
                 print("Error during build_cadmium:", e)
                 simulation_output = {"error": str(e)}
 
-            # Send response safely
             self.send_response(200)
+            self._set_cors_headers()
             self.send_header("Content-Type", "application/json")
-            self.send_header("Access-Control-Allow-Origin", ALLOWED_ORIGIN)
             self.end_headers()
 
             try:
@@ -66,7 +70,7 @@ class CadmiumHandler(BaseHTTPRequestHandler):
 # Threaded HTTP server
 # -----------------------------
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    daemon_threads = True  # ensures threads exit on server shutdown
+    daemon_threads = True
 
 
 # -----------------------------
