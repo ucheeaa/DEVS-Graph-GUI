@@ -30,7 +30,7 @@ def generate_code(JSON):
     DEVSMap = JSON #TODO temporarily silly reassignment
     #fix this for if-else when adding based on files
     if validate_DEVSMap_keys(DEVSMap):
-        print(DEVSMap)
+        # print(DEVSMap)
         code = {}
 
         data = sort_json_files(DEVSMap) 

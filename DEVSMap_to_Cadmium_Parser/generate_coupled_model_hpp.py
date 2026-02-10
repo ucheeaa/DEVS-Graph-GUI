@@ -76,10 +76,10 @@ def include_component_models(coupled_model):
     Args:
         coupled_model (dict):   The coupled model that is currently being generated.
     '''
-    include_files = get_components(coupled_model)
+    components = get_components(coupled_model)
     include_statements = ""
-    for file_name in include_files:
-        include_statements += '#include "' + file_name + '.hpp"\n'
+    for component in components:
+        include_statements += '#include "' + component["model"] + '.hpp"\n'
     include_statements += '\n'
     return include_statements
 
@@ -102,8 +102,10 @@ def generate_coupled_model_struct(model_name, model):
     # addComponent statements
     components = get_components(model)
     component_statements = ''
-    for model_name, model_id in components.items():
-        component_statements += '\t\tauto ' + model_id + ' = addComponent<' + model_name + '>("' + model_id + '");\n'
+    for component in components:
+        model_name = component["model"]
+        model_id = component["id"]
+        component_statements += ('\t\tauto ' + model_id +' = addComponent<' + model_name +'>("' + model_id + '");\n')
     constructor += component_statements + '\n'
         
     #addCoupling statements

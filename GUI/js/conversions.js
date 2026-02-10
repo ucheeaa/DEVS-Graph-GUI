@@ -212,11 +212,14 @@ export class ConversionManager {
             return result;
         }
 
-        const componentsMap = topModelObj.json.model.components;
-        // componentsMap = { "Counter": "Counter_Model", ... }
+        const components = topModelObj.json.model.components;
+        // components = [ { model: "...", id: "..." }, ... ]
 
         // 2. Iterate each component
-        for (const [modelName, uniqueId] of Object.entries(componentsMap)) {
+        for (const component of components) {
+
+            const modelName = component.model;
+            const uniqueId = component.id;
 
             // Find corresponding atomic model by unique_id
             const atomic = userObjects.find(

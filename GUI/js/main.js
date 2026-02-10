@@ -197,7 +197,7 @@ function main(container) {
                     model: {
                         x: {},
                         y: {},
-                        components: {},
+                        components: [],
                         eic: [],
                         eoc: [],
                         ic: []
@@ -206,11 +206,15 @@ function main(container) {
                 },
             };
 
-            // Populate components with model_name: unique_id of children
+            // Populate components as { model, id }
             selectedCells.forEach(child => {
                 const childName = child.userObject?.model_name || 'unnamed';
                 const childId = child.userObject?.unique_id || child.getId();
-                group.userObject.json.model.components[childName] = childId;
+
+                group.userObject.json.model.components.push({
+                    model: childName,
+                    id: childId
+                });
             });
 
             // Move the group on top of children
@@ -1891,7 +1895,7 @@ function main(container) {
 
         // Auto-switch to Properties tab when a cell is selected
         if (cell && graph.getModel().isVertex(cell)) {
-        window.setRightTab?.("properties");
+            window.setRightTab?.("properties");
         }
         populateRightPalette();
     });
@@ -1909,50 +1913,50 @@ function main(container) {
     return graph;
 }
 
-    function setupRightPaletteResizer() {
-        const rightPalette = document.getElementById("rightPalette");
-        const resizer = document.getElementById("rightResizer");
+function setupRightPaletteResizer() {
+    const rightPalette = document.getElementById("rightPalette");
+    const resizer = document.getElementById("rightResizer");
 
-        // Safety check (prevents crashes)
-        if (!rightPalette || !resizer) {
-            console.warn("Right palette resizer not found");
-            return;
-        }
-
-        let dragging = false;
-
-        const MIN = 260;
-        const MAX = 650;
-
-        resizer.addEventListener("mousedown", (e) => {
-            dragging = true;
-            document.body.style.cursor = "col-resize";
-            document.body.style.userSelect = "none";
-            e.preventDefault();
-        });
-
-        document.addEventListener("mousemove", (e) => {
-            if (!dragging) return;
-
-            const newWidth = window.innerWidth - e.clientX;
-            const clamped = Math.max(MIN, Math.min(MAX, newWidth));
-
-            rightPalette.style.width = clamped + "px";
-        });
-
-        document.addEventListener("mouseup", () => {
-            if (!dragging) return;
-
-            dragging = false;
-            document.body.style.cursor = "";
-            document.body.style.userSelect = "";
-        });
+    // Safety check (prevents crashes)
+    if (!rightPalette || !resizer) {
+        console.warn("Right palette resizer not found");
+        return;
     }
+
+    let dragging = false;
+
+    const MIN = 260;
+    const MAX = 650;
+
+    resizer.addEventListener("mousedown", (e) => {
+        dragging = true;
+        document.body.style.cursor = "col-resize";
+        document.body.style.userSelect = "none";
+        e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+
+        const newWidth = window.innerWidth - e.clientX;
+        const clamped = Math.max(MIN, Math.min(MAX, newWidth));
+
+        rightPalette.style.width = clamped + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+        if (!dragging) return;
+
+        dragging = false;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+    });
+}
 
 
 // Wait for DOM to be ready before initializing
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     setupRightPaletteResizer();
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main

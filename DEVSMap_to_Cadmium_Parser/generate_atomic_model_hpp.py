@@ -158,7 +158,6 @@ def generate_state_struct_no_parameters(init_states, state_name, model):
     initializations = ''
     for variable_name, variable_type in state_variables:
         value = initialization_values[variable_name]
-
         initializations += ' ' + variable_name + '(' + value + '), '
     
     state_struct += initializations.rstrip(', ')
