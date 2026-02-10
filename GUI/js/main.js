@@ -1379,7 +1379,7 @@ function main(container) {
     document.getElementById("previewUserObjectsBtn").addEventListener("click", () => conversionManager.previewUserObjects());
     document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
     document.getElementById("previewCodeBtn").addEventListener("click", () => conversionManager.previewCadmiumCode());
-    document.getElementById("previewTraceBtn").addEventListener("click", () => conversionManager.previewTrace());
+    document.getElementById("previewSimulationOutputBtn").addEventListener("click", () => conversionManager.previewSimulationOutput());
 
 
     /////////////////////////////////////////////////////////////////////////////
@@ -1412,7 +1412,7 @@ function main(container) {
     toolbar.addItem('Zoom Out', null, () => graph.zoomOut());
     toolbar.addItem('Reset Zoom', null, () => graph.zoomActual());
     toolbar.addItem('Zoom to Fit', null, () => graph.fit(25));
-    toolbar.addItem('Test Couple', null, () => groupAsCoupledModel(graph));
+    toolbar.addItem('Couple Models', null, () => groupAsCoupledModel(graph));
 
 
 

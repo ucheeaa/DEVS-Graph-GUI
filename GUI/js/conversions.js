@@ -6,7 +6,7 @@ export class ConversionManager {
     }
 
 
-    // For previewing the JSON in the console
+    // gets the XML representation of the DEVS Graph
     getGraphXML() {
         const encoder = new mxCodec();
         const node = encoder.encode(this.graph.getModel());
@@ -15,11 +15,13 @@ export class ConversionManager {
     }
 
 
+    // Logs the XML representation of the DEVS Graph to the browser console
     previewGraphXML() {
         console.log(this.getGraphXML());
     }
 
 
+    // Saves the DEVS Graph in XML format for local save/load functionality
     saveGraphXML() {
         // application/octet-stream prevents XML preview in some browsers
         const blob = new Blob([this.getGraphXML()], { type: 'application/octet-stream' });
@@ -33,6 +35,8 @@ export class ConversionManager {
     }
 
 
+    // TODO this must be updated once the final structure is determined
+    // Loads a DEVS Graph from an XML-formatted file for local save/load functionality
     loadGraphXML() {
         // Prompt user to select file
         const input = document.createElement('input');
@@ -74,6 +78,7 @@ export class ConversionManager {
     }
 
 
+    // Gets a list of the JSON user objects of each cell on the graph (Not DEVSMap representations)
     getUserObjects() {
         // Encode graph to XML
         const encoder = new mxCodec();
@@ -137,6 +142,7 @@ export class ConversionManager {
     }
 
 
+    // Prints a list of the JSON user objects of each cell on the graph (Not DEVSMap representations) to the browser console
     previewUserObjects() {
         const userObjects = this.getUserObjects();
 
@@ -144,6 +150,7 @@ export class ConversionManager {
     }
 
 
+    // Returns the UID of the top coupled model on the DEVS Graph
     getTopModel() {
         const model = this.graph.getModel();
         const root = model.getRoot();
@@ -237,24 +244,26 @@ export class ConversionManager {
     }
 
 
+    // Gets the simulation time from the top-right input box on the GUI
     getSimulationTime() {
         let inputValue = parseFloat(document.getElementById("previewNumberInput").value);
         if (isNaN(inputValue)) {
             inputValue = 50.0; // Use 50.0 as default during development if not invalid/unspecified
         }
-        // console.log("Generating DEVSMap with simulation time:", inputValue);
 
         return inputValue;
     }
 
 
+    // Gets the DEVSMap representation of the DEVS Graph
+    // This is done by taking the user objects, simulation time, and top model, and adding the relevant
+    // data to a new data structure, where each key is a DEVSMap filename, and each value is a dictionary 
+    // corresponding to the values of that DEVSMap structure
     getDEVSMap() {
         // Get required values for generating DEVSMap
         let time_span = this.getSimulationTime();
-        //console.log("time_span = " + time_span);
 
         let top_model_id = this.getTopModel();
-        //console.log("top_model_id = " + top_model_id);
 
         // Additional values may need to be added/obtained here as the functionality is extended
 
@@ -284,7 +293,6 @@ export class ConversionManager {
         // Create all of the XYZ_atomic.json
         for (let i = 0; i < userObjects.length; i++) {
             if (userObjects[i].elementType === "atomicModel") {
-                //console.log("atomic");
 
                 let modelName = userObjects[i].model_name.toLowerCase();
 
@@ -310,7 +318,6 @@ export class ConversionManager {
 
 
             } else if (userObjects[i].elementType === "coupledModel") {
-                //console.log("coupled");
 
                 // Create all of the XYZ_coupled.json
                 let coupledModelName = userObjects[i].model_name.toLowerCase();
@@ -324,68 +331,77 @@ export class ConversionManager {
                 //console.log("Invalid elementType: " + userObjects[i].elementType);
             }
 
-            //console.log(userObjects[i]);
         }
         return DEVSMap;
     }
 
 
+    // Logs the DEVSMap representation of the DEVS Graph to the browser console
     previewDEVSMap() {
         console.log(this.getDEVSMap());
     }
 
 
+    // Takes the DEVSMap representation of the DEVS Graph, sends it to the 
+    // DEVSMap_to_Cadmium_Parser module, and logs the resulting Cadmium Code 
+    // to the browser console.
     async previewCadmiumCode() {
-        const log_DEVSMap = false;
-        const log_code = true;
+        const logDEVSMap = false;
+        const logCadmiumCode = true;
 
         const DEVSMap = this.getDEVSMap();
 
-        if (log_DEVSMap) {
+        if (logDEVSMap) {
             console.log("DEVSMap:", DEVSMap);
         }
 
         // HTTP Calls 
-        const codeResult = await this.generateCode(DEVSMap, log_code);
-        console.log(codeResult);
+        const codeResult = await this.generateCode(DEVSMap, logCadmiumCode);
     }
 
 
-    async previewTrace() {
-        const log_DEVSMap = false;
-        const log_code = false;
-        const log_csv = true;
+    // Takes the DEVSMap representation of the DEVS Graph, sends it to the 
+    // DEVSMap_to_Cadmium_Parser module, then sends the resulting Cadmium code
+    // to the Cadmium_Builder module (which will build and simulate the Cadmium 
+    // code).  Then, logs the resulting simulation output to the browser console.
+    async previewSimulationOutput() {
+        const logDEVSMap = false;
+        const logCadmiumCode = false;
+        const logSimulationOutput = true;
 
         const DEVSMap = this.getDEVSMap();
 
-        if (log_DEVSMap) {
+        if (logDEVSMap) {
             console.log("DEVSMap:", DEVSMap);
         }
 
         // HTTP Calls 
-        const codeResult = await this.generateCode(DEVSMap, log_code);
+        const codeResult = await this.generateCode(DEVSMap, logCadmiumCode);
 
-        const csvResult = await this.generateCSV(codeResult, log_csv);
+        const csvResult = await this.generateCSV(codeResult, logSimulationOutput);
     }
 
 
+    // TODO / WIP
+    // Will do the same as the above function, but then send the resulting simulation 
+    // output to the trace viewer for graphical display
     async viewTrace() {
-        const log_DEVSMap = true;
-        const log_code = true;
-        const log_csv = true;
+        const logDEVSMap = true;
+        const logCadmiumCode = true;
+        const logSimulationOutput = true;
 
         // DEVSMap
         const DEVSMap = this.getDEVSMap();
 
-        if (log_DEVSMap) {
+        if (logDEVSMap) {
             console.log("DEVSMap:", DEVSMap);
         }
 
         // Cadmium Code
-        const codeResult = await this.generateCode(DEVSMap, log_code);
+        const codeResult = await this.generateCode(DEVSMap, logCadmiumCode);
 
         // Simulation Output
-        const csvResult = await this.generateCSV(codeResult, log_csv);
+        const csvResult = await this.generateCSV(codeResult, logSimulationOutput);
 
         // Trace Viewer
         // TODO
@@ -393,7 +409,9 @@ export class ConversionManager {
     }
 
 
-    async generateCode(DEVSMap, log_code = true) {
+    // Sends DEVSMap to the DEVSMap_to_Cadmium_Parser module, receives the resulting 
+    // Cadmium Code
+    async generateCode(DEVSMap, logCadmiumCode = true) {
 
         try {
             const response = await fetch("http://localhost:8000/parse", {
@@ -406,7 +424,7 @@ export class ConversionManager {
 
             const data = await response.json();
 
-            if (log_code) {
+            if (logCadmiumCode) {
                 console.log("Response from parser:", data);
             }
 
@@ -418,7 +436,9 @@ export class ConversionManager {
     }
 
 
-    async generateCSV(CODE, log_csv = true) {
+    // Sends Cadmium code to the Cadmium_Builder module, receives the resulting 
+    // simulation output
+    async generateCSV(CadmiumCode, logSimulationOutput = true) {
 
         try {
             const response = await fetch("http://localhost:8001/simulation-output", {
@@ -426,12 +446,12 @@ export class ConversionManager {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify(CODE)
+                body: JSON.stringify(CadmiumCode)
             });
 
             const data = await response.json();
 
-            if (log_csv) {
+            if (logSimulationOutput) {
                 console.log("Response from Cadmium Builder:", data);
             }
 
