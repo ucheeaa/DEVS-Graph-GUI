@@ -393,39 +393,6 @@ export class ConversionManager {
     }
 
 
-    async generateCodeOLD(DEVSMap, log_code = true) {
-        const url_code = "https://devssim.carleton.ca/generate-code";
-
-        try {
-            const response = await fetch(url_code, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", },
-                body: JSON.stringify(DEVSMap)
-            });
-
-            const contentType = response.headers.get("content-type");
-            let data;
-
-            if (contentType && contentType.includes("application/json")) {
-                data = await response.json();
-            } else {
-                data = await response.text();
-            }
-
-            if (log_code) {
-                console.log("Server response:", data);
-            }
-
-            return data;
-
-        } catch (error) {
-            if (log_code) {
-                console.error("Error generating code:", error);
-            }
-        }
-    }
-
-
     async generateCode(DEVSMap, log_code = true) {
 
         try {
@@ -474,40 +441,6 @@ export class ConversionManager {
             console.error("Error sending data to Cadmium Builder:", error);
         }
 
-    }
-
-
-    // TODO change the name of this to generateSimulationOutput
-    async generateCSVOLD(codeData, log_csv = true) {
-        const url_csv = "https://devssim.carleton.ca/generate-csv";
-
-        try {
-            const response = await fetch(url_csv, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(codeData)
-            });
-
-            const contentType = response.headers.get("content-type");
-            let data;
-
-            if (contentType && contentType.includes("application/json")) {
-                data = await response.json();   // parse JSON response
-            } else {
-                data = await response.text();   // parse plain text
-            }
-
-            if (log_csv) {
-                console.log("CSV generation response:", data);
-            }
-
-            return data;
-
-        } catch (error) {
-            if (log_csv) {
-                console.error("Error generating CSV:", error);
-            }
-        }
     }
 
 
