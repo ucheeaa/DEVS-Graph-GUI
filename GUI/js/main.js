@@ -1823,6 +1823,7 @@ function main(container) {
         aviationCategory: aviationItems,
         natureCategory: natureItems,
         networkCategory: networkItems,
+        imageExampleCategory: imageExampleItems,
         experimentalFramesCategory: experimentalFrames
     };
 
