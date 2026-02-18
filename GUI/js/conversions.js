@@ -297,38 +297,15 @@ export class ConversionManager {
         for (let i = 0; i < userObjects.length; i++) {
             if (userObjects[i].elementType === "atomicModel") {
 
-                let modelName = userObjects[i].model_name.toLowerCase();
-
-                DEVSMap[modelName + '_atomic.json'] = {
-                    ['' + modelName]: userObjects[i].json.model,
-                    'include_sets': [userObjects[i].include_sets],
-                    'parameters': userObjects[i].parameters
-                }
-
-                // iterate through state variables
-                Object.entries(DEVSMap[modelName + '_atomic.json'][modelName]['s']).forEach(([key, value]) => {
-
-                    // Then update the format to match DEVSMap {name: type}
-                    DEVSMap[modelName + '_atomic.json'][modelName]['s'][key] = value['data_type'];
-
-                });
-
-                // include sets
-                DEVSMap[modelName + '_atomic.json']['include_sets'] = userObjects[i].json.include_sets;
-
-                // parameters
-                DEVSMap[modelName + '_atomic.json']['parameters'] = userObjects[i].json.parameters;
-
+                // // Create all of the XYZ_atomic.json
+                const { filename, json } = this.createAtomicModelJSON(userObjects[i]);
+                DEVSMap[filename] = json;
 
             } else if (userObjects[i].elementType === "coupledModel") {
 
-                // Create all of the XYZ_coupled.json
-                let coupledModelName = userObjects[i].model_name.toLowerCase();
-
-                DEVSMap[coupledModelName + '_coupled.json'] = {
-                    ['' + coupledModelName]: userObjects[i].json.model,
-                    'include_sets': userObjects[i].json.include_sets,
-                };
+                // // Create all of the XYZ_coupled.json
+                const { filename, json } = this.createCoupledModelJSON(userObjects[i]);
+                DEVSMap[filename] = json;
 
             } else {
                 //console.log("Invalid elementType: " + userObjects[i].elementType);
@@ -336,6 +313,43 @@ export class ConversionManager {
 
         }
         return DEVSMap;
+    }
+
+
+    createAtomicModelJSON(userObject) {
+        const modelName = userObject.model_name.toLowerCase();
+
+        // Copy the model JSON
+        const atomicData = {
+            [modelName]: { ...userObject.json.model },
+            include_sets: userObject.json.include_sets,
+            parameters: userObject.json.parameters
+        };
+
+        // Convert state variables to {name: type}
+        const stateVars = atomicData[modelName]['s'];
+        for (const [key, value] of Object.entries(stateVars)) {
+            stateVars[key] = value['data_type'];
+        }
+
+        // Return both filename and the JSON
+        return {
+            filename: `${modelName}_atomic.json`,
+            json: atomicData
+        };
+    }
+
+
+
+    createCoupledModelJSON(userObject) {
+        const name = userObject.model_name.toLowerCase();
+        return {
+            filename: `${name}_coupled.json`,
+            json: {
+                [name]: userObject.json.model,
+                include_sets: userObject.json.include_sets
+            }
+        };
     }
 
 
