@@ -1299,11 +1299,6 @@ function main(container) {
     }
 
 
-
-
-
-
-
     function renderCouplings(parentCell) {
         if (!parentCell) return;
 
@@ -1585,20 +1580,24 @@ function main(container) {
             if (graph.getModel().isVertex(cell)) {
                 // Menu for vertices
                 if (cell.isExperimentalFrame) {
-                    menu.addItem('func1', null, func1);
-                    menu.addItem('func2', null, func2);
-                    menu.addItem('func3', null, func3);
-                    menu.addItem('func4', null, func4);
-                    menu.addItem('func5', null, func5);
-                    menu.addItem('func6', null, func6);
+                    menu.addItem('func1', null, () => null);
+                    menu.addItem('func2', null, () => null);
+                    menu.addItem('func3', null, () => null);
+                    menu.addItem('func4', null, () => null);
+                    menu.addItem('func5', null, () => null);
+                    menu.addItem('func6', null, () => null);
                 }
+                
                 menu.addItem('Group', null, groupCells);
                 menu.addItem('Cut', null, () => cutSelectedCells(graph));
                 menu.addItem('Copy', null, () => copySelectedCells(graph));
                 menu.addItem('Duplicate', null, () => duplicateSelectedCells(graph));
                 menu.addItem('Delete', null, () => deleteSelectedCells(graph));
+                if (cell.isAtomicModel()) {
+                    menu.addItem('Log Atomic DEVSMap', null, () => console.log(conversionManager.createAtomicModelJSON(cell.userObject)));
+                }
                 if (cell.isCoupledModel()) {
-                    menu.addItem('CoupledModel Placeholder', null, () => null);
+                    menu.addItem('Log Coupled DEVSMap', null, () => console.log(conversionManager.createCoupledModelJSON(cell.userObject)));
                 }
             }
             else if (graph.getModel().isEdge(cell)) {
