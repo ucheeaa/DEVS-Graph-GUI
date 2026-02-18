@@ -1577,17 +1577,13 @@ function main(container) {
 
         if (cell) {
 
-            if (graph.getModel().isVertex(cell)) {
-                // Menu for vertices
-                if (cell.isExperimentalFrame) {
-                    menu.addItem('func1', null, () => null);
-                    menu.addItem('func2', null, () => null);
-                    menu.addItem('func3', null, () => null);
-                    menu.addItem('func4', null, () => null);
-                    menu.addItem('func5', null, () => null);
-                    menu.addItem('func6', null, () => null);
-                }
+            if (graph.getModel().isVertex(cell)) {// TODO cleanup and comment these
                 
+                // TODO fix or remove experiemntal frames
+                if (cell.isExperimentalFrame()) {
+                    menu.addItem('func1', null, null);
+                    menu.addItem('func2', null, null);
+                }
                 menu.addItem('Group', null, groupCells);
                 menu.addItem('Cut', null, () => cutSelectedCells(graph));
                 menu.addItem('Copy', null, () => copySelectedCells(graph));
@@ -1599,6 +1595,7 @@ function main(container) {
                 if (cell.isCoupledModel()) {
                     menu.addItem('Log Coupled DEVSMap', null, () => console.log(conversionManager.createCoupledModelJSON(cell.userObject)));
                 }
+                
             }
             else if (graph.getModel().isEdge(cell)) {
                 // Menu for edges
