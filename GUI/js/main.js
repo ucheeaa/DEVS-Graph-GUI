@@ -158,7 +158,156 @@ function main(container) {
             c => c instanceof mxCell && graph.getModel().isVertex(c)
         );
 
-        if (selectedCells.length < 2) {
+        if (selectedCells.length < 1) {
+            alert("Select at least one cell to group");
+            return;
+        }
+
+        graph.getModel().beginUpdate();
+        try {
+            const border = 30;
+
+            let group;
+
+            if (selectedCells.length === 1) {
+                // Special case: only one cell
+                const child = selectedCells[0];
+                const model = graph.getModel();
+                const parent = model.getParent(child);
+                const bounds = graph.getCellGeometry(child).clone();
+
+                // Create a new group cell
+                group = new mxCell();
+                group.vertex = true;
+                group.geometry = new mxGeometry(
+                    bounds.x - border / 2,
+                    bounds.y - border / 2,
+                    bounds.width + border,
+                    bounds.height + border
+                );
+
+                // Add the group to the graph
+                model.add(parent, group, model.getChildCount(parent));
+
+                // Move the single child into the group
+                graph.addCells([child], group);
+            } else {
+                // Standard case: multiple cells
+                group = graph.groupCells(null, border, selectedCells);
+            }
+
+            // Style the group
+            group.setStyle(
+                'shape=rectangle;' +
+                'fillColor=#FFFFFF;' +
+                'strokeColor=#424242;' +
+                'rounded=1;' +
+                'verticalAlign=top;' +
+                'align=center;' +
+                'spacingTop=4;' +
+                'whiteSpace=wrap;' +
+                'overflow=fill;' +
+                'fontSize=16;' +
+                'fontColor=#000000;'
+            );
+
+            // Visible label for the group
+            group.value = "Enter a name and id for this coupled model";
+
+            // Attach DEVS metadata
+            group.userObject = {
+                elementType: 'coupledModel',
+                model_name: 'defaultName',
+                unique_id: 'defaultID',
+                json: {
+                    model: {
+                        x: {},
+                        y: {},
+                        components: [],
+                        eic: [],
+                        eoc: [],
+                        ic: []
+                    },
+                    include_sets: ["default_sets.json"],
+                },
+            };
+
+            // Populate components
+            selectedCells.forEach(child => {
+                const childName = child.userObject?.model_name || 'unnamed';
+                const childId = child.userObject?.unique_id || child.getId();
+
+                group.userObject.json.model.components.push({
+                    model: childName,
+                    id: childId
+                });
+            });
+
+            // Move the group on top of children
+            const model = graph.getModel();
+            const parent = model.getParent(group);
+            if (parent) {
+                const index = model.getChildCount(parent) - 1;
+                model.add(parent, group, index);
+            }
+
+            // Store original (uncollapsed) geometry
+            const originalGeo = group.geometry.clone();
+            group.setAttribute('originalGeometry', JSON.stringify(originalGeo));
+
+            // Ensure the group starts uncollapsed
+            if (graph.isCellCollapsed(group)) {
+                graph.foldCells(false, false, [group]);
+            }
+
+            // Listener for collapse/uncollapse
+            const listener = function (sender, evt) {
+                const cells = evt.getProperty('cells');
+                cells.forEach(c => {
+                    if (c === group) {
+                        const geo = graph.getCellGeometry(c).clone();
+
+                        if (graph.isCellCollapsed(c)) {
+                            // Collapsed: fixed 200x100
+                            geo.width = 200;
+                            geo.height = 100;
+                            graph.getModel().setGeometry(c, geo);
+                        } else {
+                            // Uncollapsed: restore original geometry
+                            const origAttr = c.getAttribute('originalGeometry');
+                            if (origAttr) {
+                                const orig = JSON.parse(origAttr);
+                                const restoredGeo = new mxGeometry(orig.x, orig.y, orig.width, orig.height);
+                                graph.getModel().setGeometry(c, restoredGeo);
+                            }
+                        }
+                    }
+                });
+            };
+
+            graph.addListener(mxEvent.FOLD_CELLS, listener);
+
+            // Select the group
+            graph.setSelectionCell(group);
+
+        } finally {
+            graph.getModel().endUpdate();
+        }
+
+        graph.refresh();
+    }
+
+
+
+    function groupAsCoupledModelOLD(graph) {
+        let selectedCells = graph.getSelectionCells();
+
+        // Keep only real mxCells that are vertices
+        selectedCells = selectedCells.filter(
+            c => c instanceof mxCell && graph.getModel().isVertex(c)
+        );
+
+        if (selectedCells.length < 1) {
             alert("Select at least two cells to group");
             return;
         }
