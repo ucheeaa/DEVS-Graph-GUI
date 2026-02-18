@@ -229,6 +229,55 @@ const generalItems = [
 
 
   {
+    label: 'light_1 : traffic_light',
+    userObject: {
+      elementType: 'atomicModel',
+      model_name: 'traffic_light',
+      unique_id: 'light_1',
+      json: {
+        model: {
+          x: {},
+          y: {
+            colour_out: 'string',
+          },
+          s: {
+            sigma: { data_type: "double", init_state: "5.0" },
+            colour: { data_type: "string", init_state: '"RED"' },
+          },
+          delta_int: {
+            'colour == "RED"': {
+              "colour": '"GREEN"',
+              "sigma": "7"
+            },
+            'colour == "GREEN"': {
+              "colour": '"YELLOW"',
+              "sigma": "3"
+            },
+            "otherwise": {
+              "colour": '"RED"',
+              "sigma": "10"
+            }
+          },
+          delta_ext: { "otherwise": {} },
+          delta_con: {},
+          lambda: {
+            "otherwise": {
+              "colour_out": "colour"
+            }
+          },
+          ta: { "otherwise": "sigma" }
+        },
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
+    },
+    width: 120,
+    height: 60,
+    style: DEFAULT_STYLES.atomicModel
+  },
+
+
+  {
     label: 'testAtomic',
     userObject: {
       elementType: 'atomicModel',
