@@ -7,6 +7,12 @@ def include_limits():
     return '#include <limits>\n'
 
 
+def include_string():
+    '''
+    Returns the C++ statement to include the 'string' utilities.
+    '''
+    return '#include <string>\n'
+
 def include_model(model_name):
     '''
     Returns the C++ statement to include a specific DEVS model.
