@@ -81,10 +81,6 @@ function main(container) {
         return this.userObject?.elementType?.toLowerCase() === "coupledmodel";
     };
 
-    mxCell.prototype.isExperimentalFrame = function () {
-        return this.userObject?.elementType?.toLowerCase() === "experimentalframe";
-    };
-
     mxCell.prototype.getInputPorts = function () {
         const ports = this.userObject?.json?.model?.x || {};
         // Convert to array of { name, type }
@@ -1578,12 +1574,6 @@ function main(container) {
         if (cell) {
 
             if (graph.getModel().isVertex(cell)) {// TODO cleanup and comment these
-                
-                // TODO fix or remove experiemntal frames
-                if (cell.isExperimentalFrame()) {
-                    menu.addItem('func1', null, null);
-                    menu.addItem('func2', null, null);
-                }
                 menu.addItem('Group', null, groupCells);
                 menu.addItem('Cut', null, () => cutSelectedCells(graph));
                 menu.addItem('Copy', null, () => copySelectedCells(graph));
@@ -1820,7 +1810,6 @@ function main(container) {
         natureCategory: natureItems,
         networkCategory: networkItems,
         imageExampleCategory: imageExampleItems,
-        experimentalFramesCategory: experimentalFrames
     };
 
     function fillPalette(categoryName) {
