@@ -1579,6 +1579,7 @@ function main(container) {
                 menu.addItem('Copy', null, () => copySelectedCells(graph));
                 menu.addItem('Duplicate', null, () => duplicateSelectedCells(graph));
                 menu.addItem('Delete', null, () => deleteSelectedCells(graph));
+                menu.addItem('Save Model to Palette', null, () => saveModelToPalette(graph));
                 if (cell.isAtomicModel()) {
                     menu.addItem('Log Atomic DEVSMap', null, () => console.log(conversionManager.createAtomicModelJSON(cell.userObject)));
                 }
