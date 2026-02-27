@@ -8,3 +8,24 @@ temp2/
 
 js/i18n.js
 /i18n
+
+# CMake / build outputs 
+**/build/
+**/Build/
+**/cmake-build-*/
+**/CMakeFiles/
+**/CMakeCache.txt
+**/Makefile
+**/cmake_install.cmake
+**/*.dir/
+**/*.o
+**/*.obj
+**/*.a
+**/*.lib
+**/*.so
+**/*.dylib
+**/*.exe
+
+# Generated binaries/logs
+**/bin/
+**/*.log
