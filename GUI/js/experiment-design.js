@@ -36,6 +36,46 @@ export function setupExperimentSidebar(graph) {
     return;
   }
 
+  function getAllVerticesRecursive(graph) {
+    const model = graph.getModel();
+    const root = graph.getDefaultParent();
+    const out = [];
+
+    const walk = (parent) => {
+      const kids = model.getChildCells(parent, true, false) || []; // vertices only
+      for (const c of kids) {
+        out.push(c);
+        walk(c); // recurse into groups
+      }
+    };
+
+    walk(root);
+    return out;
+  }
+
+  function getAllDevsModelsFromGraph(graph) {
+    return getAllVerticesRecursive(graph)
+      .filter(c => c?.isAtomicModel?.() || c?.isCoupledModel?.())
+      .map(c => ({
+        id: c.userObject?.unique_id ?? c.getId(),
+        name: c.userObject?.model_name ?? String(c.value ?? c.getId())
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  const refreshModelsOnly = () => {
+    const allModels = getAllDevsModelsFromGraph(graph);
+    fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
+    fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
+  };
+
+  // Refresh when graph model changes (add/remove/rename/etc.)
+  graph.getModel().addListener(mxEvent.CHANGE, () => {
+    if (document.getElementById("experimentTab")?.classList.contains("active")) {
+      refreshModelsOnly();
+    }
+  });
+
   function activateTab(which) {
     const isProps = which === "properties";
 
@@ -60,33 +100,27 @@ export function setupExperimentSidebar(graph) {
     }
 
     async function refreshExperimentDropdowns() {
-      try {
-        const [allModels, inits] = await Promise.all([
-          fetchModels(),
-          fetchInits()
-        ]);
+      
+        //const [inits] = await Promise.all([fetchInits()]);
+
+        const allModels = getAllDevsModelsFromGraph(graph);
 
         fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
         fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
-        fillSelect(mutInitSelect, inits, { placeholder: "Select MUT init..." });
-        fillSelect(efInitSelect, inits, { placeholder: "Select EF init..." });
-
+        fillSelect(mutInitSelect, [], { placeholder: "Select MUT init..." });
+        fillSelect(efInitSelect, [], { placeholder: "Select EF init..." });
+      try {
       } catch (e) {
         console.error("Failed to load experiment dropdowns:", e);
         if (out) out.textContent = `Error loading experiment data:\n${String(e)}`;
       }
+  }
+
+    if (isProps) {
+    window.populateRightPalette?.();
     }
 
-    // when entering experiment tab, refresh dropdowns
     if (!isProps) {
-      // entering Experiment tab -> clear current graph selection
-      // so next click on a model triggers a CHANGE event.
-      graph.clearSelection();
-      fillSelect(mutModelSelect, [], { placeholder: "Loading MUT models..." });
-      fillSelect(efModelSelect, [], { placeholder: "Loading EF models..." });
-      fillSelect(mutInitSelect, [], { placeholder: "Loading init states..." });
-      fillSelect(efInitSelect, [], { placeholder: "Loading init states..." });
-
       refreshExperimentDropdowns();
     }
   }

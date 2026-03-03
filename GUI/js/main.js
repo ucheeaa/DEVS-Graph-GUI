@@ -2026,17 +2026,21 @@ function main(container) {
 
     }
 
+    window.populateRightPalette = populateRightPalette;
+
     graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
         const cell = graph.getSelectionCell();
 
-        // Auto-switch to Properties tab when a cell is selected
-        if (cell && graph.getModel().isVertex(cell)) {
-            window.setRightTab?.("properties");
+        const propsActive = document.getElementById("propertiesTab") ?.classList.contains("active");
+
+        // Show properties when the Properties tab is currently active
+        if (!propsActive) {
+            return;
         }
         populateRightPalette();
     });
 
-    populateRightPalette();
+   
 
     // Log id of cells upon clicking for development purposes
     graph.addListener(mxEvent.CLICK, function (sender, evt) {

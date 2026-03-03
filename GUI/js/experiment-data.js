@@ -36,9 +36,11 @@ export function fillSelect(select, items, { placeholder } = {}) {
 
     // if you return {id,name} objects from python:
     opt.value = it.id;
-    opt.textContent = it.name;
+    opt.textContent = `${it.id} : ${it.name}`;
 
     select.appendChild(opt);
   });
+
+  console.log("fillSelect running", select?.id, items?.[0]);
 }
 
