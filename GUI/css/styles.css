@@ -603,3 +603,36 @@ body {
 .remove-row:hover{
   background: #eaeaea;
 }
+
+
+.init-editor {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 8px 0 12px 0;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.init-section h4 {
+  margin: 10px 0 6px;
+  font-size: 14px;
+}
+
+.init-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.init-err {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  color: #b00020;
+}
+
+.has-error input, .has-error select {
+  border: 1px solid #b00020;
+}

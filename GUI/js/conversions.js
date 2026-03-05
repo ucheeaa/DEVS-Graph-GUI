@@ -318,6 +318,7 @@ export class ConversionManager {
 
     createAtomicModelJSON(userObject) {
         const modelName = userObject.model_name.toLowerCase();
+        const uid = userObject.unique_id.toLowerCase();
 
         // Copy the model JSON
         const atomicData = {
@@ -334,7 +335,7 @@ export class ConversionManager {
 
         // Return both filename and the JSON
         return {
-            filename: `${modelName}_atomic.json`,
+            filename: `${uid}_atomic.json`,
             json: atomicData
         };
     }
@@ -343,8 +344,9 @@ export class ConversionManager {
 
     createCoupledModelJSON(userObject) {
         const name = userObject.model_name.toLowerCase();
+        const uid = userObject.unique_id.toLowerCase();
         return {
-            filename: `${name}_coupled.json`,
+            filename: `${uid}_coupled.json`,
             json: {
                 [name]: userObject.json.model,
                 include_sets: userObject.json.include_sets

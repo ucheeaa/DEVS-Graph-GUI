@@ -2,6 +2,8 @@ const API_BASE = "http://localhost:3001";
 
 import { fetchModels, fetchInits, fillSelect } from "./experiment-data.js";
 import { generateExperimentJson, initCouplingButtons } from "./experiment-actions.js";
+import { ConversionManager } from "./conversions.js";
+import { buildInitEditorForCoupled } from "./experiment-init-editor.js";
 
 export function setupExperimentSidebar(graph) {
   // buttons
@@ -55,7 +57,7 @@ export function setupExperimentSidebar(graph) {
 
   function getAllDevsModelsFromGraph(graph) {
     return getAllVerticesRecursive(graph)
-      .filter(c => c?.isAtomicModel?.() || c?.isCoupledModel?.())
+      .filter(c => c?.isCoupledModel?.())
       .map(c => ({
         id: c.userObject?.unique_id ?? c.getId(),
         name: c.userObject?.model_name ?? String(c.value ?? c.getId())
@@ -64,9 +66,25 @@ export function setupExperimentSidebar(graph) {
   }
 
   const refreshModelsOnly = () => {
+
+    const mutPrev = mutModelSelect?.value || "";
+    const efPrev  = efModelSelect?.value || "";
+
     const allModels = getAllDevsModelsFromGraph(graph);
     fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
     fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
+
+     // restore selection if still present
+    if ([...mutModelSelect.options].some(o => o.value === mutPrev)) {
+      mutModelSelect.value = mutPrev;
+    }
+    if ([...efModelSelect.options].some(o => o.value === efPrev)) {
+      efModelSelect.value = efPrev;
+    }
+      
+    renderMutInitEditor?.();
+    renderEfInitEditor?.();
+    
   };
 
   // Refresh when graph model changes (add/remove/rename/etc.)
@@ -103,12 +121,27 @@ export function setupExperimentSidebar(graph) {
       
         //const [inits] = await Promise.all([fetchInits()]);
 
+        const mutPrev = mutModelSelect?.value || "";
+        const efPrev  = efModelSelect?.value || "";
+
         const allModels = getAllDevsModelsFromGraph(graph);
 
         fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
         fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
         fillSelect(mutInitSelect, [], { placeholder: "Select MUT init..." });
         fillSelect(efInitSelect, [], { placeholder: "Select EF init..." });
+
+        // restore selection if still present
+        if ([...mutModelSelect.options].some(o => o.value === mutPrev)) {
+        mutModelSelect.value = mutPrev;
+        }
+        if ([...efModelSelect.options].some(o => o.value === efPrev)) {
+        efModelSelect.value = efPrev;
+        }
+
+        renderMutInitEditor?.();
+        renderEfInitEditor?.();
+ 
       try {
       } catch (e) {
         console.error("Failed to load experiment dropdowns:", e);
@@ -156,5 +189,33 @@ export function setupExperimentSidebar(graph) {
   if (runExpBtn) {
     runExpBtn.addEventListener("click", () => runExperiment());
   }
+
+  const cm = new ConversionManager(graph);
+
+  // init editor containers
+  const mutInitEditorEl = document.getElementById("mutInitEditor");
+  const efInitEditorEl  = document.getElementById("efInitEditor");
+
+  // store “builder functions” so generateExperimentJson can call them
+  let buildMutInitJson = null;
+  let buildEfInitJson  = null;
+
+  function renderMutInitEditor() {
+    const uid = mutModelSelect?.value || "";
+    if (!uid || !mutInitEditorEl) return;
+
+    buildMutInitJson = buildInitEditorForCoupled(cm, uid, mutInitEditorEl);
+  }
+
+  function renderEfInitEditor() {
+    const uid = efModelSelect?.value || "";
+    if (!uid || !efInitEditorEl) return;
+
+    buildEfInitJson = buildInitEditorForCoupled(cm, uid, efInitEditorEl);
+  }
+
+  // whenever model selection changes, rebuild editor
+  mutModelSelect?.addEventListener("change", renderMutInitEditor);
+  efModelSelect?.addEventListener("change", renderEfInitEditor);
 
 }
