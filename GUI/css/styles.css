@@ -605,34 +605,65 @@ body {
 }
 
 
-.init-editor {
+.init-block { margin-top: 6px; }
+
+.init-editor{
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px;
-  margin: 8px 0 12px 0;
-  max-height: 240px;
-  overflow: auto;
+  margin-top: 8px;
+  max-height: 260px;     /* key: limit size */
+  overflow: auto;        /* key: scroll only inside editor */
+  background: #fff;
 }
 
-.init-section h4 {
-  margin: 10px 0 6px;
-  font-size: 14px;
+.init-section{
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+  margin-top: 10px;
 }
 
-.init-row {
+.init-section:first-child{
+  border-top: none;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.init-section h4{
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+}
+
+.init-row{
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 10px;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
-.init-err {
+.init-row label{
+  font-weight: 600;
+  font-size: 12px;
+  color: #444;
+}
+
+.init-row input,
+.init-row select{
+  padding: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.init-err{
   grid-column: 1 / -1;
   font-size: 12px;
   color: #b00020;
 }
 
-.has-error input, .has-error select {
+.has-error input,
+.has-error select{
   border: 1px solid #b00020;
 }

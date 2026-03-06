@@ -1,83 +1,121 @@
-const API_BASE = "http://localhost:3001";
-// const out = document.getElementById("experimentOutput");
 
-export async function generateExperimentJson({ expNameInput, mutModelSelect, efModelSelect, mutInitSelect, efInitSelect, timeSpanInput, out, buildMutInitJson, buildEfInitJson}) {
-    try{
-        const expName = (expNameInput?.value || "").trim();
-        const mutModel = mutModelSelect?.value || "";
-        const efModel  = efModelSelect?.value || "";
-        const mutInit  = mutInitSelect?.value || "";
-        const efInit   = efInitSelect?.value || "";
-        const timeSpanRaw = (timeSpanInput?.value || "").trim();
+import { buildInitEditorForCoupled } from "./experiment-init-editor.js"; 
+// OR paste that whole init-editor code directly into this file.
 
-        const mutInitObj = buildMutInitJson ? buildMutInitJson() : null;
-        const efInitObj  = buildEfInitJson  ? buildEfInitJson()  : null;
 
-        if (!mutInitObj) {
-          if (out) out.textContent = "Select a MUT model to edit/init.";
-          return;
-        }
-        if (!efInitObj) {
-          if (out) out.textContent = "Select an EF model to edit/init.";
-          return;
-        }
+export function generateExperimentJsonFromGraph({
+  cm,
+  expNameInput,
+  mutModelSelect,
+  efModelSelect,
+  timeSpanInput,
+  out,
+  getMutInitBuilder,
+  getEfInitBuilder
+}) {
+  const expName = (expNameInput?.value || "").trim();
+  const mutUid  = mutModelSelect?.value || "";
+  const efUid   = efModelSelect?.value || "";
+  const timeSpanRaw = (timeSpanInput?.value || "").trim();
 
-        const missing = [];
-        if (!expName) missing.push("Experiment Name");
-        if (!mutModel) missing.push("MUT Model");
-        if (!mutInit) missing.push("MUT Initial State");
-        if (!efModel) missing.push("EF Model");
-        if (!efInit) missing.push("EF Initial State");
-        if (!timeSpanRaw) missing.push("Time Span");
+  const missing = [];
+  if (!expName) missing.push("Experiment Name");
+  if (!mutUid) missing.push("MUT Model");
+  if (!efUid) missing.push("EF Model");
+  if (!timeSpanRaw) missing.push("Time Span");
 
-        if (missing.length) {
-        const msg = `Please fill: ${missing.join(", ")}`;
-        if (out) out.textContent = msg;
-        return;
-        }
+  if (missing.length) {
+    const msg = `Please fill: ${missing.join(", ")}`;
+    if (out) out.textContent = msg;
+    return null;
+  }
 
-        const timeSpan = Number(timeSpanRaw);
-        if (!Number.isFinite(timeSpan) || timeSpan <= 0) {
-        if (out) out.textContent = "Time Span must be a positive number.";
-        return;
-        }
+  const timeSpan = Number(timeSpanRaw);
+  if (!Number.isFinite(timeSpan) || timeSpan <= 0) {
+    if (out) out.textContent = "Time Span must be a positive number.";
+    return null;
+  }
 
-        if (out) out.textContent = "Running experiment setup ...";
+  // Read couplings from UI
+  const cpic = readCouplingRows("cpicList"); // EF output -> MUT input
+  const pocc = readCouplingRows("poccList"); // MUT output -> EF input
 
-        const cpic = readCouplingRows("cpicList"); // EF output -> MUT input
-        const pocc = readCouplingRows("poccList"); // MUT output -> EF input
+  if (cpic.length === 0 && pocc.length === 0) {
+    if (out) out.textContent =
+      "Add at least one coupling (CPIC or POCC) to connect the EF and MUT.";
+    return null;
+  }
 
-        if (cpic.length === 0 && pocc.length === 0) {
-            if (out) out.textContent =
-                "Add at least one coupling (CPIC or POCC) to connect the EF and MUT.";
-            return;
-        }
+  // Build experiment.json object (frontend)
+  const experiment = {
+    model_under_test: {
+      model: `${mutUid.toLowerCase()}_coupled.json`,
+      initial_state: `${mutUid.toLowerCase()}_init_state.json`,
+      parameters: ""
+    },
+    experimental_frame: {
+      model: `${efUid.toLowerCase()}_coupled.json`,
+      initial_state: `${efUid.toLowerCase()}_init_state.json`,
+      parameters: ""
+    },
+    cpic,
+    pocc,
+    time_span: String(timeSpan)
+  };
 
-        const payload = { expName, mutModel, efModel, mutInit, efInit, timeSpan, cpic, pocc };
+  // Build init jsons from editors
+  const buildMutInitJson = getMutInitBuilder?.();
+  const buildEfInitJson  = getEfInitBuilder?.();
 
-        const r = await fetch(`${API_BASE}/api/experiment`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-        });
+  const mutInitObj = buildMutInitJson ? buildMutInitJson() : null;
+  const efInitObj  = buildEfInitJson ? buildEfInitJson() : null;
 
-        if (!r.ok) throw new Error(await r.text());
+  if (!mutInitObj) {
+    if (out) out.textContent = "Select a MUT model to edit its init.";
+    return null;
+  }
+  if (!efInitObj) {
+    if (out) out.textContent = "Select an EF model to edit its init.";
+    return null;
+  }
 
-        const data = await r.json();
-        const experiment = data.experiment ?? data;
+  // Assemble “DEVSMap bundle” (what you download / pass to parser)
+  // This is the real replacement of “server.py generating files”
+  const devsMap = cm.getDEVSMap();
 
-        const safeName = safeFilename(expName);
-        const mutInitFilename = `${safeName}_mut_init_state.json`;
-        const efInitFilename  = `${safeName}_ef_init_state.json`;
-        const filename = `${safeName}_experiment.json`;
+  // override experiment + init files inside devsMap
+  const safeName = safeFilename(expName);
+  const expFilename = `${safeName}_experiment.json`;
+  const mutInitFilename = `${safeName}_mut_init_state.json`;
+  const efInitFilename  = `${safeName}_ef_init_state.json`;
 
-        if (out) out.textContent = JSON.stringify(experiment, null, 2);
-        downloadJson(filename, experiment);
-
-    }catch(e) {
-        if (out) out.textContent = `Error:\n${String(e)}`;
-        console.error(e);
+  // Put experiment that points to these saved init files
+  const experimentForSave = {
+    ...experiment,
+    model_under_test: {
+      ...experiment.model_under_test,
+      initial_state: mutInitFilename
+    },
+    experimental_frame: {
+      ...experiment.experimental_frame,
+      initial_state: efInitFilename
     }
+  };
+
+  // Put them in the bundle
+  devsMap[expFilename] = experimentForSave;
+  devsMap[mutInitFilename] = mutInitObj;
+  devsMap[efInitFilename]  = efInitObj;
+
+  // Preview
+  if (out) out.textContent = JSON.stringify(experimentForSave, null, 2);
+
+  // Download files (3 files like your old server.py did)
+  downloadJson(expFilename, experimentForSave);
+  downloadJson(mutInitFilename, mutInitObj);
+  downloadJson(efInitFilename, efInitObj);
+
+  return { experiment: experimentForSave, devsMap };
 }
 
 function safeFilename(name) {
@@ -104,6 +142,58 @@ function safeFilename(name) {
     a.remove();
 
     URL.revokeObjectURL(blobURL);
+}
+
+export function attachInitEditors({ cm, mutModelSelect, efModelSelect }) {
+  const mutInitEditorEl = document.getElementById("mutInitEditor");
+  const efInitEditorEl  = document.getElementById("efInitEditor");
+
+  let buildMutInitJson = null;
+  let buildEfInitJson  = null;
+
+  function renderMut() {
+    if (!mutInitEditorEl) return;
+
+    const uid = mutModelSelect?.value || "";
+    mutInitEditorEl.innerHTML = "";
+
+    if (!uid) {
+      mutInitEditorEl.classList.add("hidden");
+      buildMutInitJson = null;
+      return;
+    }
+
+    mutInitEditorEl.classList.remove("hidden");
+    buildMutInitJson = buildInitEditorForCoupled(cm, uid, mutInitEditorEl);
+  }
+
+  function renderEf() {
+    if (!efInitEditorEl) return;
+
+    const uid = efModelSelect?.value || "";
+    efInitEditorEl.innerHTML = "";
+
+    if (!uid) {
+      efInitEditorEl.classList.add("hidden");
+      buildEfInitJson = null;
+      return;
+    }
+
+    efInitEditorEl.classList.remove("hidden");
+    buildEfInitJson = buildInitEditorForCoupled(cm, uid, efInitEditorEl);
+  }
+
+  mutModelSelect?.addEventListener("change", renderMut);
+  efModelSelect?.addEventListener("change", renderEf);
+
+  return {
+    getMutInitBuilder: () => buildMutInitJson,
+    getEfInitBuilder: () => buildEfInitJson,
+    rerenderAll: () => {
+      renderMut();
+      renderEf();
+    }
+  };
 }
 
 export function insertCouplingRow(listId, emptyId, fromPorts, toPorts) {
@@ -171,20 +261,7 @@ export function ensureModelsSelectedForCoupling() {
   return true;
 }
 
-// -----------------------------
-// Backend call: fetch ports
-// Your backend returns: { inputs: [...], outputs: [...] }
-// -----------------------------
-export async function fetchPortsForModel(modelFileName) {
-  const url = `${API_BASE}/api/ports?model=${encodeURIComponent(modelFileName)}`;
-  const res = await fetch(url);
-  if (!res.ok) {
-    let text = "";
-    try { text = await res.text(); } catch {}
-    throw new Error(`Failed to fetch ports (${res.status}). ${text}`);
-  }
-  return res.json();
-}
+
 
 // -----------------------------
 // Helpers: DOM + small utilities
@@ -194,85 +271,74 @@ export function getVal(id) {
   return el ? el.value : "";
 }
 
+function getCoupledPortsByUid(cm, uid) {
+  const uos = cm.getUserObjects();
+  const coupled = uos.find(u =>
+    u.elementType === "coupledModel" &&
+    u.unique_id?.toLowerCase() === String(uid).toLowerCase()
+  );
+  if (!coupled) return { inputs: [], outputs: [] };
+
+  const x = coupled.json?.model?.x || {};
+  const y = coupled.json?.model?.y || {};
+
+  return { inputs: Object.keys(x), outputs: Object.keys(y) };
+}
+
 // -----------------------------
 // Main: wire up +Add buttons
 // CPIC: EF output -> MUT input
 // POCC: MUT output -> EF input
 // -----------------------------
-export async function handleAddCpic() {
+export function handleAddCpic(cm) {
   if (!ensureModelsSelectedForCoupling()) return;
 
-  const mutModel = getVal("mutModelSelect");
-  const efModel  = getVal("efModelSelect");
+  const mutUid = getVal("mutModelSelect");
+  const efUid  = getVal("efModelSelect");
 
-  try {
-    const [mutPorts, efPorts] = await Promise.all([
-      fetchPortsForModel(mutModel),
-      fetchPortsForModel(efModel)
-    ]);
+  const mutPorts = getCoupledPortsByUid(cm, mutUid);
+  const efPorts  = getCoupledPortsByUid(cm, efUid);
 
-    // CPIC = EF output -> MUT input
-    const efOutputs  = Array.isArray(efPorts.outputs) ? efPorts.outputs : [];
-    const mutInputs  = Array.isArray(mutPorts.inputs) ? mutPorts.inputs : [];
+  // CPIC = EF outputs -> MUT inputs
+  const efOutputs = efPorts.outputs || [];
+  const mutInputs = mutPorts.inputs || [];
 
-    if (efOutputs.length === 0) {
-      showExperimentMessage("EF model has no output ports (y). Cannot create CPIC coupling.");
-      return;
-    }
-    if (mutInputs.length === 0) {
-      showExperimentMessage("MUT model has no input ports (x). Cannot create CPIC coupling.");
-      return;
-    }
+  if (!efOutputs.length) return showExperimentMessage("EF has no output ports (y).");
+  if (!mutInputs.length) return showExperimentMessage("MUT has no input ports (x).");
 
-    insertCouplingRow("cpicList", "cpicEmpty", efOutputs, mutInputs);
-  } catch (e) {
-    showExperimentMessage(`Error adding CPIC: ${e.message}`);
-  }
+  insertCouplingRow("cpicList", "cpicEmpty", efOutputs, mutInputs);
 }
 
-export async function handleAddPocc() {
+export function handleAddPocc(cm) {
   if (!ensureModelsSelectedForCoupling()) return;
 
-  const mutModel = getVal("mutModelSelect");
-  const efModel  = getVal("efModelSelect");
+  const mutUid = getVal("mutModelSelect");
+  const efUid  = getVal("efModelSelect");
 
-  try {
-    const [mutPorts, efPorts] = await Promise.all([
-      fetchPortsForModel(mutModel),
-      fetchPortsForModel(efModel)
-    ]);
+  const mutPorts = getCoupledPortsByUid(cm, mutUid);
+  const efPorts  = getCoupledPortsByUid(cm, efUid);
 
-    // POCC = MUT output -> EF input
-    const mutOutputs = Array.isArray(mutPorts.outputs) ? mutPorts.outputs : [];
-    const efInputs   = Array.isArray(efPorts.inputs) ? efPorts.inputs : [];
+  // POCC = MUT outputs -> EF inputs
+  const mutOutputs = mutPorts.outputs || [];
+  const efInputs   = efPorts.inputs || [];
 
-    if (mutOutputs.length === 0) {
-      showExperimentMessage("MUT model has no output ports (y). Cannot create POCC coupling.");
-      return;
-    }
-    if (efInputs.length === 0) {
-      showExperimentMessage("EF model has no input ports (x). Cannot create POCC coupling.");
-      return;
-    }
+  if (!mutOutputs.length) return showExperimentMessage("MUT has no output ports (y).");
+  if (!efInputs.length)   return showExperimentMessage("EF has no input ports (x).");
 
-    insertCouplingRow("poccList", "poccEmpty", mutOutputs, efInputs);
-  } catch (e) {
-    showExperimentMessage(`Error adding POCC: ${e.message}`);
-  }
+  insertCouplingRow("poccList", "poccEmpty", mutOutputs, efInputs);
 }
-
 // Call this once after DOM is ready / tab is initialized
-export function initCouplingButtons() {
+export function initCouplingButtons(cm) {
   const addCpicBtn = document.getElementById("addCpicBtn");
   const addPoccBtn = document.getElementById("addPoccBtn");
 
   if (addCpicBtn && !addCpicBtn.dataset.bound) {
-    addCpicBtn.addEventListener("click", handleAddCpic);
+    addCpicBtn.addEventListener("click", () => handleAddCpic(cm));
     addCpicBtn.dataset.bound = "1";
   }
 
   if (addPoccBtn && !addPoccBtn.dataset.bound) {
-    addPoccBtn.addEventListener("click", handleAddPocc);
+    addPoccBtn.addEventListener("click", () => handleAddPocc(cm));
     addPoccBtn.dataset.bound = "1";
   }
 }
@@ -304,116 +370,9 @@ export function readCouplingRows(listId) {
   return couplings;
 }
 
-function findUserObject(userObjects, predicate) {
-  return userObjects.find(predicate);
-}
-
-function normalizeComponents(components) {
-  // your graph stores components as array of {model,id}
-  if (Array.isArray(components)) return components;
-  // (if later you ever switch to object form)
-  if (components && typeof components === "object") {
-    return Object.entries(components).map(([model, id]) => ({ model, id }));
-  }
-  return [];
-}
-
-function validateByType(type, val) {
-  const s = String(val ?? "").trim();
-
-  if (type === "bool") return s === "true" || s === "false";
-  if (type === "int") return /^-?\d+$/.test(s);
-  if (type === "double") return s.toLowerCase() === "inf" || !Number.isNaN(Number(s));
-  return true;
-}
-
-export function buildInitEditorForCoupled(conversionManager, coupledUid, containerEl) {
-  const userObjects = conversionManager.getUserObjects();
-
-  const coupled = findUserObject(
-    userObjects,
-    u => u.elementType === "coupledModel" && (u.unique_id?.toLowerCase() === coupledUid.toLowerCase())
-  );
-  if (!coupled) throw new Error(`Coupled model not found: ${coupledUid}`);
-
-  const comps = normalizeComponents(coupled.json?.model?.components);
-  containerEl.innerHTML = "";
-
-  const editors = []; // store refs so we can save later
-
-  for (const { model, id } of comps) {
-    const atomic = findUserObject(
-      userObjects,
-      u => u.elementType === "atomicModel" && (u.unique_id?.toLowerCase() === String(id).toLowerCase())
-    );
-
-    if (!atomic) {
-      const warn = document.createElement("div");
-      warn.textContent = `⚠ Missing atomic component for id: ${id}`;
-      containerEl.appendChild(warn);
-      continue;
-    }
-
-    const s = atomic.json?.model?.s ?? {}; // { varName: {data_type, init_state}, ... }
-
-    const section = document.createElement("div");
-    section.className = "init-section";
-
-    const title = document.createElement("h4");
-    title.textContent = `${id} : ${model}`;
-    section.appendChild(title);
-
-    for (const [varName, meta] of Object.entries(s)) {
-      const type = meta?.data_type ?? "string";
-      const initVal = meta?.init_state ?? "";
-
-      const row = document.createElement("div");
-      row.className = "init-row";
-
-      const label = document.createElement("label");
-      label.textContent = `${varName} (${type})`;
-      row.appendChild(label);
-
-      let input;
-      if (type === "bool") {
-        input = document.createElement("select");
-        ["true", "false"].forEach(v => {
-          const opt = document.createElement("option");
-          opt.value = v;
-          opt.textContent = v;
-          input.appendChild(opt);
-        });
-        input.value = String(initVal).toLowerCase() === "true" ? "true" : "false";
-      } else {
-        input = document.createElement("input");
-        input.type = "text";
-        input.value = String(initVal);
-      }
-
-      const err = document.createElement("div");
-      err.className = "init-err";
-
-      const validate = () => {
-        const ok = validateByType(type, input.value);
-        err.textContent = ok ? "" : `Invalid ${type}`;
-        row.classList.toggle("has-error", !ok);
-      };
-      input.addEventListener("input", validate);
-      input.addEventListener("change", validate);
-      validate();
-
-      row.appendChild(input);
-      row.appendChild(err);
-      section.appendChild(row);
-
-      editors.push({ componentId: String(id), varName, type, input });
-    }
-
-    containerEl.appendChild(section);
-  }
 
   // return a "save" function that produces the init JSON
-  return function buildInitJsonFromEditor() {
+  export function buildInitJsonFromEditor() {
     // block save if any invalid
     if (containerEl.querySelector(".has-error")) {
       throw new Error("Fix invalid init values before saving.");
@@ -431,9 +390,6 @@ export function buildInitEditorForCoupled(conversionManager, coupledUid, contain
 
     return out;
   };
-}
-
-
 
 
 

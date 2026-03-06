@@ -1,11 +1,13 @@
 const API_BASE = "http://localhost:3001";
 
 import { fetchModels, fetchInits, fillSelect } from "./experiment-data.js";
-import { generateExperimentJson, initCouplingButtons } from "./experiment-actions.js";
 import { ConversionManager } from "./conversions.js";
+import { generateExperimentJsonFromGraph, attachInitEditors, initCouplingButtons } from "./experiment-actions.js";
 import { buildInitEditorForCoupled } from "./experiment-init-editor.js";
 
 export function setupExperimentSidebar(graph) {
+  const cm = new ConversionManager(graph);
+  
   // buttons
   const openBtn  = document.getElementById("previewDesignExperimentBtn");
   const closeBtn = document.getElementById("closeExperimentPanelBtn");
@@ -30,6 +32,18 @@ export function setupExperimentSidebar(graph) {
   const expNameInput = document.getElementById("expName");
   const timeSpanInput = document.getElementById("timeSpanInput");
 
+  const toggleMutInitBtn = document.getElementById("toggleMutInitBtn");
+  const toggleEfInitBtn  = document.getElementById("toggleEfInitBtn");
+
+  const editors = attachInitEditors({ cm, mutModelSelect, efModelSelect });
+  
+  toggleMutInitBtn?.addEventListener("click", () => {
+    mutInitEditorEl?.classList.toggle("hidden");
+  });
+
+  toggleEfInitBtn?.addEventListener("click", () => {
+    efInitEditorEl?.classList.toggle("hidden");
+  });
   // indicator should live ONLY in properties tab
   const selectIndicator = document.getElementById("selectACellIndicator");
 
@@ -82,8 +96,8 @@ export function setupExperimentSidebar(graph) {
       efModelSelect.value = efPrev;
     }
       
-    renderMutInitEditor?.();
-    renderEfInitEditor?.();
+    //renderMutInitEditor?.();
+    //renderEfInitEditor?.();
     
   };
 
@@ -139,8 +153,8 @@ export function setupExperimentSidebar(graph) {
         efModelSelect.value = efPrev;
         }
 
-        renderMutInitEditor?.();
-        renderEfInitEditor?.();
+        //renderMutInitEditor?.();
+        //renderEfInitEditor?.();
  
       try {
       } catch (e) {
@@ -170,27 +184,30 @@ export function setupExperimentSidebar(graph) {
   // close returns you to properties tab
   if (closeBtn) closeBtn.addEventListener("click", () => activateTab("properties"));
 
-  initCouplingButtons();
+  initCouplingButtons(cm);
 
   // default
   activateTab("properties");
 
   if (genExpJsonBtn) {
-    genExpJsonBtn.addEventListener("click", () => generateExperimentJson({
-      expNameInput, 
-      mutModelSelect, 
-      efModelSelect, 
-      mutInitSelect, 
-      efInitSelect, 
-      timeSpanInput, 
-      out}));
-  }
-
+  genExpJsonBtn.addEventListener("click", () =>
+    generateExperimentJsonFromGraph({
+      cm,
+      expNameInput,
+      mutModelSelect,
+      efModelSelect,
+      timeSpanInput,
+      out,
+      getMutInitBuilder: editors.getMutInitBuilder,
+      getEfInitBuilder: editors.getEfInitBuilder
+    })
+  );
+}
   if (runExpBtn) {
     runExpBtn.addEventListener("click", () => runExperiment());
   }
 
-  const cm = new ConversionManager(graph);
+ 
 
   // init editor containers
   const mutInitEditorEl = document.getElementById("mutInitEditor");
@@ -199,12 +216,14 @@ export function setupExperimentSidebar(graph) {
   // store “builder functions” so generateExperimentJson can call them
   let buildMutInitJson = null;
   let buildEfInitJson  = null;
+  const initOverrides = new Map(); // uid -> init_json
 
   function renderMutInitEditor() {
     const uid = mutModelSelect?.value || "";
     if (!uid || !mutInitEditorEl) return;
 
     buildMutInitJson = buildInitEditorForCoupled(cm, uid, mutInitEditorEl);
+    updateCouplingDropdownOptions();
   }
 
   function renderEfInitEditor() {
@@ -212,10 +231,49 @@ export function setupExperimentSidebar(graph) {
     if (!uid || !efInitEditorEl) return;
 
     buildEfInitJson = buildInitEditorForCoupled(cm, uid, efInitEditorEl);
+    updateCouplingDropdownOptions();
   }
 
   // whenever model selection changes, rebuild editor
   mutModelSelect?.addEventListener("change", renderMutInitEditor);
   efModelSelect?.addEventListener("change", renderEfInitEditor);
+
+  function getCoupledPortsByUid(uid) {
+  const uos = cm.getUserObjects();
+  const coupled = uos.find(u => u.elementType === "coupledModel" &&
+    u.unique_id?.toLowerCase() === String(uid).toLowerCase()
+  );
+  if (!coupled) return { inputs: [], outputs: [] };
+
+  const x = coupled.json?.model?.x || {};
+  const y = coupled.json?.model?.y || {};
+  return {
+    inputs: Object.keys(x),
+    outputs: Object.keys(y),
+  };
+}
+
+function updateCouplingDropdownOptions() {
+  const mutUid = mutModelSelect?.value || "";
+  const efUid  = efModelSelect?.value || "";
+
+  const mutPorts = mutUid ? getCoupledPortsByUid(mutUid) : {inputs:[], outputs:[]};
+  const efPorts  = efUid  ? getCoupledPortsByUid(efUid)  : {inputs:[], outputs:[]};
+
+  // CPIC: ef.outputs -> mut.inputs
+  window.__CPIC_FROM_OPTIONS = efPorts.outputs;
+  window.__CPIC_TO_OPTIONS   = mutPorts.inputs;
+
+  // POCC: mut.outputs -> ef.inputs
+  window.__POCC_FROM_OPTIONS = mutPorts.outputs;
+  window.__POCC_TO_OPTIONS   = efPorts.inputs;
+
+  // tell coupling UI to re-render options if you can
+  window.refreshCouplingUI?.();
+}
+
+mutModelSelect?.addEventListener("change", updateCouplingDropdownOptions);
+efModelSelect?.addEventListener("change", updateCouplingDropdownOptions);
+
 
 }

@@ -2093,12 +2093,12 @@ function setupRightPaletteResizer() {
     });
 }
 
-
 // Wait for DOM to be ready before initializing
 document.addEventListener('DOMContentLoaded', () => {
 
     setupRightPaletteResizer();
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main
+
     setupExperimentSidebar(graph);
 });
