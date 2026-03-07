@@ -219,7 +219,7 @@ export class ConversionManager {
         for (const component of components) {
 
             const modelName = component.model;
-            const uniqueId = component.id;
+            const uniqueId = component.component_id;
 
             // Find corresponding atomic model by unique_id
             const atomic = userObjects.find(
@@ -343,16 +343,27 @@ export class ConversionManager {
 
 
     createCoupledModelJSON(userObject) {
-        const name = userObject.model_name.toLowerCase();
-        const uid = userObject.unique_id.toLowerCase();
-        return {
-            filename: `${uid}_coupled.json`,
-            json: {
-                [name]: userObject.json.model,
-                include_sets: userObject.json.include_sets
-            }
-        };
+    const name = userObject.model_name.toLowerCase();
+    const uid = userObject.unique_id.toLowerCase();
+
+    const modelCopy = JSON.parse(JSON.stringify(userObject.json.model));
+
+    // convert internal component_id -> exported id
+    if (Array.isArray(modelCopy.components)) {
+        modelCopy.components = modelCopy.components.map(c => ({
+            model: c.model,
+            id: c.component_id
+        }));
     }
+
+    return {
+        filename: `${uid}_coupled.json`,
+        json: {
+            [name]: modelCopy,
+            include_sets: userObject.json.include_sets
+        }
+    };
+}
 
 
     // Logs the DEVSMap representation of the DEVS Graph to the browser console

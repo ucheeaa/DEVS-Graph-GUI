@@ -36,15 +36,16 @@ export function buildInitEditorForCoupled(conversionManager, coupledUid, contain
 
   const editors = [];
 
-  for (const { model, id } of comps) {
+  for (const { model, component_id } of comps) {
     const atomic = findUserObject(
-      userObjects,
-      u => u.elementType === "atomicModel" && (u.unique_id?.toLowerCase() === String(id).toLowerCase())
+        userObjects,
+        u => u.elementType === "atomicModel" &&
+            (u.unique_id?.toLowerCase() === String(component_id).toLowerCase())
     );
 
     if (!atomic) {
       const warn = document.createElement("div");
-      warn.textContent = `⚠ Missing atomic component for id: ${id}`;
+      warn.textContent = `⚠ Missing atomic component for id: ${component_id}`;
       containerEl.appendChild(warn);
       continue;
     }
@@ -55,7 +56,7 @@ export function buildInitEditorForCoupled(conversionManager, coupledUid, contain
     section.className = "init-section";
 
     const title = document.createElement("h4");
-    title.textContent = `${id} : ${model}`;
+    title.textContent = `${component_id} : ${model}`;
     section.appendChild(title);
 
     for (const [varName, meta] of Object.entries(s)) {
@@ -101,7 +102,7 @@ export function buildInitEditorForCoupled(conversionManager, coupledUid, contain
       row.appendChild(err);
       section.appendChild(row);
 
-      editors.push({ componentId: String(id), varName, type, input });
+      editors.push({ componentId: String(component_id), varName, type, input });
     }
 
     containerEl.appendChild(section);

@@ -8,6 +8,9 @@ import { ConversionManager } from './conversions.js';
 import { shortcuts } from './shortcuts.js';
 import { setupExperimentSidebar } from "./experiment-design.js";
 
+const markDirty = () => {
+    window.autosaveGraphNow?.();
+};
 
 function main(container) {
     // Check browser compatibility
@@ -235,7 +238,7 @@ function main(container) {
 
                 group.userObject.json.model.components.push({
                     model: childName,
-                    id: childId
+                    component_id: childId //changed to component_id instead of id to allow for retainment after a refresh
                 });
             });
 
@@ -291,6 +294,7 @@ function main(container) {
         }
 
         graph.refresh();
+        markDirty();
     }
 
 
@@ -414,6 +418,7 @@ function main(container) {
         }
 
         graph.refresh();
+        markDirty();
     }
 
 
@@ -436,6 +441,7 @@ function main(container) {
         }
 
         graph.refresh();
+        markDirty();
     }
 
 
@@ -529,11 +535,13 @@ function main(container) {
         idInput.addEventListener("input", () => {
             userObj.unique_id = idInput.value;
             updateLabel();
+            markDirty();
         });
 
         modelInput.addEventListener("input", () => {
             userObj.model_name = modelInput.value;
             updateLabel();
+            markDirty();
         });
 
         function updateLabel() {
@@ -592,6 +600,7 @@ function main(container) {
                     delete ports[name];
                     renderPorts(cell);
                     renderAddCouplingUI(cell);
+                    markDirty();
                 });
 
                 portDiv.appendChild(label);
@@ -663,6 +672,7 @@ function main(container) {
             portNameInput.value = '';
             renderPorts(cell);
             renderAddCouplingUI(cell);
+            markDirty();
         });
 
         addContent.appendChild(line1);
@@ -712,6 +722,7 @@ function main(container) {
 
                 console.log(`Renamed variable ${varName} -> ${newName}`);
                 varName = newName;
+                markDirty();
             });
 
             // DataType Dropdown
@@ -735,6 +746,7 @@ function main(container) {
                 else varObj.init_state = "";
 
                 renderValueInput();
+                markDirty();
             });
 
             // Delete Button
@@ -746,6 +758,7 @@ function main(container) {
                 delete stateVars[varName];
                 console.log(`Deleted variable ${varName}`);
                 renderStateVariables(cell); // Re-render the panel
+                markDirty();
             });
 
             topRow.appendChild(nameInput);
@@ -788,7 +801,9 @@ function main(container) {
 
                         varObj._last_numeric_value = newValue;
                         varObj.init_state = newValue;
+
                         console.log(`Updated ${varName} ->`, newValue);
+                        markDirty();
                     });
 
                     // --- Wrap number input and checkbox in a row ---
@@ -811,6 +826,7 @@ function main(container) {
                                 inputElem.disabled = false;
                             }
                             console.log(`Sigma set to`, varObj.init_state);
+                            markDirty();
                         });
 
 
@@ -833,6 +849,7 @@ function main(container) {
                     inputElem.addEventListener("input", () => {
                         varObj.init_state = inputElem.value === "true";
                         console.log(`Updated ${varName} ->`, varObj.init_state);
+                        markDirty();
                     });
 
                     valueInput.appendChild(inputElem);
@@ -844,6 +861,7 @@ function main(container) {
                     inputElem.addEventListener("input", () => {
                         varObj.init_state = inputElem.value;
                         console.log(`Updated ${varName} ->`, varObj.init_state);
+                        markDirty();
                     });
 
                     valueInput.appendChild(inputElem);
@@ -871,6 +889,7 @@ function main(container) {
 
             stateVars[newVarName] = { data_type: "double", init_state: 0 };
             renderStateVariables(cell);
+            markDirty();
         });
 
         container.appendChild(addBtn);
@@ -909,6 +928,7 @@ function main(container) {
             while (deltaInt[newCond]) newCond = `new_condition_${counter++}`;
             deltaInt[newCond] = {};
             renderDeltaInt(cell);
+            markDirty();
         });
         container.appendChild(addBtn);
 
@@ -931,6 +951,7 @@ function main(container) {
                 deltaIntObj[newCond] = updates;
                 delete deltaIntObj[condition];
                 renderDeltaInt(cell);
+                markDirty();
             });
 
             wrapper.appendChild(condInput);
@@ -943,6 +964,7 @@ function main(container) {
                 delBtn.addEventListener("click", () => {
                     delete deltaIntObj[condition];
                     renderDeltaInt(cell);
+                    markDirty();
                 });
                 wrapper.appendChild(delBtn);
             }
@@ -969,6 +991,7 @@ function main(container) {
                 try {
                     const wrappedJSON = `{${textArea.value.trim()}}`;
                     deltaIntObj[condInput.value] = JSON.parse(wrappedJSON);
+                    markDirty();
                 } catch (e) {
                     // ignore invalid JSON while typing
                 }
@@ -1014,6 +1037,7 @@ function main(container) {
             while (deltaExt[newCond]) newCond = `new_condition_${counter++}`;
             deltaExt[newCond] = {};
             renderDeltaExt(cell);
+            markDirty();
         });
         container.appendChild(addBtn);
 
@@ -1036,6 +1060,7 @@ function main(container) {
                 deltaExtObj[newCond] = updates;
                 delete deltaExtObj[condition];
                 renderDeltaExt(cell);
+                markDirty();
             });
 
             wrapper.appendChild(condInput);
@@ -1048,6 +1073,7 @@ function main(container) {
                 delBtn.addEventListener("click", () => {
                     delete deltaExtObj[condition];
                     renderDeltaExt(cell);
+                    markDirty();
                 });
                 wrapper.appendChild(delBtn);
             }
@@ -1074,6 +1100,7 @@ function main(container) {
                 try {
                     const wrappedJSON = `{${textArea.value.trim()}}`;
                     deltaExtObj[condInput.value] = JSON.parse(wrappedJSON);
+                    markDirty();
                 } catch (e) {
                     // ignore invalid JSON while typing
                 }
@@ -1119,6 +1146,7 @@ function main(container) {
             while (lambda[newCond]) newCond = `new_condition_${counter++}`;
             lambda[newCond] = {};
             renderOutputFunction(cell);
+            markDirty();
         });
         container.appendChild(addBtn);
 
@@ -1141,6 +1169,7 @@ function main(container) {
                 lambdaObj[newCond] = updates;
                 delete lambdaObj[condition];
                 renderOutputFunction(cell);
+                markDirty();
             });
 
             wrapper.appendChild(condInput);
@@ -1153,6 +1182,7 @@ function main(container) {
                 delBtn.addEventListener("click", () => {
                     delete lambdaObj[condition];
                     renderOutputFunction(cell);
+                    markDirty();
                 });
                 wrapper.appendChild(delBtn);
             }
@@ -1179,6 +1209,7 @@ function main(container) {
                 try {
                     const wrappedJSON = `{${textArea.value.trim()}}`;
                     lambdaObj[condInput.value] = JSON.parse(wrappedJSON);
+                    markDirty();
                 } catch (e) {
                     // ignore invalid JSON while typing
                 }
@@ -1224,6 +1255,7 @@ function main(container) {
             while (ta[newCond]) newCond = `new_condition_${counter++}`;
             ta[newCond] = {};
             renderTimeAdvanceFunction(cell);
+            markDirty();
         });
         container.appendChild(addBtn);
 
@@ -1246,6 +1278,7 @@ function main(container) {
                 taObj[newCond] = updates;
                 delete taObj[condition];
                 renderTimeAdvanceFunction(cell);
+                markDirty();
             });
 
             wrapper.appendChild(condInput);
@@ -1258,6 +1291,7 @@ function main(container) {
                 delBtn.addEventListener("click", () => {
                     delete taObj[condition];
                     renderTimeAdvanceFunction(cell);
+                    markDirty();
                 });
                 wrapper.appendChild(delBtn);
             }
@@ -1284,6 +1318,7 @@ function main(container) {
                 try {
                     const wrappedJSON = `{${textArea.value.trim()}}`;
                     taObj[condInput.value] = JSON.parse(wrappedJSON);
+                    markDirty();
                 } catch (e) {
                     // ignore invalid JSON while typing
                 }
@@ -1326,6 +1361,7 @@ function main(container) {
                     removeBtn.addEventListener('click', () => {
                         couplings.splice(idx, 1); // remove coupling from the model
                         renderCouplings(parentCell);
+                        markDirty();
                     });
                     div.appendChild(removeBtn);
 
@@ -1499,6 +1535,8 @@ function main(container) {
             default:
                 console.warn("Unknown coupling type:", coupling.type);
         }
+
+        markDirty();
     }
 
 
@@ -2093,6 +2131,79 @@ function setupRightPaletteResizer() {
     });
 }
 
+
+
+function autosaveGraph(cm) {
+  try {
+    const xml = cm.getGraphXML();
+    localStorage.setItem("devs_graph_xml", xml);
+  } catch (err) {
+    console.error("Autosave failed:", err);
+  }
+}
+
+
+
+function restoreGraph(graph) {
+  const xml = localStorage.getItem("devs_graph_xml");
+  if (!xml) return;
+
+  try {
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xml, "text/xml");
+    const codec = new mxCodec(xmlDoc);
+
+    graph.getModel().beginUpdate();
+    try {
+      codec.decode(xmlDoc.documentElement, graph.getModel());
+    } finally {
+      graph.getModel().endUpdate();
+    }
+
+    console.log("Graph restored");
+  } catch (err) {
+    console.error("Failed to restore graph:", err);
+  }
+}
+
+function saveUiState(graph) {
+  try {
+    const selected = graph.getSelectionCell();
+    const selectedId = selected ? selected.getId() : "";
+    localStorage.setItem("devs_selected_cell_id", selectedId);
+
+    const propsTab = document.getElementById("propertiesTab");
+    const currentTab =
+      propsTab && propsTab.classList.contains("active") ? "properties" : "experiment";
+
+    localStorage.setItem("devs_right_tab", currentTab);
+  } catch (err) {
+    console.error("UI state save failed:", err);
+  }
+}
+
+function restoreUiState(graph) {
+  try {
+    const selectedId = localStorage.getItem("devs_selected_cell_id");
+    const rightTab = localStorage.getItem("devs_right_tab");
+
+    if (selectedId) {
+      const model = graph.getModel();
+      const cell = model.getCell(selectedId);
+      if (cell) {
+        graph.setSelectionCell(cell);
+      }
+    }
+
+    if (rightTab && window.setRightTab) {
+      window.setRightTab(rightTab);
+    }
+  } catch (err) {
+    console.error("UI restore failed:", err);
+  }
+}
+
+
 // Wait for DOM to be ready before initializing
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -2100,5 +2211,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main
 
+    const cm = new ConversionManager(graph);
+
+    window.autosaveGraphNow = () => {
+        try {
+            autosaveGraph(cm);
+            saveUiState(graph);
+            const xml = cm.getGraphXML();
+            localStorage.setItem("devs_graph_xml", xml);
+        } catch (err) {
+            console.error("Autosave failed:", err);
+        }
+    };
+
+
+    restoreGraph(graph);
+
+    graph.getModel().addListener(mxEvent.CHANGE, () => {
+        window.autosaveGraphNow();
+    });
+
+    graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
+        saveUiState(graph);
+        });
+
     setupExperimentSidebar(graph);
+
+    restoreUiState(graph);
 });

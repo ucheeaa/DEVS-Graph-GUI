@@ -2,6 +2,79 @@
 import { buildInitEditorForCoupled } from "./experiment-init-editor.js"; 
 // OR paste that whole init-editor code directly into this file.
 
+function getUserObjectByUid(cm, elementType, uid) {
+  const uos = cm.getUserObjects();
+  return uos.find(
+    u =>
+      u.elementType === elementType &&
+      u.unique_id?.toLowerCase() === String(uid).toLowerCase()
+  );
+}
+
+function normalizeComponents(components) {
+  if (Array.isArray(components)) return components;
+  if (components && typeof components === "object") {
+    return Object.entries(components).map(([model, id]) => ({ model, id }));
+  }
+  return [];
+}
+
+function buildAtomicJsonFromUserObject(atomic) {
+  const modelName = atomic.model_name.toLowerCase();
+
+  const atomicJson = {
+    [modelName]: { ...atomic.json.model },
+    include_sets: atomic.json.include_sets,
+    parameters: atomic.json.parameters
+  };
+
+  // convert s: { var: {data_type, init_state} } -> { var: "type" }
+  const s = atomicJson[modelName].s || {};
+  for (const [k, v] of Object.entries(s)) {
+    s[k] = v.data_type;
+  }
+
+  return {
+    filename: `${atomic.unique_id.toLowerCase()}_atomic.json`,
+    json: atomicJson
+  };
+}
+
+function buildCoupledJsonFromUserObject(coupled) {
+  const modelName = coupled.model_name.toLowerCase();
+  const uid = coupled.unique_id.toLowerCase();
+
+  return {
+    filename: `${uid}_coupled.json`,
+    json: {
+      [modelName]: coupled.json.model,
+      include_sets: coupled.json.include_sets
+    }
+  };
+}
+
+function addCoupledAndItsAtomicsToBundle(bundle, cm, coupledUid) {
+  const coupled = getUserObjectByUid(cm, "coupledModel", coupledUid);
+  if (!coupled) {
+    throw new Error(`Coupled model not found: ${coupledUid}`);
+  }
+
+  // add coupled json
+  const coupledFile = buildCoupledJsonFromUserObject(coupled);
+  bundle[coupledFile.filename] = coupledFile.json;
+
+  // add all atomic component jsons used by this coupled
+  const comps = normalizeComponents(coupled.json?.model?.components);
+  for (const comp of comps) {
+    const atomic = getUserObjectByUid(cm, "atomicModel", comp.id);
+    if (!atomic) {
+      throw new Error(`Atomic component not found for id: ${comp.id}`);
+    }
+
+    const atomicFile = buildAtomicJsonFromUserObject(atomic);
+    bundle[atomicFile.filename] = atomicFile.json;
+  }
+}
 
 export function generateExperimentJsonFromGraph({
   cm,
@@ -14,8 +87,8 @@ export function generateExperimentJsonFromGraph({
   getEfInitBuilder
 }) {
   const expName = (expNameInput?.value || "").trim();
-  const mutUid  = mutModelSelect?.value || "";
-  const efUid   = efModelSelect?.value || "";
+  const mutUid = mutModelSelect?.value || "";
+  const efUid = efModelSelect?.value || "";
   const timeSpanRaw = (timeSpanInput?.value || "").trim();
 
   const missing = [];
@@ -36,26 +109,48 @@ export function generateExperimentJsonFromGraph({
     return null;
   }
 
-  // Read couplings from UI
   const cpic = readCouplingRows("cpicList"); // EF output -> MUT input
   const pocc = readCouplingRows("poccList"); // MUT output -> EF input
 
   if (cpic.length === 0 && pocc.length === 0) {
-    if (out) out.textContent =
-      "Add at least one coupling (CPIC or POCC) to connect the EF and MUT.";
+    if (out) {
+      out.textContent =
+        "Add at least one coupling (CPIC or POCC) to connect the EF and MUT.";
+    }
     return null;
   }
 
-  // Build experiment.json object (frontend)
+  const buildMutInitJson = getMutInitBuilder?.();
+  const buildEfInitJson = getEfInitBuilder?.();
+
+  const mutInitObj = buildMutInitJson ? buildMutInitJson() : null;
+  const efInitObj = buildEfInitJson ? buildEfInitJson() : null;
+
+  if (!mutInitObj) {
+    if (out) out.textContent = "Select a MUT model and ensure its init fields are valid.";
+    return null;
+  }
+
+  if (!efInitObj) {
+    if (out) out.textContent = "Select an EF model and ensure its init fields are valid.";
+    return null;
+  }
+
+  const safeName = safeFilename(expName);
+
+  const expFilename = `${safeName}_experiment.json`;
+  const mutInitFilename = `${safeName}_mut_init_state.json`;
+  const efInitFilename = `${safeName}_ef_init_state.json`;
+
   const experiment = {
     model_under_test: {
       model: `${mutUid.toLowerCase()}_coupled.json`,
-      initial_state: `${mutUid.toLowerCase()}_init_state.json`,
+      initial_state: mutInitFilename,
       parameters: ""
     },
     experimental_frame: {
       model: `${efUid.toLowerCase()}_coupled.json`,
-      initial_state: `${efUid.toLowerCase()}_init_state.json`,
+      initial_state: efInitFilename,
       parameters: ""
     },
     cpic,
@@ -63,59 +158,28 @@ export function generateExperimentJsonFromGraph({
     time_span: String(timeSpan)
   };
 
-  // Build init jsons from editors
-  const buildMutInitJson = getMutInitBuilder?.();
-  const buildEfInitJson  = getEfInitBuilder?.();
+  // ✅ build one portable experiment bundle
+  const bundle = {};
 
-  const mutInitObj = buildMutInitJson ? buildMutInitJson() : null;
-  const efInitObj  = buildEfInitJson ? buildEfInitJson() : null;
+  // add selected coupled models + their atomic components
+  addCoupledAndItsAtomicsToBundle(bundle, cm, mutUid);
+  addCoupledAndItsAtomicsToBundle(bundle, cm, efUid);
 
-  if (!mutInitObj) {
-    if (out) out.textContent = "Select a MUT model to edit its init.";
-    return null;
-  }
-  if (!efInitObj) {
-    if (out) out.textContent = "Select an EF model to edit its init.";
-    return null;
-  }
+  // add init files
+  bundle[mutInitFilename] = mutInitObj;
+  bundle[efInitFilename] = efInitObj;
 
-  // Assemble “DEVSMap bundle” (what you download / pass to parser)
-  // This is the real replacement of “server.py generating files”
-  const devsMap = cm.getDEVSMap();
+  // add experiment file
+  bundle[expFilename] = experiment;
 
-  // override experiment + init files inside devsMap
-  const safeName = safeFilename(expName);
-  const expFilename = `${safeName}_experiment.json`;
-  const mutInitFilename = `${safeName}_mut_init_state.json`;
-  const efInitFilename  = `${safeName}_ef_init_state.json`;
+  // preview just experiment.json
+  if (out) out.textContent = JSON.stringify(experiment, null, 2);
 
-  // Put experiment that points to these saved init files
-  const experimentForSave = {
-    ...experiment,
-    model_under_test: {
-      ...experiment.model_under_test,
-      initial_state: mutInitFilename
-    },
-    experimental_frame: {
-      ...experiment.experimental_frame,
-      initial_state: efInitFilename
-    }
-  };
+  // download the full bundle as ONE json
+  const bundleFilename = `${safeName}_experiment_bundle.json`;
+  downloadJson(bundleFilename, bundle);
 
-  // Put them in the bundle
-  devsMap[expFilename] = experimentForSave;
-  devsMap[mutInitFilename] = mutInitObj;
-  devsMap[efInitFilename]  = efInitObj;
-
-  // Preview
-  if (out) out.textContent = JSON.stringify(experimentForSave, null, 2);
-
-  // Download files (3 files like your old server.py did)
-  downloadJson(expFilename, experimentForSave);
-  downloadJson(mutInitFilename, mutInitObj);
-  downloadJson(efInitFilename, efInitObj);
-
-  return { experiment: experimentForSave, devsMap };
+  return { experiment, bundle };
 }
 
 function safeFilename(name) {
