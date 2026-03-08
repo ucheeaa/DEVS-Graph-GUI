@@ -16,7 +16,7 @@ def validate_DEVSMap_keys(data: dict) -> dict:
             if key.endswith(suffix):
                 counts[suffix] += 1
     print(counts)
-    return counts["_atomic.json"] > 0 and counts["_coupled.json"] > 0 and counts["_experiment.json"] == 1 and counts["_init_state.json"] == 1
+    return counts["_atomic.json"] > 0 and counts["_coupled.json"] > 0 and counts["_experiment.json"] == 1 and counts["_init_state.json"] >= 1
 
 def check_file_counts(directory):
     '''
@@ -113,7 +113,7 @@ def sort_json_files(json_data):
             'coupled_models': [],   # 1 or more coupled models
             'experiment': None,     # exactly 1 experiment file
             'definition': [],       # 0 or more definition files
-            'init_states': None,    # exactly 1 init_state file
+            'init_states': [],      # 1 or 2 init_state files (mut/ef)
             'param': None,          # 0 or 1 param files
             'metadata': None}       # 0 or 1 metadata files #TODO
     for key in json_data:
@@ -128,8 +128,13 @@ def sort_json_files(json_data):
                 data["experiment"] = json_data[key]
             #case "definition":
                 #data["definition"].append(json_data[key])
+            #case "state":
+                #data["init_states"] = json_data[key]["init_states"]
             case "state":
-                data["init_states"] = json_data[key]["init_states"]
+                data["init_states"].append({
+                    "filename": key,
+                    "init_states": json_data[key].get("init_states", {})
+                })
             #case "param":
                 #data["param"] = json_data[key]
             #case "metadata":

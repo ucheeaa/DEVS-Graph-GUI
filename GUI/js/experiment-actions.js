@@ -44,10 +44,20 @@ function buildCoupledJsonFromUserObject(coupled) {
   const modelName = coupled.model_name.toLowerCase();
   const uid = coupled.unique_id.toLowerCase();
 
+  const modelCopy = JSON.parse(JSON.stringify(coupled.json.model));
+
+  // convert internal component_id -> exported id
+  if (Array.isArray(modelCopy.components)) {
+    modelCopy.components = modelCopy.components.map(c => ({
+      model: c.model,
+      id: c.component_id
+    }));
+  }
+
   return {
     filename: `${uid}_coupled.json`,
     json: {
-      [modelName]: coupled.json.model,
+      [modelName]: modelCopy,
       include_sets: coupled.json.include_sets
     }
   };
@@ -66,9 +76,9 @@ function addCoupledAndItsAtomicsToBundle(bundle, cm, coupledUid) {
   // add all atomic component jsons used by this coupled
   const comps = normalizeComponents(coupled.json?.model?.components);
   for (const comp of comps) {
-    const atomic = getUserObjectByUid(cm, "atomicModel", comp.id);
+    const atomic = getUserObjectByUid(cm, "atomicModel", comp.component_id);
     if (!atomic) {
-      throw new Error(`Atomic component not found for id: ${comp.id}`);
+      throw new Error(`Atomic component not found for id: ${comp.component_id}`);
     }
 
     const atomicFile = buildAtomicJsonFromUserObject(atomic);
@@ -76,7 +86,7 @@ function addCoupledAndItsAtomicsToBundle(bundle, cm, coupledUid) {
   }
 }
 
-export function generateExperimentJsonFromGraph({
+export async function generateExperimentJsonFromGraph({
   cm,
   expNameInput,
   mutModelSelect,
@@ -178,6 +188,48 @@ export function generateExperimentJsonFromGraph({
   // download the full bundle as ONE json
   const bundleFilename = `${safeName}_experiment_bundle.json`;
   downloadJson(bundleFilename, bundle);
+  try {
+    if (out) out.textContent += "\n\nSending bundle to parser...";
+
+    const parseRes = await fetch("http://localhost:8000/parse", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(bundle)
+    });
+
+    if (!parseRes.ok) {
+      throw new Error(`Parser request failed: ${await parseRes.text()}`);
+    }
+
+    const generatedCode = await parseRes.json();
+
+    if (out) out.textContent += "\nParser finished. Running simulation...";
+
+    const buildRes = await fetch("http://localhost:8001/simulation-output", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(generatedCode)
+    });
+
+    if (!buildRes.ok) {
+      throw new Error(`Simulation build failed: ${await buildRes.text()}`);
+    }
+
+    const simulationOutput = await buildRes.text();
+
+    if (out) {
+      out.textContent += "\n\n===== Simulation Output =====\n";
+      out.textContent += simulationOutput;
+    }
+
+  } catch (err) {
+    console.error(err);
+    if (out) out.textContent += `\n\nError: ${err.message}`;
+  }
 
   return { experiment, bundle };
 }

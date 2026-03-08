@@ -8,6 +8,7 @@ from .generate_main_cpp import *
 from .generate_coupled_model_hpp import *
 from .generate_atomic_model_hpp import *
 from .generate_simple_statements import *
+from .generate_experiment_main_cpp import generate_experiment_main_cpp
 
 def clean_control_chars(s: str) -> str:
     """
@@ -23,6 +24,42 @@ def clean_control_chars(s: str) -> str:
     
     cleaned = re.sub(pattern, '', s)
     return cleaned
+
+def build_effective_init_states(experiment_data, init_state_entries):
+    """
+    Resolve the correct init-state files for this run using experiment.json.
+    Returns one combined init-state dict for downstream atomic generation.
+    """
+
+    effective = {}
+
+    # Which init files are needed for this run?
+    wanted_files = []
+
+    mut_init_file = experiment_data.get("model_under_test", {}).get("initial_state", "")
+    if mut_init_file:
+        wanted_files.append(mut_init_file)
+
+    ef_block = experiment_data.get("experimental_frame", {})
+    if isinstance(ef_block, dict):
+        ef_init_file = ef_block.get("initial_state", "")
+        if ef_init_file:
+            wanted_files.append(ef_init_file)
+
+    # Pull only the referenced init files
+    for wanted in wanted_files:
+        match = next((entry for entry in init_state_entries if entry["filename"] == wanted), None)
+        if match is None:
+            raise ValueError(f"Init-state file not found in bundle: {wanted}")
+
+        init_block = match.get("init_states", {})
+        if not isinstance(init_block, dict):
+            raise ValueError(f"Invalid init_states structure in file: {wanted}")
+
+        effective.update(init_block)
+
+    return effective
+
 
 def generate_code(JSON):
     #print("TYPE IS: " + str(type(JSON))) # may need later when actually hooking up everything
@@ -42,14 +79,55 @@ def generate_code(JSON):
         #top_model = get_top_model(data, top_model_name) # not needed??
         
         directory_code_include_output = "directory_code_include_output" #remove after
+        
+        experiment_data = data['experiment']
+
+        data["init_states"] = build_effective_init_states(
+            experiment_data,
+            data["init_states"]
+        )
+
+        print("RESOLVED INIT STATES:", data["init_states"])
+
+        ef = experiment_data.get("experimental_frame", {})
+        is_real_experiment = isinstance(ef, dict) and bool(ef.get("model"))
 
         # Finally, we can generate the code for the main.cpp file, and each of 
         # the atomic and coupled models.
-        code.update(generate_main_cpp(top_model_name, simulation_time))
+
+        # Generate the correct main.cpp
+        if is_real_experiment:
+
+            mut_file = experiment_data["model_under_test"]["model"]
+            ef_file = experiment_data["experimental_frame"]["model"]
+
+            mut_model_name = mut_file.replace(".json","")
+            ef_model_name = ef_file.replace(".json","")
+
+            cpic = experiment_data.get("cpic",[])
+            pocc = experiment_data.get("pocc",[])
+            simulation_time = experiment_data.get("time_span","30")
+
+            code.update(
+                generate_experiment_main_cpp(
+                    mut_model_name,
+                    ef_model_name,
+                    cpic,
+                    pocc,
+                    simulation_time
+                )
+            )
+        else:
+
+            code.update(generate_main_cpp(top_model_name, simulation_time))
+        
+        # Generate the atomic and coupled model HPPs as usual. 
         for coupled_model in generate_coupled_models(directory_code_include_output, data):
             code.update(coupled_model)
         for atomic_model in generate_atomic_models(directory_code_include_output, data):
             code.update(atomic_model)
+
+        print("Received bundle files:", DEVSMap.keys())
         
         #print("--------CODE--------")
         #print(code)
