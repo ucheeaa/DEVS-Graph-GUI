@@ -25,15 +25,15 @@ def generate_experiment_main_cpp(mut_model_name, ef_model_name, cpic, pocc, simu
 
     content += '\texperiment(const std::string& id) : Coupled(id) {\n'
 
-    content += f'\t\tauto mut = addComponent<{mut_model_name}>("MUT");\n'
-    content += f'\t\tauto ef = addComponent<{ef_model_name}>("EF");\n\n'
+    content += f'\t\tauto mutModel = addComponent<{mut_model_name}>("MUT");\n'
+    content += f'\t\tauto efModel = addComponent<{ef_model_name}>("EF");\n\n'
 
     # CPIC couplings (EF → MUT)
     for coupling in cpic:
         port_from = coupling["port_from"]
         port_to = coupling["port_to"]
 
-        content += f'\t\taddCoupling(ef->{port_from}, mut->{port_to});\n'
+        content += f'\t\taddCoupling(efModel->{port_from}, mutModel->{port_to});\n'
 
     content += "\n"
 
@@ -42,7 +42,7 @@ def generate_experiment_main_cpp(mut_model_name, ef_model_name, cpic, pocc, simu
         port_from = coupling["port_from"]
         port_to = coupling["port_to"]
 
-        content += f'\t\taddCoupling(mut->{port_from}, ef->{port_to});\n'
+        content += f'\t\taddCoupling(mutModel->{port_from}, efModel->{port_to});\n'
 
     content += "\t}\n"
     content += "};\n\n"

@@ -84,6 +84,138 @@ def include_component_models(coupled_model):
     return include_statements
 
 
+def normalize_cpp_type(data_type):
+    '''
+    Returns the appropriate C++ datatype for Cadmium port declarations.
+    '''
+    if data_type == "string":
+        return "std::string"
+    return data_type
+
+
+def generate_port_declarations(model):
+    '''
+    Returns the public port declarations for the coupled model.
+    Cadmium coupled models may declare input ports (x) and output ports (y).
+    '''
+    declarations = ''
+
+    x_ports = model.get('x', {})
+    y_ports = model.get('y', {})
+
+    if len(x_ports) == 0 and len(y_ports) == 0:
+        return declarations
+
+    declarations += '\tpublic:\n'
+
+    # input ports
+    if len(x_ports) > 0:
+        declarations += '\t//input ports\n'
+        for port_name, data_type in x_ports.items():
+            declarations += '\tPort<' + normalize_cpp_type(data_type) + '> ' + port_name + ';\n'
+
+    # output ports
+    if len(y_ports) > 0:
+        declarations += '\n\t//output ports\n'
+        for port_name, data_type in y_ports.items():
+            declarations += '\tPort<' + normalize_cpp_type(data_type) + '> ' + port_name + ';\n'
+
+    declarations += '\n'
+    return declarations
+
+
+def generate_port_initializations(model):
+    '''
+    Returns the constructor code that initializes the coupled model ports.
+    '''
+    initializations = ''
+
+    x_ports = model.get('x', {})
+    y_ports = model.get('y', {})
+
+    # input ports
+    if len(x_ports) > 0:
+        initializations += '\t\t//input ports\n'
+        for port_name, data_type in x_ports.items():
+            initializations += (
+                '\t\t' + port_name + ' = addInPort<' + normalize_cpp_type(data_type) + '>("' + port_name + '");\n'
+            )
+
+    # output ports
+    if len(y_ports) > 0:
+        if len(initializations) > 0:
+            initializations += '\n'
+        initializations += '\t\t//output ports\n'
+        for port_name, data_type in y_ports.items():
+            initializations += (
+                '\t\t' + port_name + ' = addOutPort<' + normalize_cpp_type(data_type) + '>("' + port_name + '");\n'
+            )
+
+    if len(initializations) > 0:
+        initializations += '\n'
+
+    return initializations
+
+
+def generate_eic_statements(model):
+    '''
+    Returns addCoupling statements for EICs.
+    EIC form: addCoupling(coupled_input_port, component->input_port);
+    '''
+    statements = ''
+    for coupling in model.get('eic', []):
+        statements += (
+            '\t\taddCoupling('
+            + coupling['port_from']
+            + ', '
+            + coupling['component_to']
+            + '->'
+            + coupling['port_to']
+            + ');\n'
+        )
+    return statements
+
+
+def generate_eoc_statements(model):
+    '''
+    Returns addCoupling statements for EOCs.
+    EOC form: addCoupling(component->output_port, coupled_output_port);
+    '''
+    statements = ''
+    for coupling in model.get('eoc', []):
+        statements += (
+            '\t\taddCoupling('
+            + coupling['component_from']
+            + '->'
+            + coupling['port_from']
+            + ', '
+            + coupling['port_to']
+            + ');\n'
+        )
+    return statements
+
+
+def generate_ic_statements(model):
+    '''
+    Returns addCoupling statements for ICs.
+    IC form: addCoupling(component_from->output_port, component_to->input_port);
+    '''
+    statements = ''
+    for coupling in model.get('ic', []):
+        statements += (
+            '\t\taddCoupling('
+            + coupling['component_from']
+            + '->'
+            + coupling['port_from']
+            + ', '
+            + coupling['component_to']
+            + '->'
+            + coupling['port_to']
+            + ');\n'
+        )
+    return statements
+
+
 def generate_coupled_model_struct(model_name, model):
     '''
     Returns the C++ struct for a coupled model in Cadmium. The struct contains component declarations 
@@ -97,22 +229,33 @@ def generate_coupled_model_struct(model_name, model):
     
     # struct header
     constructor += 'struct ' + model_name + ' : public Coupled {\n\n'
+
+    # declare input and output ports of the coupled model
+    constructor += generate_port_declarations(model)
+
     constructor += '\t' + model_name + '(const std::string& id) : Coupled(id) {\n'
+
+    # initialize coupled model ports
+    constructor += generate_port_initializations(model)
 
     # addComponent statements
     components = get_components(model)
     component_statements = ''
     for component in components:
-        model_name = component["model"]
+        component_model_name = component["model"]
         model_id = component["id"]
-        component_statements += ('\t\tauto ' + model_id +' = addComponent<' + model_name +'>("' + model_id + '");\n')
+        component_statements += ('\t\tauto ' + model_id +' = addComponent<' + component_model_name +'>("' + model_id + '");\n')
     constructor += component_statements + '\n'
         
-    #addCoupling statements
-    coupling_statements = ''
-    for coupling in model['ic']:
-        coupling_statements += '\t\taddCoupling(' + coupling['component_from'] + '->' + coupling['port_from'] + ', ' + coupling['component_to'] + '->' + coupling['port_to'] + ');\n'
-    constructor += coupling_statements
+    # addCoupling statements
+    # EIC
+    constructor += generate_eic_statements(model)
+
+    # EOC
+    constructor += generate_eoc_statements(model)
+
+    # IC
+    constructor += generate_ic_statements(model)
     
     # close struct
     constructor += '\t}\n};\n\n'

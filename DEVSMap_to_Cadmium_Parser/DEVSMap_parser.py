@@ -101,8 +101,9 @@ def generate_code(JSON):
             mut_file = experiment_data["model_under_test"]["model"]
             ef_file = experiment_data["experimental_frame"]["model"]
 
-            mut_model_name = mut_file.replace(".json","")
-            ef_model_name = ef_file.replace(".json","")
+
+            mut_model_name = mut_file.replace("_coupled.json","")
+            ef_model_name = ef_file.replace("_coupled.json","")
 
             cpic = experiment_data.get("cpic",[])
             pocc = experiment_data.get("pocc",[])

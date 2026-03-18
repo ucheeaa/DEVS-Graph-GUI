@@ -61,6 +61,14 @@ def build_cadmium(code):
         print("Wrote file:", file_path)
 
     # -----------------------------
+    # Detect and delete old executable if it exists
+    # -----------------------------
+    exe_path = BASE_DIR / "bin" / "Executable1"
+    if exe_path.exists():
+        print("Deleting old executable:", exe_path)
+        exe_path.unlink()
+
+    # -----------------------------
     # Build and run commands
     # -----------------------------
     build_cmd = "source build_sim.sh"
@@ -87,6 +95,11 @@ def build_cadmium(code):
 
     output = result.stdout
     errors = result.stderr
+
+    if result.returncode != 0:
+        print("Build failed. Not running stale executable.")
+        print("Errors:\n", errors)
+        return f"Build failed.\n{errors}"
 
     # -----------------------------
     # Clean output
