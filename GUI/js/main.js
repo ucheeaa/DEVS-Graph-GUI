@@ -489,6 +489,42 @@ function main(container) {
         }
     }
 
+    function rebuildCoupledComponentsFromChildren(coupledCell) {
+    if (!coupledCell || !coupledCell.userObject || !coupledCell.userObject.json?.model) return;
+
+    const children = graph.getModel().getChildCells(coupledCell) || [];
+
+    const components = children
+        .filter(c =>
+            c &&
+            c.userObject &&
+            (c.userObject.elementType === "atomicModel" || c.userObject.elementType === "coupledModel")
+        )
+        .map(c => {
+            const childObj = c.userObject;
+
+            console.log("Rebuilding component from child:", childObj);
+
+            return {
+                model: childObj.model_name || "",
+                component_id: childObj.unique_id || ""
+            };
+        });
+
+    coupledCell.userObject.json.model.components = components;
+}
+
+    function syncParentCoupledComponentMetadata(cell) {
+    if (!cell) return;
+
+    const parent = graph.getModel().getParent(cell);
+    if (!parent || !parent.userObject) return;
+
+    if (parent.userObject.elementType !== "coupledModel") return;
+
+    rebuildCoupledComponentsFromChildren(parent);
+}
+
 
     function renderModelAndUniqueID(cell) {
 
@@ -533,15 +569,15 @@ function main(container) {
 
         // Update events
         idInput.addEventListener("input", () => {
-            userObj.unique_id = idInput.value;
+            userObj.unique_id = idInput.value.trim();
+            syncParentCoupledComponentMetadata(cell);
             updateLabel();
-            markDirty();
         });
 
         modelInput.addEventListener("input", () => {
-            userObj.model_name = modelInput.value;
+            userObj.model_name = modelInput.value.trim();
+            syncParentCoupledComponentMetadata(cell);
             updateLabel();
-            markDirty();
         });
 
         function updateLabel() {
@@ -1232,103 +1268,43 @@ function main(container) {
         container.classList.remove("hidden");
         container.innerHTML = "";
 
-        const ta = cell.userObject.json.model.ta || {};
+        const model = cell.userObject.json.model;
 
-        // Separate "otherwise" from other conditions
-        const otherwiseUpdates = ta["otherwise"];
-        const otherEntries = Object.entries(ta).filter(([key]) => key !== "otherwise");
+        if (!model.ta || typeof model.ta !== "object") {
+            model.ta = { otherwise: "sigma" };
+        }
 
-        // Render other conditions first
-        otherEntries.forEach(([condition, updates]) =>
-            renderCondition(condition, updates, ta)
-        );
+        // keep ONLY otherwise
+        const currentOtherwise = model.ta.otherwise;
+        model.ta = {
+            otherwise:
+                typeof currentOtherwise === "string" && currentOtherwise.trim() !== ""
+                    ? currentOtherwise.replace(/^"(.*)"$/, "$1")
+                    : "sigma"
+        };
 
-        // Render "otherwise" last
-        if (otherwiseUpdates) renderCondition("otherwise", otherwiseUpdates, ta, true);
+        const wrapper = document.createElement("div");
 
-        // Add new condition button
-        const addBtn = document.createElement("button");
-        addBtn.textContent = "Add New Time Advance Condition";
-        addBtn.addEventListener("click", () => {
-            let newCond = "new_condition";
-            let counter = 1;
-            while (ta[newCond]) newCond = `new_condition_${counter++}`;
-            ta[newCond] = {};
-            renderTimeAdvanceFunction(cell);
+        const condInput = document.createElement("input");
+        condInput.type = "text";
+        condInput.value = "otherwise";
+        condInput.disabled = true;
+        condInput.style.width = "80%";
+
+        const textArea = document.createElement("textarea");
+        textArea.value = model.ta.otherwise;
+        textArea.rows = 2;
+        textArea.style.width = "100%";
+
+        textArea.addEventListener("input", () => {
+            model.ta.otherwise = textArea.value.trim().replace(/^"(.*)"$/, "$1");
             markDirty();
         });
-        container.appendChild(addBtn);
 
-        // --- Helper function ---
-        function renderCondition(condition, updates, taObj, isOtherwise = false) {
-            const wrapper = document.createElement("div");
-
-            // Condition input
-            const condInput = document.createElement("input");
-            condInput.type = "text";
-            condInput.value = condition;
-            condInput.style.width = "80%";
-            if (isOtherwise) condInput.disabled = true;
-
-            condInput.addEventListener("input", () => {
-                const newCond = condInput.value.trim();
-                if (!newCond || newCond === condition) return;
-                if (taObj[newCond]) return;
-
-                taObj[newCond] = updates;
-                delete taObj[condition];
-                renderTimeAdvanceFunction(cell);
-                markDirty();
-            });
-
-            wrapper.appendChild(condInput);
-
-            // Delete button (skip for otherwise)
-            if (!isOtherwise) {
-                const delBtn = document.createElement("button");
-                delBtn.textContent = "-";
-                delBtn.title = "Delete this condition";
-                delBtn.addEventListener("click", () => {
-                    delete taObj[condition];
-                    renderTimeAdvanceFunction(cell);
-                    markDirty();
-                });
-                wrapper.appendChild(delBtn);
-            }
-
-            // Textarea for updates (without outer braces and without leading whitespace)
-            const textArea = document.createElement("textarea");
-
-            let innerText = JSON.stringify(updates, null, 2);
-
-            // remove outer { }
-            innerText = innerText.replace(/^\{\s*|\s*\}$/g, "");
-
-            // remove leading whitespace from each line
-            innerText = innerText
-                .split("\n")
-                .map(line => line.trimStart())
-                .join("\n");
-
-            textArea.value = innerText.trim();
-            textArea.rows = 3;
-            textArea.style.width = "100%";
-
-            textArea.addEventListener("input", () => {
-                try {
-                    const wrappedJSON = `{${textArea.value.trim()}}`;
-                    taObj[condInput.value] = JSON.parse(wrappedJSON);
-                    markDirty();
-                } catch (e) {
-                    // ignore invalid JSON while typing
-                }
-            });
-
-            wrapper.appendChild(textArea);
-            container.appendChild(wrapper);
-        }
+        wrapper.appendChild(condInput);
+        wrapper.appendChild(textArea);
+        container.appendChild(wrapper);
     }
-
 
     function renderCouplings(parentCell) {
         if (!parentCell) return;

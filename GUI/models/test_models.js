@@ -292,7 +292,7 @@ const generalItems = [
           delta_ext: {},
           delta_con: {},
           lambda: {},
-          ta: {}
+          ta: { "otherwise": "sigma" }
         },
         include_sets: ["default_sets.json"],
         parameters: {}
@@ -314,7 +314,7 @@ const generalItems = [
         model: {
           x: {},
           y: {},
-          components: {},
+          components: [],
           eic: [],
           eoc: [],
           ic: []
