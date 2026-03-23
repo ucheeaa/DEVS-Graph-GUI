@@ -1,4 +1,6 @@
 const generalItems = [
+
+  /*
   {
     label: 'State',
     userObject: {
@@ -20,20 +22,9 @@ const generalItems = [
     height: 75,
     style: DEFAULT_STYLES.state
   },
+  */
 
-
-
-  // {
-  //   label: 'Counter',
-  //   userObject: {
-  //     elementType: "coupledModel",
-  //   },
-  //   width: 120,
-  //   height: 60,
-  //   style: DEFAULT_STYLES.coupledModel
-  // },
-
-
+  /*
   {
     label: 'counter_system',
     userObject: {
@@ -77,7 +68,7 @@ const generalItems = [
     height: 60,
     style: DEFAULT_STYLES.coupledModel
   },
-
+  */
 
   {
     label: 'counter_model : counter',
@@ -98,7 +89,7 @@ const generalItems = [
             sigma: { data_type: 'double', init_state: 'inf' },
             count: { data_type: 'int', init_state: '0' },
             increment: { data_type: 'int', init_state: '1' },
-            countUp: { data_type: 'bool', init_state: 'true' },
+            countUp: { data_type: 'bool', init_state: 'true' }
           },
           delta_int: {
             "countUp == true": {
@@ -143,7 +134,7 @@ const generalItems = [
     style: DEFAULT_STYLES.atomicModel
   },
 
-
+  /*
   {
     label: 'increment_generator : generator_int',
     userObject: {
@@ -186,7 +177,7 @@ const generalItems = [
     height: 60,
     style: DEFAULT_STYLES.atomicModel
   },
-
+  */
 
   {
     label: 'direction_generator : generator_bool',
@@ -198,11 +189,11 @@ const generalItems = [
         model: {
           x: {},
           y: {
-            bool_out: 'bool',
+            bool_out: 'bool'
           },
           s: {
             sigma: { data_type: 'double', init_state: '13.0' },
-            nextBool: { data_type: 'bool', init_state: 'false' },
+            nextBool: { data_type: 'bool', init_state: 'false' }
           },
           delta_int: {
             "otherwise": {
@@ -227,7 +218,7 @@ const generalItems = [
     style: DEFAULT_STYLES.atomicModel
   },
 
-
+  /*
   {
     label: 'light_1 : traffic_light',
     userObject: {
@@ -275,8 +266,9 @@ const generalItems = [
     height: 60,
     style: DEFAULT_STYLES.atomicModel
   },
+  */
 
-
+  /*
   {
     label: 'testAtomic',
     userObject: {
@@ -302,8 +294,9 @@ const generalItems = [
     height: 60,
     style: DEFAULT_STYLES.atomicModel
   },
+  */
 
-
+  /*
   {
     label: 'testCoupled',
     userObject: {
@@ -326,8 +319,160 @@ const generalItems = [
     height: 60,
     style: DEFAULT_STYLES.coupledModel
   },
+  */
 
+  // =========================
+  // NEW COUNTER EXPERIMENT ITEMS
+  // =========================
 
+  {
+    label: 'step_generator : step_generator',
+    userObject: {
+      elementType: 'atomicModel',
+      model_name: 'step_generator',
+      unique_id: 'step_generator',
+      json: {
+        model: {
+          x: {},
+          y: {
+            step_out: 'int'
+          },
+          s: {
+            sigma: { data_type: 'double', init_state: '2' },
+            step: { data_type: 'int', init_state: '5' }
+          },
+          delta_int: {
+            "otherwise": {}
+          },
+          delta_ext: {
+            "otherwise": {}
+          },
+          delta_con: {},
+          lambda: {
+            "otherwise": {
+              "step_out": "step"
+            }
+          },
+          ta: {
+            "otherwise": "sigma"
+          }
+        },
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
+    },
+    width: 120,
+    height: 60,
+    style: DEFAULT_STYLES.atomicModel
+  },
+
+  {
+    label: 'exponential_addition_generator : exponential_addition',
+    userObject: {
+      elementType: 'atomicModel',
+      model_name: 'exponential_addition',
+      unique_id: 'exponential_addition_generator',
+      json: {
+        model: {
+          x: {},
+          y: {
+            step_out: 'int'
+          },
+          s: {
+            sigma: { data_type: 'double', init_state: '2' },
+            baseValue_x: { data_type: 'int', init_state: '2' },
+            powerValue_y: { data_type: 'int', init_state: '3' },
+            output: { data_type: 'int', init_state: '0' }
+          },
+          delta_int: {
+            "otherwise": {
+              "output": "baseValue_x + powerValue_y + 1",
+              "powerValue_y": "powerValue_y + 1"
+            }
+          },
+          delta_ext: {
+            "otherwise": {}
+          },
+          delta_con: {},
+          lambda: {
+            "otherwise": {
+              "step_out": "output"
+            }
+          },
+          ta: {
+            "otherwise": "sigma"
+          }
+        },
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
+    },
+    width: 120,
+    height: 60,
+    style: DEFAULT_STYLES.atomicModel
+  }
 ];
 
+const genericItems = [
+  {
+    label: 'Generic Atomic',
+    userObject: {
+      elementType: 'atomicModel',
+      model_name: 'name',
+      unique_id: 'id',
+      json: {
+        model: {
+          x: {},
+          y: {},
+          s: {
+            sigma: { data_type: 'double', init_state: 'inf' }
+          },
+          delta_int: {
+            "otherwise": {}
+          },
+          delta_ext: {
+            "otherwise": {}
+          },
+          delta_con: {},
+          lambda: {
+            "otherwise": {}
+          },
+          ta: { "otherwise": "sigma" }
+        },
+        include_sets: ["default_sets.json"],
+        parameters: {}
+      },
+    },
+    width: 120,
+    height: 60,
+    style: DEFAULT_STYLES.atomicModel
+  },
 
+  {
+    label: 'Generic Coupled',
+    userObject: {
+      elementType: 'coupledModel',
+      model_name: 'name',
+      unique_id: 'id',
+      json: {
+        model: {
+          x: {},
+          y: {},
+          components: [],
+          eic: [],
+          eoc: [],
+          ic: []
+        },
+        include_sets: ["default_sets.json"],
+      },
+    },
+    width: 120,
+    height: 60,
+    style: DEFAULT_STYLES.coupledModel
+  }
+];
+
+const counterItems = [
+  ...generalItems,
+  ...genericItems
+];

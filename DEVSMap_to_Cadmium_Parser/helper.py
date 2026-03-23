@@ -1,3 +1,5 @@
+
+"""
 def prefix_states(text, list_of_state_variables):
     '''
     Replaces each instance of "variable" by "state.variable" in text, when "variable" is followed 
@@ -16,8 +18,24 @@ def prefix_states(text, list_of_state_variables):
         text = text.replace(state_variable + ' ', 'state.' + state_variable + ' ')
         text = text.replace(state_variable + ';', 'state.' + state_variable + ';')
     return text
+"""
+
+import re
 
 
+def prefix_states(text, list_of_state_variables):
+    """
+    Prefix bare state variable names with 'state.' but do not
+    double-prefix variables already written as state.variable.
+    """
+    for state_variable in sorted(list_of_state_variables, key=len, reverse=True):
+        pattern = rf'(?<![\w.]){re.escape(state_variable)}(?![\w])'
+        text = re.sub(pattern, f'state.{state_variable}', text)
+    return text
+
+
+
+"""
 def build_conditional_statements(data, list_of_state_variables):
     '''
     Constructs and returns if-else statements from dictionaries where the keys are conditional 
@@ -60,6 +78,26 @@ def build_conditional_statements(data, list_of_state_variables):
         conditional_statements = build_conditional_statements_helper(data)
     return prefix_states(conditional_statements, list_of_state_variables)
 
+"""
+
+def build_conditional_statements(data, list_of_state_variables):
+    conditional_statements = ''
+
+    if len(data) == 1 and 'otherwise' in data:
+        otherwise_data = data['otherwise']
+
+        if isinstance(otherwise_data, dict):
+            if len(otherwise_data) == 0:
+                return '\t\t// Not implemented\n'
+            for key, value in otherwise_data.items():
+                conditional_statements += simple_conditional_statement(key, value)
+        else:
+            conditional_statements += f'\t\t{otherwise_data};\n'
+    else:
+        conditional_statements = build_conditional_statements_helper(data)
+
+    return prefix_states(conditional_statements, list_of_state_variables)
+
 
 def simple_conditional_statement(key, value):
     '''
@@ -71,7 +109,7 @@ def simple_conditional_statement(key, value):
     '''
     return '\t\t' + key + ' = ' + value + ';\n'
 
-
+"""
 # Recursive function to write conditional blocks based on nested JSON structure
 def build_conditional_statements_helper(data, indent=2):
     '''
@@ -130,3 +168,37 @@ def build_conditional_statements_helper(data, indent=2):
             #Remove the else block if it is empty
             conditions = conditions.replace(' else {\n\t\t}\n', '\n')
             return conditions
+            """
+
+def build_conditional_statements_helper(data, indent=2):
+    INDENT = "\t"
+
+    normal_keys = [k for k in data.keys() if k != "otherwise"]
+    has_otherwise = "otherwise" in data
+    ordered_keys = normal_keys + (["otherwise"] if has_otherwise else [])
+
+    conditions = ""
+
+    for i, key in enumerate(ordered_keys):
+        value = data[key]
+        is_otherwise = (key == "otherwise")
+
+        if i == 0 and not is_otherwise:
+            conditions += INDENT * indent + f'if ({key}) {{\n'
+        elif is_otherwise:
+            conditions += INDENT * indent + 'else {\n'
+        else:
+            conditions += INDENT * indent + f'else if ({key}) {{\n'
+
+        if isinstance(value, dict):
+            if all(not isinstance(v, dict) for v in value.values()):
+                for var, expr in value.items():
+                    conditions += INDENT * (indent + 1) + f'{var} = {expr};\n'
+            else:
+                conditions += build_conditional_statements_helper(value, indent + 1)
+        else:
+            conditions += INDENT * (indent + 1) + f'{key} = {value};\n'
+
+        conditions += INDENT * indent + '}\n'
+
+    return conditions

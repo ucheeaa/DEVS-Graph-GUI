@@ -2,6 +2,7 @@ from .generate_and_build import build_cadmium
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 import json
+import os
 
 ALLOWED_ORIGINS = {
     "http://127.0.0.1:5500",
@@ -48,18 +49,32 @@ class CadmiumHandler(BaseHTTPRequestHandler):
             print("Starting Cadmium build...")
 
             try:
-                simulation_output = build_cadmium(data)
+                # Run build + simulation
+                build_cadmium(data)
+
+                # Build absolute path from this server.py location
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+                csv_path = os.path.join(base_dir, "cadmium_project", "experiment_log.csv")
+
+                print("Looking for CSV at:", csv_path)
+
+                if not os.path.exists(csv_path):
+                    raise FileNotFoundError(f"CSV not found at: {csv_path}")
+
+                with open(csv_path, "r", encoding="utf-8") as f:
+                    simulation_output = f.read()
+
             except Exception as e:
                 print("Error during build_cadmium:", e)
-                simulation_output = {"error": str(e)}
+                simulation_output = f"ERROR:\n{str(e)}"
 
             self.send_response(200)
             self._set_cors_headers()
-            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Type", "text/plain; charset=utf-8")
             self.end_headers()
 
             try:
-                self.wfile.write(json.dumps(simulation_output).encode("utf-8"))
+                self.wfile.write(simulation_output.encode("utf-8"))
             except ConnectionAbortedError:
                 print("Client disconnected before response could be sent.")
 

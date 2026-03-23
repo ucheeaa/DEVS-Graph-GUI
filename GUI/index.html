@@ -42,26 +42,26 @@
                     <button id="newBtn">New</button>
                     <button id="loadBtn">Load</button>
                     <button id="saveBtn">Save</button>
-                    <button id="printBtn">Print</button>
-                    <!-- Convert SUBMENU -->
+                    <!-- <button id="printBtn">Print</button> --> 
+                    <!-- Convert SUBMENU 
                     <div class="dropdown-submenu">
                         <button class="submenu-btn">Convert ▸</button>
                         <div class="submenu-content">
                             <button id="convertMapToTraceBtn">DEVSMap (.zip) to Trace Viewer</button>
-                            <!-- <button id="convertCadmiumToMapBtn">Cadmium Project (.zip) to DEVSMap</button> -->
+                            <button id="convertCadmiumToMapBtn">Cadmium Project (.zip) to DEVSMap</button>
                         </div>
-                    </div>
+                    </div> -->
                     <!-- Export SUBMENU -->
                     <div class="dropdown-submenu">
                         <button class="submenu-btn">Export ▸</button>
                         <div class="submenu-content">
                             <button id="screenshotPngBtn">Screenshot (.png)</button>
-                            <button id="screenshotJpgBtn">Screenshot (.jpg)</button>
-                            <button id="DEVSMapBtn">DEVSMap (.zip)</button>
-                            <button id="TraceBtn">Simulation Trace (.csv)</button>
+                            <!-- <button id="screenshotJpgBtn">Screenshot (.jpg)</button> -->
+                            <!-- <button id="DEVSMapBtn">DEVSMap (.zip)</button> -->
+                            <!-- <button id="TraceBtn">Simulation Trace (.csv)</button> -->
                         </div>
                     </div>
-                    <button id="exitBtn">Exit</button>
+                    <!-- <button id="exitBtn">Exit</button> -->
                 </div>
             </div>
 
@@ -158,13 +158,13 @@
                     <button id="aboutBtn">About</button>
                     <button id="userManualBtn">User Manual</button>
                     <button id="shortcutsBtn">Keyboard Shortcuts</button>
-                    <!-- TOOLS SUBMENU -->
+                    <!-- TOOLS SUBMENU 
                     <div class="dropdown-submenu">
                         <button class="submenu-btn">Additional Tools ▸</button>
                         <div class="submenu-content">
                             <button id="linkTraceViewerBtn">Trace Viewer</button>
                         </div>
-                    </div>
+                    </div> -->
                     <!-- RESOURCES SUBMENU -->
                     <div class="dropdown-submenu">
                         <button class="submenu-btn">External Resources ▸</button>
@@ -177,8 +177,11 @@
             </div>
         </div>
         <div class="right">
+            <button id="previewDEVSMapBtn" class="debug-btn">DEVSMap</button>
+            <button id="previewCodeBtn" class="debug-btn">Cadmium Code</button>
             <input type="number" id="previewNumberInput" placeholder="Enter simulation time" step="any"
                 style="width:150px;" />
+            <button id="previewSimulationOutputBtn" class="debug-btn">Simulation Output</button>
             <button id="viewTraceBtn">View Trace</button>
             <!-- Language selector -->
             <select id="languageSelect" class="debug-btn">
@@ -197,18 +200,33 @@
             <div id="palette-shapes"></div>
             <div id="categoryContainer">
                 <label for="category-select">Category:</label>
-                <select id="category-select">
-                    <option value="generalCategory">General</option>
-                    <option value="aviationCategory">Aviation</option>
-                    <option value="natureCategory">Nature</option>
-                    <option value="networksCategory">Networks</option>
-                    <option value="imageExampleCategory">Image Example</option>
-                </select>
+                <select id="category-select"></select>
+
+                <div id="categoryButtons">
+                    <button id="addCategoryBtn" type="button">+</button>
+                    <button id="deleteCategoryBtn" type="button">-</button>
+                </div>
             </div>
         </div>
         <div id="centralArea">
             <div id="graphContainer"></div>
-            <!-- <div id="bottomPalette">Bottom Palette</div> -->
+
+            <div id="bottomResizer" title="Drag to resize output panel"></div>
+
+            <div id="bottomPanel">
+                <div id="bottomPanelHeader">
+                    <div id="bottomPanelTitle">Simulation Output</div>
+
+                    <div id="bottomPanelActions">
+                        <button id="exportCsvBtn" type="button">Export CSV</button>
+                        <button id="clearOutputBtn" type="button">Clear</button>
+                    </div>
+                </div>
+
+                <div id="bottomPanelBody">
+                    <div id="outputTableContainer"></div>
+                </div>
+            </div>
         </div>
 
         <div id="rightResizer" title="Drag to resize"></div>
@@ -327,8 +345,6 @@
                             <button id="generateExperimentJsonBtn">Run Experiment</button>
                         </div>
 
-                        <label>Output</label>
-                        <pre id="experimentOutput" class="output-box"></pre>
                     </div>
                 </div>
                 <h3 id="deltaIntHeader" class="hidden">Internal Transition Function</h3>
@@ -342,18 +358,16 @@
             </div>
         </div>
     </div>
-
+<!--
     <div id="footer">
         <div class="right">
             <button id="previewDesignExperimentBtn" class="debug-btn">Design an Experiment</button>
             <button id="previewGraphXMLBtn" class="debug-btn">Graph XML</button>
             <button id="previewUserObjectsBtn" class="debug-btn">JSON UserObjects</button>
-            <button id="previewDEVSMapBtn" class="debug-btn">DEVSMap</button>
-            <button id="previewCodeBtn" class="debug-btn">Cadmium Code</button>
-            <button id="previewSimulationOutputBtn" class="debug-btn">Simulation Output</button>
+
         </div>
     </div>
-
+-->
     <!-- Load your main JS logic -->
     <script type="module" src="./js/main.js"></script>
 

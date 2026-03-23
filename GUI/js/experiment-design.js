@@ -1,42 +1,75 @@
 const API_BASE = "http://localhost:3001";
 
-import { fetchModels, fetchInits, fillSelect } from "./experiment-data.js";
+import { fillSelect } from "./experiment-data.js";
 import { ConversionManager } from "./conversions.js";
-import { generateExperimentJsonFromGraph, attachInitEditors, initCouplingButtons } from "./experiment-actions.js";
-import { buildInitEditorForCoupled } from "./experiment-init-editor.js";
+import {
+  generateExperimentJsonFromGraph,
+  attachInitEditors,
+  initCouplingButtons
+} from "./experiment-actions.js";
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function setBottomOutputMessage(text) {
+  const container = document.getElementById("outputTableContainer");
+  if (!container) return;
+
+  if (!text || !text.trim()) {
+    container.innerHTML = `<div class="output-empty">No simulation output yet.</div>`;
+    return;
+  }
+
+  container.innerHTML = `<pre class="output-box">${escapeHtml(text)}</pre>`;
+}
 
 export function setupExperimentSidebar(graph) {
   const cm = new ConversionManager(graph);
-  
-  // buttons
-  const openBtn  = document.getElementById("previewDesignExperimentBtn");
+
+  const openBtn = document.getElementById("previewDesignExperimentBtn");
   const closeBtn = document.getElementById("closeExperimentPanelBtn");
 
   const propsBtn = document.getElementById("tabPropertiesBtn");
-  const expBtn   = document.getElementById("tabExperimentBtn");
+  const expBtn = document.getElementById("tabExperimentBtn");
 
   const genExpJsonBtn = document.getElementById("generateExperimentJsonBtn");
-  const runExpBtn  = document.getElementById("runExperimentBtn");
+  const runExpBtn = document.getElementById("runExperimentBtn");
+
+  const clearOutputBtn = document.getElementById("clearOutputBtn");
+  const exportCsvBtn = document.getElementById("exportCsvBtn");
+
   const out = document.getElementById("experimentOutput");
 
-  // panes
   const propsTab = document.getElementById("propertiesTab");
-  const expTab   = document.getElementById("experimentTab");
+  const expTab = document.getElementById("experimentTab");
 
-  // experiment controls
   const mutModelSelect = document.getElementById("mutModelSelect");
-  const efModelSelect  = document.getElementById("efModelSelect");
-  const mutInitSelect  = document.getElementById("mutInitSelect");
-  const efInitSelect   = document.getElementById("efInitSelect");
+  const efModelSelect = document.getElementById("efModelSelect");
 
   const expNameInput = document.getElementById("expName");
   const timeSpanInput = document.getElementById("timeSpanInput");
 
   const toggleMutInitBtn = document.getElementById("toggleMutInitBtn");
-  const toggleEfInitBtn  = document.getElementById("toggleEfInitBtn");
+  const toggleEfInitBtn = document.getElementById("toggleEfInitBtn");
+
+  const mutInitEditorEl = document.getElementById("mutInitEditor");
+  const efInitEditorEl = document.getElementById("efInitEditor");
+
+  const selectIndicator = document.getElementById("selectACellIndicator");
+
+  if (!propsTab || !expTab || !propsBtn || !expBtn) {
+    console.warn("Tab elements missing");
+    return;
+  }
+
+  setBottomOutputMessage("");
 
   const editors = attachInitEditors({ cm, mutModelSelect, efModelSelect });
-  
+
   toggleMutInitBtn?.addEventListener("click", () => {
     mutInitEditorEl?.classList.toggle("hidden");
   });
@@ -44,33 +77,26 @@ export function setupExperimentSidebar(graph) {
   toggleEfInitBtn?.addEventListener("click", () => {
     efInitEditorEl?.classList.toggle("hidden");
   });
-  // indicator should live ONLY in properties tab
-  const selectIndicator = document.getElementById("selectACellIndicator");
 
-  if (!propsTab || !expTab || !propsBtn || !expBtn) {
-    console.warn("Tab elements missing (propertiesTab/experimentTab/tab buttons)");
-    return;
-  }
+  function getAllVerticesRecursive(graphInstance) {
+    const model = graphInstance.getModel();
+    const root = graphInstance.getDefaultParent();
+    const vertices = [];
 
-  function getAllVerticesRecursive(graph) {
-    const model = graph.getModel();
-    const root = graph.getDefaultParent();
-    const out = [];
-
-    const walk = (parent) => {
-      const kids = model.getChildCells(parent, true, false) || []; // vertices only
+    function walk(parent) {
+      const kids = model.getChildCells(parent, true, false) || [];
       for (const c of kids) {
-        out.push(c);
-        walk(c); // recurse into groups
+        vertices.push(c);
+        walk(c);
       }
-    };
+    }
 
     walk(root);
-    return out;
+    return vertices;
   }
 
-  function getAllDevsModelsFromGraph(graph) {
-    return getAllVerticesRecursive(graph)
+  function getAllDevsModelsFromGraph(graphInstance) {
+    return getAllVerticesRecursive(graphInstance)
       .filter(c => c?.isCoupledModel?.())
       .map(c => ({
         id: c.userObject?.unique_id ?? c.getId(),
@@ -79,47 +105,63 @@ export function setupExperimentSidebar(graph) {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  const refreshModelsOnly = () => {
-
+  function refreshModelsOnly() {
     const mutPrev = mutModelSelect?.value || "";
-    const efPrev  = efModelSelect?.value || "";
+    const efPrev = efModelSelect?.value || "";
 
     const allModels = getAllDevsModelsFromGraph(graph);
+
     fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
     fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
 
-     // restore selection if still present
-    if ([...mutModelSelect.options].some(o => o.value === mutPrev)) {
+    if (mutModelSelect && [...mutModelSelect.options].some(o => o.value === mutPrev)) {
       mutModelSelect.value = mutPrev;
     }
-    if ([...efModelSelect.options].some(o => o.value === efPrev)) {
+
+    if (efModelSelect && [...efModelSelect.options].some(o => o.value === efPrev)) {
       efModelSelect.value = efPrev;
     }
-      
-    //renderMutInitEditor?.();
-    //renderEfInitEditor?.();
-    
-  };
+  }
 
-  // Refresh when graph model changes (add/remove/rename/etc.)
   graph.getModel().addListener(mxEvent.CHANGE, () => {
     if (document.getElementById("experimentTab")?.classList.contains("active")) {
       refreshModelsOnly();
     }
   });
 
+  async function refreshExperimentDropdowns() {
+    try {
+      const mutPrev = mutModelSelect?.value || "";
+      const efPrev = efModelSelect?.value || "";
+
+      const allModels = getAllDevsModelsFromGraph(graph);
+
+      fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
+      fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
+
+      if (mutModelSelect && [...mutModelSelect.options].some(o => o.value === mutPrev)) {
+        mutModelSelect.value = mutPrev;
+      }
+
+      if (efModelSelect && [...efModelSelect.options].some(o => o.value === efPrev)) {
+        efModelSelect.value = efPrev;
+      }
+    } catch (e) {
+      console.error("Failed to load experiment dropdowns:", e);
+      if (out) out.textContent = `Error loading experiment data:\n${String(e)}`;
+      setBottomOutputMessage(`Error loading experiment data:\n${String(e)}`);
+    }
+  }
+
   function activateTab(which) {
     const isProps = which === "properties";
 
-    // toggle button state
     propsBtn.classList.toggle("active", isProps);
     expBtn.classList.toggle("active", !isProps);
 
-    // toggle panes
     propsTab.classList.toggle("active", isProps);
     expTab.classList.toggle("active", !isProps);
 
-    // only show indicator in properties tab
     if (selectIndicator) {
       if (isProps) {
         selectIndicator.classList.remove("hidden");
@@ -131,66 +173,26 @@ export function setupExperimentSidebar(graph) {
       }
     }
 
-    async function refreshExperimentDropdowns() {
-      
-        //const [inits] = await Promise.all([fetchInits()]);
-
-        const mutPrev = mutModelSelect?.value || "";
-        const efPrev  = efModelSelect?.value || "";
-
-        const allModels = getAllDevsModelsFromGraph(graph);
-
-        fillSelect(mutModelSelect, allModels, { placeholder: "Select MUT model..." });
-        fillSelect(efModelSelect, allModels, { placeholder: "Select EF model..." });
-        fillSelect(mutInitSelect, [], { placeholder: "Select MUT init..." });
-        fillSelect(efInitSelect, [], { placeholder: "Select EF init..." });
-
-        // restore selection if still present
-        if ([...mutModelSelect.options].some(o => o.value === mutPrev)) {
-        mutModelSelect.value = mutPrev;
-        }
-        if ([...efModelSelect.options].some(o => o.value === efPrev)) {
-        efModelSelect.value = efPrev;
-        }
-
-        //renderMutInitEditor?.();
-        //renderEfInitEditor?.();
- 
-      try {
-      } catch (e) {
-        console.error("Failed to load experiment dropdowns:", e);
-        if (out) out.textContent = `Error loading experiment data:\n${String(e)}`;
-      }
-  }
-
     if (isProps) {
-    window.populateRightPalette?.();
-    }
-
-    if (!isProps) {
+      window.populateRightPalette?.();
+    } else {
       refreshExperimentDropdowns();
     }
   }
 
   window.setRightTab = activateTab;
 
-  // tab clicks
   propsBtn.addEventListener("click", () => activateTab("properties"));
   expBtn.addEventListener("click", () => activateTab("experiment"));
 
-  // open button takes you to experiment tab
-  if (openBtn) openBtn.addEventListener("click", () => activateTab("experiment"));
-
-  // close returns you to properties tab
-  if (closeBtn) closeBtn.addEventListener("click", () => activateTab("properties"));
+  openBtn?.addEventListener("click", () => activateTab("experiment"));
+  closeBtn?.addEventListener("click", () => activateTab("properties"));
 
   initCouplingButtons(cm);
 
-  // default
   activateTab("properties");
 
-  if (genExpJsonBtn) {
-  genExpJsonBtn.addEventListener("click", () =>
+  genExpJsonBtn?.addEventListener("click", () =>
     generateExperimentJsonFromGraph({
       cm,
       expNameInput,
@@ -202,78 +204,72 @@ export function setupExperimentSidebar(graph) {
       getEfInitBuilder: editors.getEfInitBuilder
     })
   );
-}
-  if (runExpBtn) {
-    runExpBtn.addEventListener("click", () => runExperiment());
+
+  runExpBtn?.addEventListener("click", () => {
+    console.warn("runExperimentBtn not wired yet");
+  });
+
+  clearOutputBtn?.addEventListener("click", () => {
+    if (out) out.textContent = "";
+    setBottomOutputMessage("");
+  });
+
+  exportCsvBtn?.addEventListener("click", () => {
+  const csv = window.__LAST_CSV_OUTPUT || "";
+
+  if (!csv.trim()) {
+    alert("No simulation output to export.");
+    return;
   }
 
- 
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
 
-  // init editor containers
-  const mutInitEditorEl = document.getElementById("mutInitEditor");
-  const efInitEditorEl  = document.getElementById("efInitEditor");
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "simulation_output.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-  // store “builder functions” so generateExperimentJson can call them
-  let buildMutInitJson = null;
-  let buildEfInitJson  = null;
-  const initOverrides = new Map(); // uid -> init_json
-
-  function renderMutInitEditor() {
-    const uid = mutModelSelect?.value || "";
-    if (!uid || !mutInitEditorEl) return;
-
-    buildMutInitJson = buildInitEditorForCoupled(cm, uid, mutInitEditorEl);
-    updateCouplingDropdownOptions();
-  }
-
-  function renderEfInitEditor() {
-    const uid = efModelSelect?.value || "";
-    if (!uid || !efInitEditorEl) return;
-
-    buildEfInitJson = buildInitEditorForCoupled(cm, uid, efInitEditorEl);
-    updateCouplingDropdownOptions();
-  }
-
-  // whenever model selection changes, rebuild editor
-  mutModelSelect?.addEventListener("change", renderMutInitEditor);
-  efModelSelect?.addEventListener("change", renderEfInitEditor);
+  URL.revokeObjectURL(url);
+  });
 
   function getCoupledPortsByUid(uid) {
-  const uos = cm.getUserObjects();
-  const coupled = uos.find(u => u.elementType === "coupledModel" &&
-    u.unique_id?.toLowerCase() === String(uid).toLowerCase()
-  );
-  if (!coupled) return { inputs: [], outputs: [] };
+    const uos = cm.getUserObjects();
+    const coupled = uos.find(
+      u =>
+        u.elementType === "coupledModel" &&
+        u.unique_id?.toLowerCase() === String(uid).toLowerCase()
+    );
 
-  const x = coupled.json?.model?.x || {};
-  const y = coupled.json?.model?.y || {};
-  return {
-    inputs: Object.keys(x),
-    outputs: Object.keys(y),
-  };
-}
+    if (!coupled) return { inputs: [], outputs: [] };
 
-function updateCouplingDropdownOptions() {
-  const mutUid = mutModelSelect?.value || "";
-  const efUid  = efModelSelect?.value || "";
+    const x = coupled.json?.model?.x || {};
+    const y = coupled.json?.model?.y || {};
 
-  const mutPorts = mutUid ? getCoupledPortsByUid(mutUid) : {inputs:[], outputs:[]};
-  const efPorts  = efUid  ? getCoupledPortsByUid(efUid)  : {inputs:[], outputs:[]};
+    return {
+      inputs: Object.keys(x),
+      outputs: Object.keys(y)
+    };
+  }
 
-  // CPIC: ef.outputs -> mut.inputs
-  window.__CPIC_FROM_OPTIONS = efPorts.outputs;
-  window.__CPIC_TO_OPTIONS   = mutPorts.inputs;
+  function updateCouplingDropdownOptions() {
+    const mutUid = mutModelSelect?.value || "";
+    const efUid = efModelSelect?.value || "";
 
-  // POCC: mut.outputs -> ef.inputs
-  window.__POCC_FROM_OPTIONS = mutPorts.outputs;
-  window.__POCC_TO_OPTIONS   = efPorts.inputs;
+    const mutPorts = mutUid ? getCoupledPortsByUid(mutUid) : { inputs: [], outputs: [] };
+    const efPorts = efUid ? getCoupledPortsByUid(efUid) : { inputs: [], outputs: [] };
 
-  // tell coupling UI to re-render options if you can
-  window.refreshCouplingUI?.();
-}
+    window.__CPIC_FROM_OPTIONS = efPorts.outputs;
+    window.__CPIC_TO_OPTIONS = mutPorts.inputs;
 
-mutModelSelect?.addEventListener("change", updateCouplingDropdownOptions);
-efModelSelect?.addEventListener("change", updateCouplingDropdownOptions);
+    window.__POCC_FROM_OPTIONS = mutPorts.outputs;
+    window.__POCC_TO_OPTIONS = efPorts.inputs;
 
+    window.refreshCouplingUI?.();
+  }
 
+  mutModelSelect?.addEventListener("change", updateCouplingDropdownOptions);
+  efModelSelect?.addEventListener("change", updateCouplingDropdownOptions);
 }

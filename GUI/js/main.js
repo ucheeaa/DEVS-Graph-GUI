@@ -12,6 +12,47 @@ const markDirty = () => {
     window.autosaveGraphNow?.();
 };
 
+function setupBottomPanelResizer() {
+    const bottomPanel = document.getElementById("bottomPanel");
+    const bottomResizer = document.getElementById("bottomResizer");
+    const centralArea = document.getElementById("centralArea");
+
+    if (!bottomPanel || !bottomResizer || !centralArea) {
+        console.warn("Bottom panel resizer elements not found");
+        return;
+    }
+
+    let dragging = false;
+
+    const MIN_HEIGHT = 80;
+    const MAX_HEIGHT = 500;
+
+    bottomResizer.addEventListener("mousedown", (e) => {
+        dragging = true;
+        document.body.style.cursor = "row-resize";
+        document.body.style.userSelect = "none";
+        e.preventDefault();
+    });
+
+    document.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+
+        const rect = centralArea.getBoundingClientRect();
+        const newHeight = rect.bottom - e.clientY;
+
+        const clamped = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, newHeight));
+        bottomPanel.style.height = clamped + "px";
+    });
+
+    document.addEventListener("mouseup", () => {
+        if (!dragging) return;
+
+        dragging = false;
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+    });
+}
+
 function main(container) {
     // Check browser compatibility
     if (!mxClient.isBrowserSupported()) {
@@ -1529,12 +1570,12 @@ function main(container) {
     document.getElementById('saveBtn').addEventListener('click', () => conversionManager.saveGraphXML());
 
     document.getElementById('screenshotPngBtn').addEventListener('click', () => exportGraphImage(graph, "png"));
-    document.getElementById('screenshotJpgBtn').addEventListener('click', () => exportGraphImage(graph, "jpg"));
+    //document.getElementById('screenshotJpgBtn').addEventListener('click', () => exportGraphImage(graph, "jpg"));
 
     document.getElementById("viewTraceBtn").addEventListener("click", () => conversionManager.viewTrace());
 
-    document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
-    document.getElementById("previewUserObjectsBtn").addEventListener("click", () => conversionManager.previewUserObjects());
+    //document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
+    //document.getElementById("previewUserObjectsBtn").addEventListener("click", () => conversionManager.previewUserObjects());
     document.getElementById("previewDEVSMapBtn").addEventListener("click", () => conversionManager.previewDEVSMap());
     document.getElementById("previewCodeBtn").addEventListener("click", () => conversionManager.previewCadmiumCode());
     document.getElementById("previewSimulationOutputBtn").addEventListener("click", () => conversionManager.previewSimulationOutput());
@@ -1555,22 +1596,23 @@ function main(container) {
     // toolbar.addItem('Save', null, () => conversionManager.saveGraphXML());
     // toolbar.addItem('Load', null, () => conversionManager.loadGraphXML());
     toolbar.addItem('Copy', null, () => copySelectedCells(graph)); // Text label, icon, function
+    toolbar.addItem('Cut', null, () => cutSelectedCells(graph));
     toolbar.addItem('Paste', null, () => pasteClipboardCells(graph));
     toolbar.addItem('Undo', null, () => undoAction(undoManager));
     toolbar.addItem('Redo', null, () => redoAction(undoManager));
     toolbar.addItem('Duplicate', null, () => duplicateSelectedCells(graph));
-    toolbar.addItem('Cut', null, () => cutSelectedCells(graph));
-    toolbar.addItem('Delete', null, () => deleteSelectedCells(graph));
     toolbar.addItem('Select All', null, () => selectAllCells(graph));
+    toolbar.addItem('Delete', null, () => deleteSelectedCells(graph));
     toolbar.addItem('Delete All', null, () => deleteAllCells(graph));
-    toolbar.addItem('Group', null, groupCells);
-    toolbar.addItem('Ungroup', null, ungroupCells);
+    //toolbar.addItem('Group', null, groupCells);
+    
     // toolbar.addItem('Lock', null, () => alert("Not yet implemented")); // May/may not be implemented
     toolbar.addItem('Zoom In', null, () => graph.zoomIn());
     toolbar.addItem('Zoom Out', null, () => graph.zoomOut());
     toolbar.addItem('Reset Zoom', null, () => graph.zoomActual());
     toolbar.addItem('Zoom to Fit', null, () => graph.fit(25));
     toolbar.addItem('Couple Models', null, () => groupAsCoupledModel(graph));
+    toolbar.addItem('Decouple', null, ungroupCells);
 
 
 
@@ -1814,24 +1856,47 @@ function main(container) {
             }
             document.addEventListener('mousemove', mouseMoveHandler);
             document.addEventListener('mouseup', mouseUpHandler);
+
+            
         });
 
         return item;
     }
 
-    const allPalettes = {
-        generalCategory: generalItems,
-        aviationCategory: aviationItems,
-        natureCategory: natureItems,
-        networkCategory: networkItems,
-        imageExampleCategory: imageExampleItems,
+    const paletteByCategory = {
+    counterCategory: counterItems || []
     };
 
+    const defaultNewCategoryPalette = genericItems || [];
+
+
+    /**
+    const allPalettes = {
+        // generalCategory: generalItems,
+        counterCategory: counterItems,
+        aviationCategory: aviationItems,
+        trafficLightCategory: trafficLightItems
+    };
+    */
+
+    /**
     function fillPalette(categoryName) {
         shapesDiv.innerHTML = '';
         const category = allPalettes[categoryName] || [];
         category.forEach(data => shapesDiv.appendChild(createPaletteItem(data)));
     }
+    */
+
+    const starterPaletteItems = generalItems || [];
+
+    function fillPalette(categoryName) {
+        shapesDiv.innerHTML = '';
+        const items = paletteByCategory[categoryName] || defaultNewCategoryPalette;
+        items.forEach(data => shapesDiv.appendChild(createPaletteItem(data)));
+    }
+
+    window.fillPalette = fillPalette;
+
 
     function styleObjectToString(obj) {
         return Object.entries(obj).map(([k, v]) => `${k}=${v}`).join(';');
@@ -1869,14 +1934,6 @@ function main(container) {
 
         return cell;
     }
-
-    fillPalette('generalCategory');
-
-    const dropdown = document.getElementById('category-select');
-    dropdown.addEventListener('change', e => {
-        // console.log(e.target.value);
-        fillPalette(e.target.value)
-    });
 
 
     graph.addListener(mxEvent.CELLS_MOVED, function (sender, evt) {
@@ -2119,29 +2176,6 @@ function autosaveGraph(cm) {
 }
 
 
-
-function restoreGraph(graph) {
-  const xml = localStorage.getItem("devs_graph_xml");
-  if (!xml) return;
-
-  try {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xml, "text/xml");
-    const codec = new mxCodec(xmlDoc);
-
-    graph.getModel().beginUpdate();
-    try {
-      codec.decode(xmlDoc.documentElement, graph.getModel());
-    } finally {
-      graph.getModel().endUpdate();
-    }
-
-    console.log("Graph restored");
-  } catch (err) {
-    console.error("Failed to restore graph:", err);
-  }
-}
-
 function saveUiState(graph) {
   try {
     const selected = graph.getSelectionCell();
@@ -2158,25 +2192,146 @@ function saveUiState(graph) {
   }
 }
 
-function restoreUiState(graph) {
-  try {
-    const selectedId = localStorage.getItem("devs_selected_cell_id");
-    const rightTab = localStorage.getItem("devs_right_tab");
 
-    if (selectedId) {
-      const model = graph.getModel();
-      const cell = model.getCell(selectedId);
-      if (cell) {
-        graph.setSelectionCell(cell);
-      }
+function getCategoryList() {
+    const saved = localStorage.getItem("devs_category_list");
+    if (saved) {
+        try {
+            return JSON.parse(saved);
+        } catch (e) {
+            console.error("Failed to parse category list:", e);
+        }
     }
 
-    if (rightTab && window.setRightTab) {
-      window.setRightTab(rightTab);
+    // Only ONE starter category
+    return [
+        { value: "counterCategory", label: "Counter" }
+    ];
+}
+
+function saveCategoryList(list) {
+    localStorage.setItem("devs_category_list", JSON.stringify(list));
+}
+
+function getCurrentCategory() {
+    return localStorage.getItem("devs_current_category") || "counterCategory";
+}
+
+function setCurrentCategory(category) {
+    localStorage.setItem("devs_current_category", category);
+}
+
+function getGraphStorageKey(category) {
+    return `devs_graph_xml_${category}`;
+}
+
+function getUiStorageKey(category) {
+    return `devs_ui_state_${category}`;
+}
+
+function populateCategoryDropdown() {
+    const dropdown = document.getElementById("category-select");
+    if (!dropdown) return;
+
+    const categories = getCategoryList();
+    const current = getCurrentCategory();
+
+    dropdown.innerHTML = "";
+
+    categories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat.value;
+        option.textContent = cat.label;
+        dropdown.appendChild(option);
+    });
+
+    dropdown.value = current;
+}
+
+function clearGraph(graph) {
+    graph.getModel().beginUpdate();
+    try {
+        graph.removeCells(graph.getChildVertices(graph.getDefaultParent()));
+        graph.removeCells(graph.getChildEdges(graph.getDefaultParent()));
+    } finally {
+        graph.getModel().endUpdate();
     }
-  } catch (err) {
-    console.error("UI restore failed:", err);
-  }
+}
+
+function autosaveGraphForCategory(cm, graph, category) {
+    try {
+        const xml = cm.getGraphXML();
+        localStorage.setItem(getGraphStorageKey(category), xml);
+
+        const selected = graph.getSelectionCell();
+        const selectedId = selected ? selected.getId() : "";
+
+        const propsTab = document.getElementById("propertiesTab");
+        const currentTab =
+            propsTab && propsTab.classList.contains("active") ? "properties" : "experiment";
+
+        localStorage.setItem(
+            getUiStorageKey(category),
+            JSON.stringify({
+                selectedId,
+                rightTab: currentTab
+            })
+        );
+    } catch (err) {
+        console.error("Category autosave failed:", err);
+    }
+}
+
+function restoreGraphForCategory(graph, category) {
+    const xml = localStorage.getItem(getGraphStorageKey(category));
+
+    clearGraph(graph);
+
+    if (!xml) {
+        console.log(`No saved graph for ${category}`);
+        return;
+    }
+
+    try {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xml, "text/xml");
+        const codec = new mxCodec(xmlDoc);
+
+        graph.getModel().beginUpdate();
+        try {
+            codec.decode(xmlDoc.documentElement, graph.getModel());
+        } finally {
+            graph.getModel().endUpdate();
+        }
+
+        console.log(`Graph restored for ${category}`);
+    } catch (err) {
+        console.error(`Failed to restore graph for ${category}:`, err);
+    }
+}
+
+function restoreUiStateForCategory(graph, category) {
+    try {
+        const raw = localStorage.getItem(getUiStorageKey(category));
+        if (!raw) return;
+
+        const uiState = JSON.parse(raw);
+        if (!uiState) return;
+
+        if (uiState.selectedId) {
+            const model = graph.getModel();
+            const cell = model.getCell(uiState.selectedId);
+            if (cell) {
+                graph.setSelectionCell(cell);
+            }
+        }
+
+        if (uiState.rightTab && window.setRightTab) {
+            window.setRightTab(uiState.rightTab);
+        }
+    } catch (err) {
+        console.error("Failed to restore UI state for category:", err);
+    }
 }
 
 
@@ -2184,34 +2339,108 @@ function restoreUiState(graph) {
 document.addEventListener('DOMContentLoaded', () => {
 
     setupRightPaletteResizer();
+    setupBottomPanelResizer();
     const container = document.getElementById('graphContainer');
     const graph = main(container); // Return the graph from main
 
     const cm = new ConversionManager(graph);
 
+    const dropdown = document.getElementById('category-select');
+    dropdown.addEventListener('change', e => {
+        const newCategory = e.target.value;
+        const oldCategory = getCurrentCategory();
+
+        autosaveGraphForCategory(cm, graph, oldCategory);
+
+        setCurrentCategory(newCategory);
+        window.fillPalette(newCategory);
+        restoreGraphForCategory(graph, newCategory);
+        restoreUiStateForCategory(graph, newCategory);
+    });
+
+
+    document.getElementById("addCategoryBtn").addEventListener("click", () => {
+    const label = prompt("Enter new category name:");
+    if (!label) return;
+
+    const trimmedLabel = label.trim();
+    if (!trimmedLabel) return;
+
+    const categories = getCategoryList();
+
+    const value = trimmedLabel.replace(/\s+/g, "_").replace(/[^\w\-]/g, "") + "_category";
+
+    if (categories.some(c => c.value === value)) {
+        alert("A category with that name already exists.");
+        return;
+    }
+
+    autosaveGraphForCategory(cm, graph, getCurrentCategory());
+
+    categories.push({ value, label: trimmedLabel });
+    saveCategoryList(categories);
+
+    populateCategoryDropdown();
+    setCurrentCategory(value);
+    document.getElementById("category-select").value = value;
+
+    clearGraph(graph);
+    window.fillPalette(value);
+});
+
+document.getElementById("deleteCategoryBtn").addEventListener("click", () => {
+    const current = getCurrentCategory();
+    const categories = getCategoryList();
+
+    if (categories.length === 1) {
+        alert("You must keep at least one category.");
+        return;
+    }
+
+    const currentObj = categories.find(c => c.value === current);
+    const confirmed = confirm(`Delete category "${currentObj?.label || current}"?`);
+    if (!confirmed) return;
+
+    const updated = categories.filter(c => c.value !== current);
+    saveCategoryList(updated);
+
+    localStorage.removeItem(getGraphStorageKey(current));
+    localStorage.removeItem(getUiStorageKey(current));
+
+    const fallback = updated[0].value;
+    setCurrentCategory(fallback);
+
+    populateCategoryDropdown();
+    document.getElementById("category-select").value = fallback;
+
+    restoreGraphForCategory(graph, fallback);
+    restoreUiStateForCategory(graph, fallback);
+    window.fillPalette(fallback);
+    });
+
+    window.currentGraph = graph;
+    window.currentConversionManager = cm;
+
+    populateCategoryDropdown();
+    window.fillPalette(getCurrentCategory());
+    restoreGraphForCategory(graph, getCurrentCategory());
+    restoreUiStateForCategory(graph, getCurrentCategory());
+
     window.autosaveGraphNow = () => {
-        try {
-            autosaveGraph(cm);
-            saveUiState(graph);
-            const xml = cm.getGraphXML();
-            localStorage.setItem("devs_graph_xml", xml);
-        } catch (err) {
-            console.error("Autosave failed:", err);
-        }
+    try {
+        const category = getCurrentCategory();
+        autosaveGraphForCategory(cm, graph, category);
+    } catch (err) {
+        console.error("Autosave failed:", err);
+    }
     };
 
-
-    restoreGraph(graph);
+ 
 
     graph.getModel().addListener(mxEvent.CHANGE, () => {
         window.autosaveGraphNow();
     });
 
-    graph.getSelectionModel().addListener(mxEvent.CHANGE, () => {
-        saveUiState(graph);
-        });
-
     setupExperimentSidebar(graph);
 
-    restoreUiState(graph);
 });
