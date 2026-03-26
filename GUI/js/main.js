@@ -1572,7 +1572,7 @@ function main(container) {
     document.getElementById('screenshotPngBtn').addEventListener('click', () => exportGraphImage(graph, "png"));
     //document.getElementById('screenshotJpgBtn').addEventListener('click', () => exportGraphImage(graph, "jpg"));
 
-    document.getElementById("viewTraceBtn").addEventListener("click", () => conversionManager.viewTrace());
+    //document.getElementById("viewTraceBtn").addEventListener("click", () => conversionManager.viewTrace());
 
     //document.getElementById("previewGraphXMLBtn").addEventListener("click", () => conversionManager.previewGraphXML());
     //document.getElementById("previewUserObjectsBtn").addEventListener("click", () => conversionManager.previewUserObjects());
