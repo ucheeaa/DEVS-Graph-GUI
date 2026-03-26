@@ -41,7 +41,10 @@ export function setupExperimentSidebar(graph) {
 
   const clearOutputBtn = document.getElementById("clearOutputBtn");
   const exportCsvBtn = document.getElementById("exportCsvBtn");
-
+  const validateBtn = document.getElementById("validateOutputBtn");
+  const modeSelect = document.getElementById("validationMode");
+  const fileInput = document.getElementById("fileInput");
+  const folderInput = document.getElementById("folderInput");
   const out = document.getElementById("experimentOutput");
 
   const propsTab = document.getElementById("propertiesTab");
@@ -234,6 +237,40 @@ export function setupExperimentSidebar(graph) {
 
   URL.revokeObjectURL(url);
   });
+
+validateBtn?.addEventListener("click", async () => {
+  try {
+    const mode = modeSelect.value;
+
+    if (mode === "file") {
+      fileInput.click();
+
+      fileInput.onchange = async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("mode", "file");
+        formData.append("tolerance", "0.1");
+
+        setBottomOutputMessage("Running validation...");
+
+        const res = await fetch("http://localhost:8002/validate", {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await res.text();
+        setBottomOutputMessage(result);
+      };
+    }
+
+  } catch (err) {
+    console.error(err);
+    setBottomOutputMessage("Validation failed: " + err.message);
+  }
+});
 
   function getCoupledPortsByUid(uid) {
     const uos = cm.getUserObjects();

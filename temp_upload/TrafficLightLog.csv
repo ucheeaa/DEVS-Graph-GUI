@@ -1,0 +1,18 @@
+Builder: sep=;
+time;model_id;model_name;port_name;data
+0;1;light_1;;{sigma: 5, colour: RED}
+5;1;light_1;colour_out;RED
+5;1;light_1;;{sigma: 7, colour: GREEN}
+12;1;light_1;colour_out;GREEN
+12;1;light_1;;{sigma: 3, colour: YELLOW}
+15;1;light_1;colour_out;YELLOW
+15;1;light_1;;{sigma: 10, colour: RED}
+25;1;light_1;colour_out;RED
+25;1;light_1;;{sigma: 7, colour: GREEN}
+32;1;light_1;colour_out;GREEN
+32;1;light_1;;{sigma: 3, colour: YELLOW}
+35;1;light_1;colour_out;YELLOW
+35;1;light_1;;{sigma: 10, colour: RED}
+45;1;light_1;colour_out;RED
+45;1;light_1;;{sigma: 7, colour: GREEN}
+45;1;light_1;;{sigma: 7, colour: GREEN}
