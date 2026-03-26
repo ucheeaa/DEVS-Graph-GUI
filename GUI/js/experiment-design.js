@@ -42,7 +42,9 @@ export function setupExperimentSidebar(graph) {
   const clearOutputBtn = document.getElementById("clearOutputBtn");
   const exportCsvBtn = document.getElementById("exportCsvBtn");
   const validateBtn = document.getElementById("validateOutputBtn");
-
+  const modeSelect = document.getElementById("validationMode");
+  const fileInput = document.getElementById("fileInput");
+  const folderInput = document.getElementById("folderInput");
   const out = document.getElementById("experimentOutput");
 
   const propsTab = document.getElementById("propertiesTab");
@@ -238,32 +240,31 @@ export function setupExperimentSidebar(graph) {
 
 validateBtn?.addEventListener("click", async () => {
   try {
-    // ---- TEMP values (we improve next) ----
-    const tolerance = 0.1;
-    const mode = "folder";
-    const path = "simulation_results";
+    const mode = modeSelect.value;
 
-    setBottomOutputMessage("Running validation...");
+    if (mode === "file") {
+      fileInput.click();
 
-    const res = await fetch("http://localhost:8002/validate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        tolerance,
-        mode,
-        path
-      })
-    });
+      fileInput.onchange = async () => {
+        const file = fileInput.files[0];
+        if (!file) return;
 
-    if (!res.ok) {
-      throw new Error(await res.text());
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("mode", "file");
+        formData.append("tolerance", "0.1");
+
+        setBottomOutputMessage("Running validation...");
+
+        const res = await fetch("http://localhost:8002/validate", {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await res.text();
+        setBottomOutputMessage(result);
+      };
     }
-
-    const result = await res.text();
-
-    setBottomOutputMessage(result);
 
   } catch (err) {
     console.error(err);
