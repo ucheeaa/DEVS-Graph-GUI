@@ -1,0 +1,48 @@
+TrafficLightLog.csv:
+{sigma:5, colour:RED}
+{sigma:7, colour:GREEN}
+{sigma:3, colour:YELLOW}
+{sigma:10, colour:RED}
+{sigma:7, colour:GREEN}
+{sigma:3, colour:YELLOW}
+{sigma:10, colour:RED}
+{sigma:7, colour:GREEN}
+
+counterOut.csv:
+{sigma:inf, count:0, increment:1, countUp:1}
+{sigma:0.1, count:0, increment:1, countUp:1}
+{sigma:inf, count:1, increment:1, countUp:1}
+{sigma:0.1, count:1, increment:3, countUp:1}
+{sigma:inf, count:4, increment:3, countUp:1}
+{sigma:0.1, count:4, increment:5, countUp:1}
+{sigma:inf, count:9, increment:5, countUp:1}
+{sigma:0.1, count:9, increment:4, countUp:1}
+{sigma:inf, count:13, increment:4, countUp:1}
+{sigma:0.1, count:13, increment:4, countUp:0}
+{sigma:inf, count:9, increment:4, countUp:0}
+{sigma:0.1, count:9, increment:4, countUp:0}
+{sigma:inf, count:5, increment:4, countUp:0}
+{sigma:0.1, count:5, increment:1, countUp:0}
+{sigma:inf, count:4, increment:1, countUp:0}
+{sigma:0.1, count:4, increment:3, countUp:0}
+{sigma:inf, count:1, increment:3, countUp:0}
+{sigma:0.1, count:1, increment:5, countUp:0}
+{sigma:inf, count:-4, increment:5, countUp:0}
+{sigma:0.1, count:-4, increment:5, countUp:1}
+{sigma:inf, count:1, increment:5, countUp:1}
+{sigma:0.1, count:1, increment:4, countUp:1}
+{sigma:inf, count:5, increment:4, countUp:1}
+{sigma:0.1, count:5, increment:4, countUp:1}
+{sigma:inf, count:9, increment:4, countUp:1}
+{sigma:0.1, count:9, increment:5, countUp:1}
+{sigma:inf, count:14, increment:5, countUp:1}
+{sigma:0.1, count:14, increment:1, countUp:1}
+{sigma:inf, count:15, increment:1, countUp:1}
+{sigma:0.1, count:15, increment:1, countUp:0}
+{sigma:inf, count:14, increment:1, countUp:0}
+{sigma:0.1, count:14, increment:3, countUp:0}
+{sigma:inf, count:11, increment:3, countUp:0}
+{sigma:0.1, count:11, increment:3, countUp:0}
+{sigma:inf, count:8, increment:3, countUp:0}
+{sigma:0.1, count:8, increment:3, countUp:0}
+{sigma:inf, count:5, increment:3, countUp:0}

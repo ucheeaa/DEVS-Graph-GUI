@@ -41,6 +41,7 @@ export function setupExperimentSidebar(graph) {
 
   const clearOutputBtn = document.getElementById("clearOutputBtn");
   const exportCsvBtn = document.getElementById("exportCsvBtn");
+  const validateBtn = document.getElementById("validateOutputBtn");
 
   const out = document.getElementById("experimentOutput");
 
@@ -234,6 +235,41 @@ export function setupExperimentSidebar(graph) {
 
   URL.revokeObjectURL(url);
   });
+
+validateBtn?.addEventListener("click", async () => {
+  try {
+    // ---- TEMP values (we improve next) ----
+    const tolerance = 0.1;
+    const mode = "folder";
+    const path = "simulation_results";
+
+    setBottomOutputMessage("Running validation...");
+
+    const res = await fetch("http://localhost:8002/validate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        tolerance,
+        mode,
+        path
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+
+    const result = await res.text();
+
+    setBottomOutputMessage(result);
+
+  } catch (err) {
+    console.error(err);
+    setBottomOutputMessage("Validation failed: " + err.message);
+  }
+});
 
   function getCoupledPortsByUid(uid) {
     const uos = cm.getUserObjects();

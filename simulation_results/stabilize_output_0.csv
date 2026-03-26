@@ -1,0 +1,59 @@
+sep=;
+time;model_id;model_name;port_name;data
+0;1;start_mission_file;;5
+0;2;stabilize_file;;10
+0;3;cancel_hover_file;;inf
+0;4;aircraft_state_file;;15
+0;5;Stabalize;;{sigma: inf,state: IDLE}
+5;1;start_mission_file;out;1
+5;1;start_mission_file;;inf
+5;5;Stabalize;;{sigma: inf,state: WAIT_STABILIZE}
+10;2;stabilize_file;out;45.0000000 -75.0000000 100.00 5.00 5.00 10.00 1.00 5.00 3.00 0.00 0.00 0 
+10;2;stabilize_file;;inf
+10;5;Stabalize;;{sigma: 0,state: REQUEST_AIRCRAFT_STATE}
+10;5;Stabalize;o_request_aircraft_state;1
+10;5;Stabalize;;{sigma: inf,state: GET_AIRCRAFT_STATE}
+15;4;aircraft_state_file;out;99.00 100.0000000 -75.0000000 100.00 100.00 5.00 0.00
+15;4;aircraft_state_file;;5.2
+15;5;Stabalize;;{sigma: 0,state: INIT_HOVER}
+15;5;Stabalize;o_fcc_command_hover;99 33 192 0 0 0 -nan 450000000 -750000000 30.48 
+15;5;Stabalize;;{sigma: 0.1,state: STABILIZING}
+15.1;5;Stabalize;o_request_aircraft_state;1
+15.1;5;Stabalize;;{sigma: inf,state: CHECK_STATE}
+20.2;4;aircraft_state_file;out;99.00 100.0000000 -75.0000000 100.00 100.00 5.00 0.00
+20.2;4;aircraft_state_file;;0.2
+20.2;5;Stabalize;;{sigma: 0.1,state: STABILIZING}
+20.3;5;Stabalize;o_request_aircraft_state;1
+20.3;5;Stabalize;;{sigma: inf,state: CHECK_STATE}
+20.4;4;aircraft_state_file;out;99.00 45.0000000 -75.0000000 100.00 100.00 5.00 0.00
+20.4;4;aircraft_state_file;;0.2
+20.4;5;Stabalize;;{sigma: 0.1,state: STABILIZING}
+20.5;5;Stabalize;o_request_aircraft_state;1
+20.5;5;Stabalize;;{sigma: inf,state: CHECK_STATE}
+20.6;4;aircraft_state_file;out;99.00 45.0000000 -75.0000000 100.00 100.00 5.00 0.00
+20.6;4;aircraft_state_file;;3.5
+20.6;5;Stabalize;;{sigma: 0.1,state: STABILIZING}
+20.7;5;Stabalize;o_request_aircraft_state;1
+20.7;5;Stabalize;;{sigma: inf,state: CHECK_STATE}
+24.1;4;aircraft_state_file;out;99.00 100.0000000 -75.0000000 100.00 100.00 5.00 0.00
+24.1;4;aircraft_state_file;;0.9
+24.1;5;Stabalize;;{sigma: 0.1,state: STABILIZING}
+24.2;5;Stabalize;o_request_aircraft_state;1
+24.2;5;Stabalize;;{sigma: inf,state: CHECK_STATE}
+25;4;aircraft_state_file;out;99.00 45.0000000 -75.0000000 100.00 100.00 5.00 0.00
+25;4;aircraft_state_file;;4.6
+25;5;Stabalize;;{sigma: 0.1,state: STABILIZING}
+25.1;5;Stabalize;o_request_aircraft_state;1
+25.1;5;Stabalize;;{sigma: inf,state: CHECK_STATE}
+29.6;4;aircraft_state_file;out;99.00 45.0000000 -75.0000000 100.00 100.00 5.00 0.00
+29.6;4;aircraft_state_file;;inf
+29.6;5;Stabalize;;{sigma: 0.1,state: STABILIZING}
+29.7;5;Stabalize;o_hover_criteria_met;1
+29.7;5;Stabalize;o_update_gcs;Came to hover! 6 
+29.7;5;Stabalize;;{sigma: 0,state: HOVER}
+29.7;5;Stabalize;;{sigma: inf,state: WAIT_STABILIZE}
+29.7;1;start_mission_file;;inf
+29.7;2;stabilize_file;;inf
+29.7;3;cancel_hover_file;;inf
+29.7;4;aircraft_state_file;;inf
+29.7;5;Stabalize;;{sigma: inf,state: WAIT_STABILIZE}
