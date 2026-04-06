@@ -71,6 +71,7 @@ export function setupExperimentSidebar(graph) {
 
   setBottomOutputMessage("");
 
+
   const editors = attachInitEditors({ cm, mutModelSelect, efModelSelect });
 
   toggleMutInitBtn?.addEventListener("click", () => {

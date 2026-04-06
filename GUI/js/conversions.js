@@ -249,13 +249,18 @@ export class ConversionManager {
 
     // Gets the simulation time from the top-right input box on the GUI
     getSimulationTime() {
-        let inputValue = parseFloat(document.getElementById("previewNumberInput").value);
+        const el = document.getElementById("previewNumberInput");
+        console.log("previewNumberInput element:", el);
+        console.log("previewNumberInput value:", el?.value);
+
+        let inputValue = parseFloat(el?.value);
         if (isNaN(inputValue)) {
-            inputValue = 50.0; // Use 50.0 as default during development if not invalid/unspecified
+            inputValue = 50.0;
         }
 
+        console.log("FINAL SIM TIME:", inputValue);
         return inputValue;
-    }
+}
 
 
     // Gets the DEVSMap representation of the DEVS Graph
@@ -265,6 +270,7 @@ export class ConversionManager {
     getDEVSMap() {
         // Get required values for generating DEVSMap
         let time_span = this.getSimulationTime();
+        console.log("DEVSMap time_span =", time_span);
 
         let top_model_id = this.getTopModel();
 
@@ -405,11 +411,23 @@ export class ConversionManager {
             console.log("DEVSMap:", DEVSMap);
         }
 
-        // HTTP Calls 
+        window.showBottomSimulationOutput?.("Sending bundle to parser...");
+
         const codeResult = await this.generateCode(DEVSMap, logCadmiumCode);
 
+        window.showBottomSimulationOutput?.("Parser finished. Running simulation...");
+
         const csvResult = await this.generateCSV(codeResult, logSimulationOutput);
-    }
+
+        window.__LAST_CSV_OUTPUT = csvResult || "";
+        window.showBottomSimulationOutput?.(csvResult || "No simulation output returned.");
+
+        console.log("previewNumberInput =", document.getElementById("previewNumberInput")?.value);
+        console.log("timeSpanInput =", document.getElementById("timeSpanInput")?.value);
+        console.log("getSimulationTime() =", this.getSimulationTime());
+        console.log("DEVSMap sent:", DEVSMap);
+        DEVSMap[top_model_id + '_experiment.json'].time_span
+}
 
 
     // TODO / WIP
@@ -479,11 +497,13 @@ export class ConversionManager {
                 body: JSON.stringify(CadmiumCode)
             });
 
-            const data = await response.json();
+            const data = await response.text();
 
             if (logSimulationOutput) {
                 console.log("Response from Cadmium Builder:", data);
             }
+
+            return data;
 
             return data;  // optional: in case you want to use it elsewhere
 

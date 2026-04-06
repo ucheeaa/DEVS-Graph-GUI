@@ -563,3 +563,5 @@ export function readCouplingRows(listId) {
 
   return couplings;
 }
+
+window.showBottomSimulationOutput = showOutput;

@@ -53,7 +53,7 @@
                     </div> -->
                     <!-- Export SUBMENU -->
                     <div class="dropdown-submenu">
-                        <button class="submenu-btn">Export ▸</button>
+                        <button class="submenu-btn">Export</button>
                         <div class="submenu-content">
                             <button id="screenshotPngBtn">Screenshot (.png)</button>
                             <!-- <button id="screenshotJpgBtn">Screenshot (.jpg)</button> -->
@@ -151,12 +151,39 @@
                 </div>
             </div>
 
+
+            <div id="aboutModal" class="modal hidden">
+                <div class="modal-content">
+                    <span id="aboutClose" class="modal-close">&times;</span>
+                    <h2>DEVS Graph Tool</h2>
+                    <p>
+                    A graphical tool for modeling, simulation, validation, and experimentation
+                    of discrete-event systems.
+                    </p>
+                    <p><strong>Developed by:</strong><br>
+                    James Grieder, Uchenna Obikwelu, Matthew Khoury
+                    </p>
+                    <p>
+                    Carleton University - SYSC 4907 Capstone<br>
+                    Supervisor: Dr. Gabriel Wainer<br>
+                    Version: April 2026
+                    </p>
+                </div>
+            </div>
+
             <!-- Help DROPDOWN -->
             <div class="dropdown" id="helpDropdown">
                 <button class="dropbtn">Help</button>
                 <div class="dropdown-content">
                     <button id="aboutBtn">About</button>
-                    <button id="userManualBtn">User Manual</button>
+                    <a href="https://docs.google.com/document/d/15JhDdodCcT008y9cZSUemov8zxrYL9X4wrXCKjjixF0/edit?usp=sharing"
+                        target="_blank"
+                        style="display:block; padding:8px 12px; text-decoration:none; color:black;"
+                        onmouseover="this.style.background='#eee'"
+                        onmouseout="this.style.background='transparent'">
+                            User Manual
+                    </a>
+
                     <button id="shortcutsBtn">Keyboard Shortcuts</button>
                     <!-- TOOLS SUBMENU 
                     <div class="dropdown-submenu">
@@ -167,12 +194,16 @@
                     </div> -->
                     <!-- RESOURCES SUBMENU -->
                     <div class="dropdown-submenu">
-                        <button class="submenu-btn">External Resources ▸</button>
+                        <button class="submenu-btn">External Resources</button>
                         <div class="submenu-content">
-                            <button id="linkDEVSSimBtn">DEVSSim Website</button>
+                            <a href="https://devssim.carleton.ca/" target="_blank" 
+                                style="display:block; padding:8px 12px; text-decoration:none; color:black;"
+                                onmouseover="this.style.background='#eee'"
+                                onmouseout="this.style.background='transparent'">
+                                    DEVSSim Website
+                            </a>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>

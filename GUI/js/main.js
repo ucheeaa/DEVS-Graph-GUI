@@ -1942,6 +1942,7 @@ function main(container) {
     });
 
 
+
     /////////////////////////////////////////////////////////////////////////////
     ///////// Keyboard Shortcuts setup
     /////////////////////////////////////////////////////////////////////////////
@@ -2122,6 +2123,34 @@ function main(container) {
     });
 
     return graph;
+}
+    /////////////////////////////////////////////////////////////////////////////
+    ///////// Help -> About 
+    /////////////////////////////////////////////////////////////////////////////
+function setupHelpMenu() {
+    const aboutBtn = document.getElementById("aboutBtn");
+    const aboutModal = document.getElementById("aboutModal");
+    const aboutClose = document.getElementById("aboutClose");
+
+    if (aboutBtn && aboutModal) {
+        aboutBtn.addEventListener("click", () => {
+            aboutModal.classList.remove("hidden");
+        });
+    }
+
+    if (aboutClose && aboutModal) {
+        aboutClose.addEventListener("click", () => {
+            aboutModal.classList.add("hidden");
+        });
+    }
+
+    if (aboutModal) {
+        aboutModal.addEventListener("click", (e) => {
+            if (e.target === aboutModal) {
+                aboutModal.classList.add("hidden");
+            }
+        });
+    }
 }
 
 function setupRightPaletteResizer() {
@@ -2344,6 +2373,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const graph = main(container); // Return the graph from main
 
     const cm = new ConversionManager(graph);
+    setupHelpMenu();
 
     const dropdown = document.getElementById('category-select');
     dropdown.addEventListener('change', e => {

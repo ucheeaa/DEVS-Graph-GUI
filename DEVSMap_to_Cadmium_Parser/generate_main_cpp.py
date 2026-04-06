@@ -12,8 +12,8 @@ def generate_main_cpp(top_model_name, simulation_time):
         top_model_name (str):   The name of the top model, which is used to start the simulation.
         simulation_time (str):  The number of seconds the simulation will run for.
     '''
-    type_of_logger = 'STDOUTLogger'
-    #type_of_logger = 'CSVLogger'
+    #type_of_logger = 'STDOUTLogger'
+    type_of_logger = 'CSVLogger'
 
     # with open(output_filepath, 'w') as file:
     #     file.write(write_main_cpp_top_of_file_for_simulation(top_model_name))
@@ -100,7 +100,7 @@ def set_logger(type_of_logger):
     initialization_string += '\t\t\t'
     if type_of_logger != 'CSVLogger':
         initialization_string += '//' 
-    initialization_string += 'rootCoordinator.setLogger<cadmium::CSVLogger>("logfile.csv", ";");\n'
+    initialization_string += 'rootCoordinator.setLogger<cadmium::CSVLogger>("experiment_log.csv", ";");\n'
     
     initialization_string += '\t\t#endif\n\n'
     
