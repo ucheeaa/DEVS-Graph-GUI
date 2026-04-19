@@ -44,6 +44,11 @@ The DEVS-Graph GUI is a low-code modelling environment for DEVS systems.
 All DEVSMap generation, C++ generation, compilation, and execution occur in the backend automatically.
 Users do NOT manually trigger these steps.
 
+### 🎥 Demo Video
+
+A brief walkthrough of the DEVS-Graph GUI demonstrating modelling, simulation, validation, and experiment workflows:
+
+[▶️ Watch Video](https://drive.google.com/file/d/1MyH83FFyC5bo2i_kN1P_n4MCFr8oWnK-/view)
 ---
 
 ## 2. Main Features
