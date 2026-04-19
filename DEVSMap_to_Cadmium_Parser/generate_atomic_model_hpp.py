@@ -15,10 +15,23 @@ def generate_atomic_models(directory_cpp_code, data):
     '''
     number_of_atomic_models = len(data['atomic_models'])
     code = []
+
     for i in range(number_of_atomic_models):
-        atomic_model_name = list(data['atomic_models'][i].keys())[0]
-        atomic_model = data['atomic_models'][i][atomic_model_name]
-        code.append(generate_atomic_model(directory_cpp_code, data['init_states'], atomic_model_name, atomic_model))
+        atomic_entry = data['atomic_models'][i]
+        atomic_json = atomic_entry["json"]
+
+        atomic_model_name = list(atomic_json.keys())[0]
+        atomic_model = atomic_json[atomic_model_name]
+
+        code.append(
+            generate_atomic_model(
+                directory_cpp_code,
+                data['init_states'],
+                atomic_model_name,
+                atomic_model
+            )
+        )
+
     return code
 
 

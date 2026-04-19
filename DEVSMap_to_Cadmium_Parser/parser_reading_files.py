@@ -109,36 +109,39 @@ def sort_json_files(json_data):
         json_data (dict):   The raw data read in from the DEVSMap json files. This data is 
                             obtained via the read_json_files(directory) function.
     '''
-    data = {'atomic_models': [],    # 1 or more atomic models
-            'coupled_models': [],   # 1 or more coupled models
-            'experiment': None,     # exactly 1 experiment file
-            'definition': [],       # 0 or more definition files
-            'init_states': [],      # 1 or 2 init_state files (mut/ef)
-            'param': None,          # 0 or 1 param files
-            'metadata': None}       # 0 or 1 metadata files #TODO
-    for key in json_data:
-        words = key.split('_')
-        file_type = words[len(words) - 1].split('.')[0]
-        match file_type:
-            case "atomic":
-                data["atomic_models"].append(json_data[key])
-            case "coupled":
-                data["coupled_models"].append(json_data[key])
-            case "experiment":
-                data["experiment"] = json_data[key]
-            #case "definition":
-                #data["definition"].append(json_data[key])
-            #case "state":
-                #data["init_states"] = json_data[key]["init_states"]
-            case "state":
-                data["init_states"].append({
-                    "filename": key,
-                    "init_states": json_data[key].get("init_states", {})
-                })
-            #case "param":
-                #data["param"] = json_data[key]
-            #case "metadata":
-                #data["metadata"] = json_data[key]
-            case _:
-                print(f"Parsing for {file_type}.json files not yet implemented.\n")
+    data = {
+        'atomic_models': [],    # 1 or more atomic models
+        'coupled_models': [],   # 1 or more coupled models
+        'experiment': None,     # exactly 1 experiment file
+        'definition': [],
+        'init_states': [],      # 1 or more init_state files
+        'param': None,
+        'metadata': None
+    }
+
+    for key, value in json_data.items():
+        if key.endswith("_atomic.json"):
+            data["atomic_models"].append({
+                "filename": key,
+                "json": value
+            })
+
+        elif key.endswith("_coupled.json"):
+            data["coupled_models"].append({
+                "filename": key,
+                "json": value
+            })
+
+        elif key.endswith("_experiment.json"):
+            data["experiment"] = value
+
+        elif key.endswith("_init_state.json"):
+            data["init_states"].append({
+                "filename": key,
+                "init_states": value.get("init_states", {})
+            })
+
+        else:
+            print(f"Parsing for {key} not yet implemented.\n")
+
     return data

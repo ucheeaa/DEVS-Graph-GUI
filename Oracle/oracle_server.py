@@ -2,12 +2,19 @@ from flask import Flask, request
 from flask_cors import CORS
 import subprocess
 import os
+
+import platform
+
 print("STARTING ORACLE SERVER...")
 app = Flask(__name__)
 CORS(app)
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BINARY_PATH = os.path.join(REPO_ROOT, "oracle_runner.exe")
+
+if platform.system() == "Windows":
+    BINARY_PATH = os.path.join(REPO_ROOT, "Oracle", "oracle_runner.exe")
+else:
+    BINARY_PATH = os.path.join(REPO_ROOT, "Oracle", "oracle_runner")
 
 UPLOAD_DIR = os.path.join(REPO_ROOT, "temp_upload")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -35,7 +42,14 @@ def validate():
                 text=True
             )
 
-            return result.stdout
+            print("ORACLE STDOUT:", result.stdout)
+            print("ORACLE STDERR:", result.stderr)
+            print("ORACLE RETURN CODE:", result.returncode)
+
+            return result.stdout if result.stdout.strip() else (
+                result.stderr if result.stderr.strip() else "Validation finished, but no output was returned."
+            )
+
 
         return "Unsupported mode"
 

@@ -2,6 +2,7 @@ from .DEVSMap_parser import generate_code
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 import json
+import traceback
 
 ALLOWED_ORIGINS = {
     "http://localhost:5500",
@@ -51,6 +52,7 @@ class ParserHandler(BaseHTTPRequestHandler):
                 cadmiumCode = generate_code(data)
             except Exception as e:
                 print("Error in generate_code:", e)
+                traceback.print_exc()
                 cadmiumCode = {"error": str(e)}
 
             self.send_response(200)
@@ -59,7 +61,10 @@ class ParserHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             try:
-                self.wfile.write(json.dumps(cadmiumCode).encode("utf-8"))
+                if isinstance(cadmiumCode, str):
+                    self.wfile.write(cadmiumCode.encode("utf-8"))
+                else:
+                    self.wfile.write(json.dumps(cadmiumCode).encode("utf-8"))
             except ConnectionAbortedError:
                 print("Client disconnected before response could be sent.")
 

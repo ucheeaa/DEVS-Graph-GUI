@@ -101,17 +101,20 @@ def generate_code(JSON):
             mut_file = experiment_data["model_under_test"]["model"]
             ef_file = experiment_data["experimental_frame"]["model"]
 
+            mut_uid = mut_file.removesuffix("_coupled.json")
+            ef_uid = ef_file.removesuffix("_coupled.json")
+
             mut_model_name = list(DEVSMap[mut_file].keys())[0]
             ef_model_name = list(DEVSMap[ef_file].keys())[0]
 
-            cpic = experiment_data.get("cpic",[])
-            pocc = experiment_data.get("pocc",[])
-            simulation_time = experiment_data.get("time_span","30")
+            cpic = experiment_data.get("cpic", [])
+            pocc = experiment_data.get("pocc", [])
+            simulation_time = experiment_data.get("time_span", "30")
 
             code.update(
                 generate_experiment_main_cpp(
-                    mut_model_name,
-                    ef_model_name,
+                    mut_uid,
+                    ef_uid,
                     cpic,
                     pocc,
                     simulation_time

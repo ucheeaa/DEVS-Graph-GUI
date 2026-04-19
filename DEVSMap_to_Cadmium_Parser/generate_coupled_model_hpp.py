@@ -14,15 +14,18 @@ def generate_coupled_models(directory_cpp_code, data):
     number_of_coupled_models = len(data['coupled_models'])
     code = []
 
-    experiment = data['experiment']
-    top_model_name = experiment['model_under_test']['model'].removesuffix("_coupled.json")
-
     for i in range(number_of_coupled_models):
-        coupled_model_key = list(data['coupled_models'][i].keys())[0]
-        coupled_model = data['coupled_models'][i][coupled_model_key]
-        code.append(generate_coupled_model(directory_cpp_code, top_model_name, coupled_model))
-    return code
+        coupled_entry = data['coupled_models'][i]
+        coupled_filename = coupled_entry["filename"]                  # e.g. step_gen_ef_coupled.json
+        coupled_json = coupled_entry["json"]
 
+        coupled_model_name = coupled_filename.removesuffix("_coupled.json")   # e.g. step_gen_ef
+        coupled_model_key = list(coupled_json.keys())[0]                      # e.g. step_coupled
+        coupled_model = coupled_json[coupled_model_key]
+
+        code.append(generate_coupled_model(directory_cpp_code, coupled_model_name, coupled_model))
+
+    return code
 
 
 def generate_coupled_model(directory, coupled_model_name, coupled_model):

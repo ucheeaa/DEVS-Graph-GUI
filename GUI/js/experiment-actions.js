@@ -168,6 +168,8 @@ export async function generateExperimentJsonFromGraph({
   getMutInitBuilder,
   getEfInitBuilder
 }) {
+  console.log("RUN EXPERIMENT path");
+  
   const expName = (expNameInput?.value || "").trim();
   const mutUid = mutModelSelect?.value || "";
   const efUid = efModelSelect?.value || "";
@@ -246,6 +248,9 @@ export async function generateExperimentJsonFromGraph({
     time_span: String(timeSpan)
   };
 
+  console.log("Experiment timeSpanRaw =", timeSpanRaw);
+  console.log("Experiment timeSpan =", timeSpan);
+
   const bundle = {};
 
   addCoupledAndItsAtomicsToBundle(bundle, cm, mutUid);
@@ -263,7 +268,7 @@ export async function generateExperimentJsonFromGraph({
   try {
     if (out) out.textContent += "\n\nSending bundle to parser...";
     showOutput("Sending bundle to parser...");
-
+    console.log("Experiment bundle sent:", bundle);
     const parseRes = await fetch("http://localhost:8000/parse", {
       method: "POST",
       headers: {
@@ -277,6 +282,10 @@ export async function generateExperimentJsonFromGraph({
     }
 
     const generatedCode = await parseRes.json();
+
+    if (generatedCode?.error) {
+    throw new Error(`Parser error: ${generatedCode.error}`);
+  }
 
     if (out) out.textContent += "\nParser finished. Running simulation...";
     showOutput("Parser finished. Running simulation...");
@@ -295,6 +304,19 @@ export async function generateExperimentJsonFromGraph({
 
     const simulationOutput = await buildRes.text();
 
+    if (
+      simulationOutput.includes("Build failed") ||
+      simulationOutput.includes("fatal error") ||
+      simulationOutput.includes("error:") ||
+      simulationOutput.includes("No such file") ||
+      simulationOutput.includes("not found")
+    ) {
+      window.__LAST_CSV_OUTPUT = "";
+      if (out) out.textContent = simulationOutput;
+      setBottomOutputMessage(simulationOutput);
+      return null;
+    }
+
     // store latest CSV for export
     window.__LAST_CSV_OUTPUT = simulationOutput;
 
@@ -310,6 +332,8 @@ export async function generateExperimentJsonFromGraph({
     if (out) out.textContent += `\n\n${msg}`;
     showOutput(msg);
   }
+
+
 
   return { experiment, bundle };
 }

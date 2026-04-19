@@ -330,7 +330,7 @@ const generalItems = [
     userObject: {
       elementType: 'atomicModel',
       model_name: 'step_generator',
-      unique_id: 'step_generator',
+      unique_id: 'step_gen',
       json: {
         model: {
           x: {},

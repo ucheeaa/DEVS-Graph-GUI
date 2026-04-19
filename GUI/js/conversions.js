@@ -190,7 +190,7 @@ export class ConversionManager {
         }
 
         // Exactly one top model → return its unique_id
-        return topLevelCoupled[0].userObject?.unique_id;
+        return topLevelCoupled[0].userObject?.unique_id?.toLowerCase();
     }
 
 
@@ -203,8 +203,9 @@ export class ConversionManager {
 
         // 1. Find top level coupled model
         const topModelObj = userObjects.find(
-            u => u.elementType === "coupledModel" &&
-                u.unique_id === topModelId
+            u =>
+                u.elementType === "coupledModel" &&
+                String(u.unique_id).toLowerCase() === String(topModelId).toLowerCase()
         );
 
         if (!topModelObj) {
@@ -218,12 +219,13 @@ export class ConversionManager {
         // 2. Iterate each component
         for (const component of components) {
 
-            const modelName = component.model;
-            const uniqueId = component.component_id;
+            const uniqueId = component.component_id ?? component.id;
 
             // Find corresponding atomic model by unique_id
             const atomic = userObjects.find(
-                u => u.elementType === "atomicModel" && u.unique_id === uniqueId
+                u =>
+                    u.elementType === "atomicModel" &&
+                    String(u.unique_id).toLowerCase() === String(uniqueId).toLowerCase()
             );
 
             if (!atomic) {
@@ -249,18 +251,25 @@ export class ConversionManager {
 
     // Gets the simulation time from the top-right input box on the GUI
     getSimulationTime() {
-        const el = document.getElementById("previewNumberInput");
-        console.log("previewNumberInput element:", el);
-        console.log("previewNumberInput value:", el?.value);
+        const previewEl = document.getElementById("previewNumberInput");
+        const expEl = document.getElementById("timeSpanInput");
 
-        let inputValue = parseFloat(el?.value);
+        let inputValue = parseFloat(previewEl?.value);
+
+        if (isNaN(inputValue)) {
+            inputValue = parseFloat(expEl?.value);
+        }
+
         if (isNaN(inputValue)) {
             inputValue = 50.0;
         }
 
+        console.log("previewNumberInput value:", previewEl?.value);
+        console.log("timeSpanInput value:", expEl?.value);
         console.log("FINAL SIM TIME:", inputValue);
+
         return inputValue;
-}
+    }
 
 
     // Gets the DEVSMap representation of the DEVS Graph
@@ -269,10 +278,15 @@ export class ConversionManager {
     // corresponding to the values of that DEVSMap structure
     getDEVSMap() {
         // Get required values for generating DEVSMap
+
         let time_span = this.getSimulationTime();
         console.log("DEVSMap time_span =", time_span);
 
-        let top_model_id = this.getTopModel();
+        let top_model_id = this.getTopModel()?.toLowerCase();
+        let top_model_uid = String(top_model_id).toLowerCase();
+
+
+        
 
         // Additional values may need to be added/obtained here as the functionality is extended
 
@@ -282,10 +296,10 @@ export class ConversionManager {
         let DEVSMap = {};
 
         // Create a simple experiment.json (no experimental frames yet)
-        DEVSMap[top_model_id + '_experiment.json'] = {
+        DEVSMap[top_model_uid + '_experiment.json'] = {
             'model_under_test': {
-                'model': top_model_id + '_coupled.json',
-                'initial_state': top_model_id + '_init_state.json',
+                'model': top_model_uid + '_coupled.json',
+                'initial_state': top_model_uid + '_init_state.json',
                 'parameters': ''
             },
             'experimental_frame': {},
@@ -295,7 +309,7 @@ export class ConversionManager {
         }
 
         // Create init_states.json
-        DEVSMap[top_model_id + '_init_state.json'] = {
+        DEVSMap[top_model_uid + '_init_state.json'] = {
             'init_states': this.getInitStates()
         }
 
@@ -358,7 +372,7 @@ export class ConversionManager {
     if (Array.isArray(modelCopy.components)) {
         modelCopy.components = modelCopy.components.map(c => ({
             model: c.model,
-            id: c.component_id
+            id: c.component_id ?? c.id
         }));
     }
 
@@ -401,6 +415,7 @@ export class ConversionManager {
     // to the Cadmium_Builder module (which will build and simulate the Cadmium 
     // code).  Then, logs the resulting simulation output to the browser console.
     async previewSimulationOutput() {
+        console.log("NORMAL RUN path");
         const logDEVSMap = false;
         const logCadmiumCode = false;
         const logSimulationOutput = true;
@@ -415,6 +430,18 @@ export class ConversionManager {
 
         const codeResult = await this.generateCode(DEVSMap, logCadmiumCode);
 
+
+        if (!codeResult) {
+            window.showBottomSimulationOutput?.("Parser returned no response.");
+            return;
+        }
+
+        if (codeResult.error) {
+            console.error("Parser error:", codeResult.error);
+            window.showBottomSimulationOutput?.("Parser error: " + codeResult.error);
+            return;
+        }
+
         window.showBottomSimulationOutput?.("Parser finished. Running simulation...");
 
         const csvResult = await this.generateCSV(codeResult, logSimulationOutput);
@@ -426,7 +453,6 @@ export class ConversionManager {
         console.log("timeSpanInput =", document.getElementById("timeSpanInput")?.value);
         console.log("getSimulationTime() =", this.getSimulationTime());
         console.log("DEVSMap sent:", DEVSMap);
-        DEVSMap[top_model_id + '_experiment.json'].time_span
 }
 
 
@@ -487,31 +513,26 @@ export class ConversionManager {
     // Sends Cadmium code to the Cadmium_Builder module, receives the resulting 
     // simulation output
     async generateCSV(CadmiumCode, logSimulationOutput = true) {
+    try {
+        const response = await fetch("http://localhost:8001/simulation-output", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(CadmiumCode)
+        });
 
-        try {
-            const response = await fetch("http://localhost:8001/simulation-output", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(CadmiumCode)
-            });
+        const data = await response.text();
 
-            const data = await response.text();
-
-            if (logSimulationOutput) {
-                console.log("Response from Cadmium Builder:", data);
-            }
-
-            return data;
-
-            return data;  // optional: in case you want to use it elsewhere
-
-        } catch (error) {
-            console.error("Error sending data to Cadmium Builder:", error);
+        if (logSimulationOutput) {
+            console.log("Response from Cadmium Builder:", data);
         }
 
+        return data;
+    } catch (error) {
+        console.error("Error sending data to Cadmium Builder:", error);
     }
+}
 
 
 }

@@ -240,5 +240,9 @@ std::string parseFile(
         }
     }
 
-    return matchOK ? "PASS" : "FAIL";
+    if (matchOK) {
+    std::cout << fileOnly << ": PASS\n";
+    return "PASS";
+    }
+    return "FAIL";
 }

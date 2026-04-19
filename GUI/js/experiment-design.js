@@ -209,9 +209,18 @@ export function setupExperimentSidebar(graph) {
     })
   );
 
-  runExpBtn?.addEventListener("click", () => {
-    console.warn("runExperimentBtn not wired yet");
-  });
+  runExpBtn?.addEventListener("click", () =>
+  generateExperimentJsonFromGraph({
+    cm,
+    expNameInput,
+    mutModelSelect,
+    efModelSelect,
+    timeSpanInput,
+    out,
+    getMutInitBuilder: editors.getMutInitBuilder,
+    getEfInitBuilder: editors.getEfInitBuilder
+  })
+);
 
   clearOutputBtn?.addEventListener("click", () => {
     if (out) out.textContent = "";
