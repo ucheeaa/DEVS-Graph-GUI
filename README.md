@@ -182,24 +182,72 @@ Backend automatically:
 
 ## 9. Oracle Validation
 
-Install:
+The oracle validation compares simulation output against **expected states defined by the user**.
+
+### Prerequisite
+The system must already be running:
 
 ```
-pip install flask flask-cors
+python start_all.py
 ```
-
-Steps:
-1. Run simulation
-2. Upload CSV output
-3. Set tolerance
-4. Run validation
-
-Results:
-- PASS
-- FAIL
-- NOT TESTED
 
 ---
+
+### Required Setup (IMPORTANT)
+
+Before running validation, you must define expected outputs in:
+
+```
+DEVS-Graph/Oracle/expected_DEVS_states.csv
+```
+
+In this file, you must manually add your **expected states**.
+
+Follow the exact format used in the existing rows inside the file.
+
+⚠️ Validation will NOT work unless this file is properly filled.
+
+---
+
+### Steps
+
+1. Run a simulation or experiment  
+2. Navigate to:
+   ```
+   DEVS-Graph/Oracle/expected_DEVS_states.csv
+   ```
+3. Add expected states using the same structure as existing examples  
+4. Save the file  
+5. In the GUI, open the validation section  
+6. Click **Run Validation**
+
+---
+
+### Results
+
+- **PASS** → Output matches expected states  
+- **FAIL** → Output deviates from expected states  
+- **NOT TESTED** → Validation did not execute correctly  
+
+---
+
+### Notes
+
+- Validation depends entirely on correctly formatted expected states  
+- Always follow the structure of existing examples in the CSV file  
+- Common mistakes:
+  - Missing rows or columns  
+  - Incorrect formatting  
+  - Mismatched values with simulation output  
+
+---
+
+### Tips
+
+- Start by copying an existing example row and modifying it  
+- Keep naming consistent with your model definitions  
+- If validation fails unexpectedly, double-check the CSV formatting first  
+
 
 ## 10. File Operations
 
