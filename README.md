@@ -2,17 +2,15 @@
 
 A graphical tool for the modelling, simulation, validation, and experimentation of Discrete-Event System Specification (DEVS) models.
 
-This system allows users to visually create atomic and coupled DEVS models, generate DEVSMap representations, automatically translate them into Cadmium-compatible C++ code, run simulations, design experiments using a Model Under Test (MUT) and Experimental Frame (EF), and validate simulation outputs using an integrated oracle.
-
----
+This system allows users to visually create atomic and coupled DEVS models, define their behavior, run simulations, design experiments using a Model Under Test (MUT) and Experimental Frame (EF), and validate simulation outputs using an integrated oracle.
 
 ## Repository
 
-**Repository:** https://github.com/ucheeaa/DEVS-Graph-GUI
+[DEVS-Graph-GUI](https://github.com/ucheeaa/DEVS-Graph-GUI)
 
 ---
 
-# Table of Contents
+## Table of Contents
 
 - [1. Overview](#1-overview)
 - [2. Main Features](#2-main-features)
@@ -23,95 +21,293 @@ This system allows users to visually create atomic and coupled DEVS models, gene
 - [7. Standard Modelling and Simulation Workflow](#7-standard-modelling-and-simulation-workflow)
 - [8. Experiment Design Workflow](#8-experiment-design-workflow)
 - [9. Oracle Validation Workflow](#9-oracle-validation-workflow)
-- [10. File Saving, Loading, and Exporting](#10-file-saving-loading-and-exporting)
-- [11. Toolbar and Interaction Features](#11-toolbar-and-interaction-features)
-- [12. Help Menu and User Manual Access](#12-help-menu-and-user-manual-access)
-- [13. Expected Validation State Files](#13-expected-validation-state-files)
-- [14. Troubleshooting](#14-troubleshooting)
-- [15. Project Structure](#15-project-structure)
+- [10. File Operations](#10-file-operations)
+- [11. Interaction Features](#11-interaction-features)
+- [12. Help and Documentation](#12-help-and-documentation)
+- [13. Troubleshooting](#13-troubleshooting)
+- [14. Project Structure](#14-project-structure)
 
 ---
 
-# 1. Overview
+## 1. Overview
 
-The DEVS-Graph GUI is a low-code modelling environment for DEVS-based systems. It supports the full workflow from graphical model creation to backend simulation and validation.
+The DEVS-Graph GUI is a low-code modelling environment for DEVS-based systems.
 
-The tool supports two main workflows:
+It supports two main workflows:
 
-1. **Standard modelling and simulation workflow**
-   - Create atomic and coupled models
-   - Generate DEVSMap
-   - Generate Cadmium C++ code
-   - Run simulation
-   - View simulation output
+### 1. Standard Modelling and Simulation
+- Create atomic and coupled models
+- Define model properties
+- Run simulation
+- View simulation output
 
-2. **Experiment design workflow**
-   - Select a Model Under Test (MUT)
-   - Select an Experimental Frame (EF)
-   - Define experiment couplings and initial states
-   - Generate experiment JSON
-   - Run experiment simulation
-   - View experiment output
+### 2. Experiment Design Workflow
+- Select Model Under Test (MUT)
+- Select Experimental Frame (EF)
+- Configure experiment
+- Run experiment
+- View output
 
-The tool also includes an **oracle validation workflow** for comparing simulation outputs against expected state data.
+The system automatically performs the following in the backend:
+- DEVSMap generation
+- Cadmium C++ code generation
+- Compilation and simulation execution
+
+The user does **not** directly perform these backend generation steps through the GUI. Instead, the user interacts with the graphical interface and triggers simulation or experiment execution, while the backend handles the required processing automatically.
 
 ---
 
-# 2. Main Features
+## 2. Main Features
 
-The system supports the following major features:
-
-- Visual creation of atomic models
-- Visual creation of coupled models
-- Definition of:
-  - input ports
-  - output ports
-  - state variables
-  - internal transition functions
-  - external transition functions
-  - output functions
-  - time advance functions
-- Coupling of DEVS models
-- Automatic generation of DEVSMap JSON
-- Automatic generation of Cadmium-compatible C++ code
-- Automatic compilation and simulation execution
-- Simulation output display in the GUI
+- Graphical atomic model creation
+- Graphical coupled model creation
+- State variable definition
+- Internal and external transition function definition
+- Output function and time advance function definition
+- Drag-and-drop modelling
+- Model coupling support
+- Standard simulation execution
 - Experiment design using MUT and EF
-- Oracle-based validation of simulation output
+- Oracle-based validation
 - XML save/load support
 - PNG export support
-- Keyboard shortcuts
-- Context menu support
-- Bottom-panel simulation output display
-- About dialog and Help menu access
+- Keyboard shortcuts and context menus
+- Simulation output panel
+- Backend-driven DEVSMap and Cadmium code generation
 
 ---
 
-# 3. System Requirements
+## 3. System Requirements
 
-Before running the project, ensure the following are installed:
+Ensure the following are installed on your system:
 
-- **Git**
-- **Python 3.9 or newer**
-- **g++ / C++ compiler**
-- **A modern web browser**
-  - Chrome recommended
-  - Edge supported
-  - Firefox supported
+- Git
+- Python 3.9 or newer
+- A modern web browser (Chrome, Edge, or Firefox recommended)
+- A C++ compiler such as `g++`
+- Python packages:
+  - `flask`
+  - `flask-cors`
 
-For oracle validation support, also install:
-
-- **Flask**
-- **flask-cors**
-
----
-
-# 4. Installation and Setup
-
-## 4.1 Clone the Repository
-
-Open a terminal and run:
+Install the required Python packages with:
 
 ```bash
+pip install flask flask-cors
+
+## 4. Installation and Setup
+
+### Clone the Repository
+
+~~~bash
 git clone https://github.com/ucheeaa/DEVS-Graph-GUI.git
 cd DEVS-Graph-GUI
+~~~
+
+### Install Python Dependencies
+
+~~~bash
+pip install flask flask-cors
+~~~
+
+Verify Python:
+
+~~~bash
+python --version
+~~~
+
+---
+
+## 5. Running the System
+
+From the root directory:
+
+~~~bash
+python start_all.py
+~~~
+
+This starts:
+- Backend server
+- Parser
+- Cadmium execution pipeline
+- Oracle validation server
+
+Open the GUI:
+
+~~~text
+http://localhost:5500/index.html
+~~~
+
+---
+
+## 6. GUI Overview
+
+### Left Panel
+- Model palette (drag and drop models)
+
+### Canvas
+- Workspace for building DEVS models
+
+### Right Panel
+- Properties tab (model configuration)
+- Experiment tab (experiment setup)
+
+### Bottom Panel
+- Simulation logs
+- CSV outputs
+- Validation results
+
+---
+
+## 7. Standard Modelling and Simulation Workflow
+
+### Step 1: Add Model
+- Drag atomic model from palette
+
+### Step 2: Configure Properties
+- Name
+- Ports
+- State variables
+- Transition functions
+- Output function
+- Time advance
+
+### Step 3: Create Coupled Model
+- Select models
+- Click **Couple Models**
+
+### Step 4: Define Couplings
+- Internal (IC)
+- External Input (EIC)
+- External Output (EOC)
+
+### Step 5: Set Simulation Time
+- Default used if not specified
+
+### Step 6: Run Simulation
+
+Click run → backend automatically:
+- Generates DEVSMap
+- Generates C++ code
+- Compiles and runs
+
+### Step 7: View Output
+- Displayed in bottom panel
+
+---
+
+## 8. Experiment Design Workflow
+
+### Step 1: Ensure Models Exist
+- Models must already be on canvas
+
+### Step 2: Open Experiment Tab
+
+### Step 3: Select MUT
+- Model Under Test
+
+### Step 4: Select EF
+- Experimental Frame
+
+### Step 5: Configure Initial States
+
+### Step 6: Define Couplings
+- CPIC / POCC
+
+### Step 7: Generate Experiment
+
+### Step 8: Run Experiment
+
+### Step 9: View Output
+
+---
+
+## 9. Oracle Validation Workflow
+
+### Install Dependency
+
+~~~bash
+pip install flask flask-cors
+~~~
+
+### Run System
+
+~~~bash
+python start_all.py
+~~~
+
+### Steps
+1. Run simulation / experiment  
+2. Open validation in GUI  
+3. Upload CSV output  
+4. Set tolerance  
+5. Run validation  
+
+### Results
+- PASS
+- FAIL
+- NOT TESTED
+
+---
+
+## 10. File Operations
+
+Supported:
+- New graph
+- Save XML
+- Load XML
+- Export PNG
+- View outputs
+
+---
+
+## 11. Interaction Features
+
+### Toolbar
+- Copy / Paste / Cut
+- Undo / Redo
+- Delete / Delete All
+- Zoom controls
+
+### Right-click Menu
+- Model-specific actions
+
+### Shortcuts
+- Keyboard supported
+
+---
+
+## 12. Help and Documentation
+
+Click **Help** in GUI:
+- About section
+- User Manual (Google Docs version)
+
+---
+
+## 13. Troubleshooting
+
+### Flask Error
+
+~~~text
+ModuleNotFoundError: No module named 'flask_cors'
+~~~
+
+Fix:
+
+~~~bash
+pip install flask flask-cors
+~~~
+
+---
+
+### GUI Not Loading
+- Ensure `start_all.py` is running  
+- Check port 5500  
+- Disable firewall if needed  
+
+---
+
+### Simulation Not Running
+- Check state definitions  
+- Verify couplings  
+- Ensure simulation time is valid  
